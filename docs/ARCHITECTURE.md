@@ -250,19 +250,24 @@ Used by the Summarize stage to implement offline-first degradation behavior defi
 | Server-side optimized prompts | — | Yes | Yes |
 | Advanced export templates | — | Yes | Yes |
 
-### UpdateManager *(MVP — architectural slot, Discovery FEAT-5 pending)*
+### UpdateManager *(MVP)*
 
-**Responsibility:** Application updates for DMG distribution.
+**Responsibility:** Application updates for DMG distribution. Finalized per DEC-4 (FEAT-5 Discovery).
 
 | Concern | Detail |
 |---|---|
-| Framework | Sparkle (preferred — open-source, widely adopted for macOS DMG apps) |
-| Capabilities | Check for updates, download, install with code signing verification |
-| MVP minimum | Check-for-updates notification when a newer version is available |
-| Preferred MVP | Auto-update via Sparkle (pending FEAT-5 Discovery for integration, code signing, update hosting) |
+| Framework | Sparkle 2, integrated via Swift Package Manager |
+| Appcast hosting | GitHub Pages (appcast XML) + GitHub Releases (DMG artifacts) |
+| Update verification | Dual: EdDSA signature (Sparkle) + Apple code signing (notarization) |
+| Code signing | Apple Developer ID certificate + Hardened Runtime + notarization |
+| Update UX (MVP) | Sparkle built-in UI — check on launch, user-initiated check, notify + prompt to install |
+| Update UX (post-MVP) | Optional custom SwiftUI UI for branded experience |
+| Delta updates | Deferred to post-MVP (full DMG download ~150–180MB acceptable at early scale) |
+| Check interval | Default Sparkle interval (~24h), plus manual "Check for Updates" menu item |
 | Network dependency | Uses NetworkManager to check connectivity before update checks |
-
-> **Note:** FEAT-5 Discovery is planned but not yet completed. This section describes the architectural slot based on PRD requirements. Integration details will be finalized after Discovery.
+| Model catalog updates | `models-manifest.json` updated via Sparkle app releases (no separate model update mechanism) |
+| Release pipeline | GitHub Actions: build → sign → notarize → DMG → EdDSA sign → GitHub Release → generate appcast → push to Pages |
+| Critical key | EdDSA private key must be backed up securely — loss prevents future updates for existing users |
 
 ---
 
@@ -420,6 +425,7 @@ User clicks Record
 | TypeScript (Hono) + Railway backend | Fastest dev velocity for solo dev; Lemon Squeezy TS SDK; content-stateless | DEC-3 |
 | PostgreSQL for backend (not SQLite) | Concurrent writes from LLM proxy requests require multi-writer support | DEC-3 |
 | No real-time transcription in MVP | Simplifies architecture, avoids streaming complexity, focuses on quality | — |
+| Sparkle 2 via SPM for auto-update | Standard for macOS DMG apps; GitHub Pages/Releases for zero-cost hosting; EdDSA + Apple code signing dual verification | DEC-4 |
 
 ---
 
@@ -481,7 +487,7 @@ Voxema/
 | Database (backend) | PostgreSQL via Drizzle ORM (post-MVP) |
 | Dependencies | All dependencies must be auditable (prefer source-available) |
 | Distribution | Direct download (DMG) for MVP |
-| Update mechanism | Sparkle framework (preferred) for auto-update. Requires Discovery FEAT-5. |
+| Update mechanism | Sparkle 2 via SPM. Appcast on GitHub Pages, DMGs on GitHub Releases. EdDSA + Apple code signing. See DEC-4. |
 | Model packaging | Hybrid: bundle Whisper tiny + ECAPA-TDNN ONNX in DMG (~150–180MB). Larger models on demand. See DEC-2. |
 | Backend stack | TypeScript (Hono) + PostgreSQL (Drizzle) on Railway. Post-MVP only. See DEC-3. |
 | Memory budget | ≤ 4 GB peak during any single pipeline stage. Sequential stage execution with model unloading on 8GB devices. |

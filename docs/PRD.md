@@ -404,7 +404,7 @@ The MVP delivers the core loop: **Record → Transcribe → Identify Speakers �
 | Database | SQLite via GRDB |
 | Dependencies | All dependencies must be auditable (prefer source-available) |
 | Distribution | Direct download (DMG) for MVP |
-| Update mechanism | Sparkle framework (preferred) for auto-update in DMG distribution. Requires Discovery for integration approach, code signing, and update hosting. |
+| Update mechanism | Sparkle 2 via SPM. Appcast hosted on GitHub Pages, DMGs on GitHub Releases. EdDSA + Apple code signing dual verification. Developer ID + Hardened Runtime + notarization. Sparkle built-in UI at MVP; delta updates deferred post-MVP. models-manifest.json updated via app releases. See DEC-4. |
 | Model packaging | Hybrid: bundle Whisper tiny (~75MB) + ECAPA-TDNN (~25MB) in DMG for immediate use. Whisper base/small and LLM downloaded on demand. LLM selected during onboarding from a curated list with hardware-based recommendation (see DEC-2). DMG ~150–180MB. Models stored in ~/Library/Application Support/Voxema/Models/. Curated model list and SHA-256 checksums in `models-manifest.json`. See DEC-2. |
 | Backend technology stack | TypeScript (Hono) + PostgreSQL (Drizzle ORM) on Railway. Auth: Apple Sign In + Email OTP, JWT tokens. Billing: Lemon Squeezy webhooks. LLM proxy: Claude Haiku 4.5 primary, GPT-4o-mini fallback, SSE streaming. Hosting temporary (Railway → Fly.io at scale). See DEC-3. |
 
@@ -465,4 +465,5 @@ These are hard constraints, not preferences:
 | Model download required after install | Bundled Whisper tiny enables immediate use; larger models (base/small/LLM) require on-demand download (~0.5–2GB each). Mitigation: progress UI, background download, Whisper tiny works immediately. |
 | Cloud provider unavailability blocks workflow | Offline-first design ensures local fallback always available (see [Offline-First UX](#offline-first-ux)) |
 | Backend dependency for Pro cloud features | If Voxema backend is down, Pro cloud summarization is unavailable. Mitigation: offline-first design ensures LocalProvider fallback is always available; cloud features are never blocking. |
-| Users on outdated versions miss critical fixes | Built-in update mechanism (Sparkle). Version check on app launch. |
+| Users on outdated versions miss critical fixes | Built-in update mechanism (Sparkle 2). Version check on app launch (~24h interval). See DEC-4. |
+| EdDSA signing key loss | Loss prevents shipping updates accepted by existing installations. Mitigation: key backed up in password manager, not stored only on one machine. |

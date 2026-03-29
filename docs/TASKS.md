@@ -10,4 +10,4 @@
 | FEAT-2  | Discovery: Model packaging strategy (bundled vs. first-launch download) | completed | medium | medium |
 | FEAT-3  | Discovery: Backend technology stack (language, framework, hosting for auth/billing/LLM proxy) | completed | high | medium |
 | FEAT-4  | Comprehensive ARCHITECTURE.md update (CloudProvider dual-mode, DEC-1/2/3 alignment, new modules) | completed | medium | medium |
-| FEAT-5  | Discovery: Sparkle framework integration (auto-update, code signing, update hosting) | planned | medium | small |
+| FEAT-5  | Discovery: Sparkle framework integration (auto-update, code signing, update hosting) | completed | medium | small |

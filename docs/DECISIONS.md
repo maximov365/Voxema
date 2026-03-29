@@ -7,6 +7,7 @@
 |----|-------|--------|------|
 | DEC-1 | Monetization: Subscription-only Pro with Lemon Squeezy | accepted | 2026-03-29 |
 | DEC-3 | Backend stack: TypeScript (Hono) + Railway + PostgreSQL | accepted | 2026-03-29 |
+| DEC-4 | Auto-update: Sparkle 2 via SPM + GitHub Pages/Releases | accepted | 2026-03-29 |
 | DEC-2 | Model packaging: Hybrid bundle + on-demand download | accepted | 2026-03-29 |
 
 ---
@@ -158,3 +159,60 @@ Voxema needs a post-MVP backend for Pro tier services: authentication, subscript
 ### Decision stability
 
 Language (TypeScript/Hono): **stable**. Database (PostgreSQL): **stable**. ORM (Drizzle): **stable**. Hosting (Railway): **temporary** — revisit at scale or when EU data residency required, migrate to Fly.io. LLM primary provider (Haiku 4.5): **temporary** — revisit based on pricing changes and quality benchmarks. Auth flow (Apple Sign In + OTP): **stable**.
+
+---
+
+## DEC-4 — Auto-Update: Sparkle 2 via SPM + GitHub Pages/Releases
+
+**Status:** accepted
+**Date:** 2026-03-29
+**Source:** Discovery FEAT-5 (`docs/discoveries/FEAT-5-sparkle-integration.md`)
+
+### Context
+
+Voxema distributes via DMG (no App Store at MVP). Users need a way to receive updates. Without a built-in update mechanism, users on outdated versions miss security patches and quality improvements.
+
+### Options Considered
+
+**Framework:** Sparkle 2 (only serious option for macOS DMG auto-update).
+
+**Appcast hosting:**
+1. GitHub Pages + GitHub Releases — 38/40 (selected)
+2. S3/R2 bucket — 34/40
+3. Railway backend — 28/40
+
+**Update UX:**
+1. Sparkle built-in UI — 39/40 (selected for MVP)
+2. Custom SwiftUI UI — post-MVP enhancement
+
+**Delta updates:**
+1. Defer to post-MVP — 38/40 (selected)
+2. Implement at MVP — 30/40
+
+### Decision
+
+- **Framework:** Sparkle 2 via Swift Package Manager
+- **Appcast hosting:** GitHub Pages (appcast XML) + GitHub Releases (DMG downloads). Zero cost, version-controlled, proven pattern (Sindre Sorhus and many indie macOS apps).
+- **Code signing:** Apple Developer ID certificate + Hardened Runtime + notarization (mandatory for DMG distribution). Sparkle EdDSA signatures for update verification. Dual verification on every update.
+- **Update UX (MVP):** Sparkle's built-in UI — complete, localized, accessible. Check on launch (default ~24h interval) + manual "Check for Updates" menu item.
+- **Update UX (post-MVP):** Optional custom SwiftUI UI for branded experience.
+- **Delta updates:** Deferred to post-MVP. Full DMG download (~150–180MB) is acceptable at early scale.
+- **Model catalog updates:** `models-manifest.json` updated via Sparkle app releases — no separate model update mechanism needed.
+- **Release pipeline:** GitHub Actions tag-triggered: build → sign → notarize → create DMG → EdDSA sign → upload to GitHub Release → generate appcast via `generate_appcast` → push appcast to GitHub Pages.
+- **Lemon Squeezy interaction:** None needed. Updates delivered to all tiers equally. License validation is orthogonal (UI layer per DEC-1).
+
+### Rationale
+
+- Sparkle 2 is the de facto standard for macOS DMG auto-update (used by hundreds of popular apps)
+- GitHub Pages/Releases is zero-cost and version-controlled — no infrastructure to manage
+- Built-in Sparkle UI is polished, localized (40+ languages), and VoiceOver-accessible — no reason to rewrite at MVP
+- Delta updates add complexity to the release pipeline for minimal benefit at early scale
+- models-manifest.json via app releases keeps model catalog in sync with app capabilities
+
+### Decision stability
+
+Framework (Sparkle 2): **stable**. Hosting (GitHub Pages/Releases): **stable**. Code signing (Developer ID + EdDSA): **stable**. Update UX (built-in): **stable for MVP**, revisit post-MVP for branding. Delta updates: **deferred** — revisit after 3–5 stable releases.
+
+### Critical operational note
+
+**EdDSA private key must be backed up securely** (password manager, not just on one machine). Loss of this key would prevent shipping updates that existing users' installations will accept.

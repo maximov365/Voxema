@@ -194,3 +194,26 @@ Use one block per closed workflow. Keep it factual and short.
 - FEAT-5: Sparkle framework integration Discovery (pending)
 - PIPELINE_CONTRACTS.md: Diarize stage input may need to include audio file path for ECAPA-TDNN embedding extraction (pre-existing gap)
 - AudioSessionManager: verify correct macOS API during Builder phase (CoreAudio vs AVAudioSession)
+
+---
+
+## FEAT-5 — Discovery: Sparkle framework integration
+
+**Workflow:** Discovery → PRD + ARCHITECTURE.md update (direct, no quality loop — straightforward replacement of "Requires Discovery" placeholders + UpdateManager section update)
+**Date:** 2026-03-29
+
+### Errors / unexpected
+- None. All changes replaced placeholders or updated architectural slots with concrete decisions.
+
+### Repeated themes
+- None this cycle. MVP scope check passed — Sparkle was already in MVP scope.
+
+### What worked well
+- Discovery identified a critical operational risk (EdDSA key loss) that wasn't in the original PRD risks section. Important to capture early.
+- GitHub Pages + GitHub Releases as zero-cost hosting aligns with the project's minimal-infrastructure philosophy.
+- Decision to defer delta updates reduces MVP release pipeline complexity significantly.
+
+### Follow-ups
+- PIPELINE_CONTRACTS.md: Diarize stage input may need audio file path for ECAPA-TDNN (pre-existing gap)
+- AudioSessionManager: verify correct macOS API during Builder phase
+- All Discovery tasks (FEAT-1 through FEAT-5) complete — ready for implementation task breakdown
