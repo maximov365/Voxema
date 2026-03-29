@@ -56,3 +56,24 @@ Use one block per closed workflow. Keep it factual and short.
 - FEAT-1: Discovery for monetization strategy
 - FEAT-2: Discovery for model packaging strategy
 - Spec Reviewer should_fix: clarify summary failure path in Typical Recording Flow; clarify Activation metric when summarization fails; add C++ bridging risk; add ECAPA-TDNN model availability risk; clarify Speaker entity vs SpeakerIdentity distinction
+
+## 2026-03-29 — PRD-update-v3 (Backend Services, CloudProvider dual-mode)
+
+**Workflow outcome:** completed
+
+### What went wrong
+- CloudProvider description was rewritten to describe only the backend-proxied mode, creating an MVP scope inconsistency (CloudProvider in MVP scope but requiring post-MVP backend). Exact repeat of the pattern from PRD-update-v2: capabilities described in the body that conflict with MVP scope list.
+
+### Repeated must_fix / review / security themes
+- MVP scope inconsistency (second occurrence). Lesson reinforced: when modifying a capability description in the PRD body, ALWAYS check whether the MVP scope list still matches. This is now a documented recurring pattern.
+- Adding a new deployment/infrastructure model (backend proxy) changes the semantics of existing components (CloudProvider). All references to the changed component must be updated consistently — Summarization, Monetization, Offline-First UX, Privacy guardrails.
+
+### What worked well
+- Spec Reviewer caught the CloudProvider scope inconsistency on iteration 1 — no downstream confusion.
+- Dual-mode CloudProvider (direct API for MVP, Voxema proxy for Pro) resolved the tension cleanly: MVP stays self-contained, Pro adds managed experience.
+- Quality loop resolved both must_fix items in one Reviser pass (6.6 → 7.6).
+
+### Follow-ups
+- FEAT-3: Discovery for backend technology stack
+- FEAT-4: ARCHITECTURE.md update for CloudProvider dual-mode
+- Spec Reviewer should_fix: qualify Vision statement re cloud opt-in; qualify MVP scope CloudProvider as direct-API-only; plan PIPELINE_CONTRACTS.md update for provider_used granularity

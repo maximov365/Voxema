@@ -50,13 +50,13 @@ Three tiers, structured around privacy boundaries:
 
 | Tier | Processing Model | Key Features |
 |---|---|---|
-| **Free** | Fully local on user's device | Local Whisper models, local LLM (llama.cpp), all data on-device. No cloud features. Complete meeting pipeline without subscription. |
-| **Pro** | Local + optional cloud LLM | Adds ability to send transcriptions to cloud LLM for higher-quality summaries. Includes explicit per-session consent, text-only transmission (never audio), and encrypted transport. All Free features included. Subscription model. |
-| **Enterprise** | Corporate perimeter deployment | Installable within corporate infrastructure. Processing on corporate local servers with local models. Custom endpoint support (OnPremProvider). Volume licensing. |
+| **Free** | Fully local on user's device | Local Whisper models, local LLM (llama.cpp), all data on-device. CloudProvider (direct API) also available — user provides their own API key. Complete meeting pipeline without subscription. |
+| **Pro** | Local + managed cloud LLM | All Free features included. Adds managed cloud LLM summarization proxied through Voxema's backend — replaces direct-API CloudProvider with a fully managed experience. Users do not manage their own API keys. Backend handles API keys, server-side optimized prompts, and per-user usage tracking. Includes explicit per-session consent, text-only transmission (never audio), and encrypted transport. Subscription model. |
+| **Enterprise** | Corporate perimeter deployment | Installable within corporate infrastructure. Processing on corporate local servers with local models. Custom endpoint support (OnPremProvider). Volume licensing. Optional full self-hosting with no backend dependency. |
 
 **Privacy guardrails per tier:**
-- Free: Zero network calls. All processing on-device.
-- Pro: Audio never leaves device. Only text transcript sent to cloud, only with per-session explicit consent. No persistent cloud storage of transcripts.
+- Free: All processing on-device by default. CloudProvider (direct API) available with user's own key — network call for summarization text only, with per-session consent.
+- Pro: Audio never leaves device. Only text transcript sent to Voxema backend for cloud LLM summarization, only with per-session explicit consent. Transcript passes through the backend to the cloud LLM encrypted in transit (TLS), never persisted on Voxema's servers. No persistent cloud storage of transcripts.
 - Enterprise: All processing within corporate network. OnPremProvider endpoints configured by IT. No data leaves corporate perimeter.
 
 > **Note:** This tier structure directly affects architecture decisions (feature gating, paywall boundaries, licensing). Detailed pricing, feature gating granularity, and go-to-market strategy require a dedicated Discovery.
@@ -88,9 +88,10 @@ Three tiers, structured around privacy boundaries:
 ### Summarization
 - Full transcript assembled with speaker labels and timestamps
 - Dynamic prompt with template + project context + few-shot examples from user corrections
-- Three provider options:
+- Provider options:
   - **LocalProvider** — llama.cpp, fully offline
-  - **CloudProvider** — Anthropic/OpenAI API (text only, user consent required)
+  - **CloudProvider (direct API)** — MVP. User provides their own Anthropic/OpenAI API key (stored in Keychain). App calls cloud LLM directly via URLSession. Text transcript only (never audio), per-session explicit user consent required.
+  - **CloudProvider (Voxema proxy)** — Post-MVP, Pro tier. Cloud LLM access proxied through Voxema's backend. Backend handles API keys, server-side optimized prompts, and per-user usage tracking. User does not manage API keys. Per-session explicit consent still required.
   - **OnPremProvider** — user-specified endpoint for corporate deployments
 - Structured output: summary, key decisions, action items, open questions
 
@@ -202,15 +203,78 @@ Principle #3 (Works offline) and Principle #6 (Graceful degradation) require spe
 
 | Scenario | Behavior |
 |---|---|
-| CloudProvider selected, no internet | Queue the summarization request. Notify user. Offer immediate fallback to LocalProvider. Do NOT silently fail. |
+| CloudProvider (direct API) selected, no internet | Queue the summarization request. Notify user. Offer immediate fallback to LocalProvider. Do NOT silently fail. |
 | OnPremProvider endpoint unreachable | Retry with exponential backoff (max 3 retries). Then offer fallback to LocalProvider or queue for later retry. |
-| Cloud API key invalid or expired | Detect on settings change (not on every recording start). Notify user with clear instructions to update. |
+| Voxema backend unreachable (Pro, proxy mode) | Notify user that managed cloud summarization is temporarily unavailable. Offer immediate fallback to LocalProvider. Queue request for retry when connectivity is restored. |
 
 ### Design Principles
-- Cloud API key validation: check on settings change, not on every recording start
 - Network state changes during pipeline execution: only the Summarize stage is affected; all other stages proceed normally
 - Every core workflow must complete with a useful result even without internet
 - Cloud features enhance quality but are never blocking
+
+---
+
+## Backend Services
+
+> **Post-MVP, architecturally significant.** Backend services are required only for Pro and Enterprise tiers. The MVP operates entirely without a backend. This section is included early because backend design decisions affect the CloudProvider model, monetization architecture, and privacy contracts.
+
+### a) Authentication & Identity
+
+- Apple Sign In and email-based authentication
+- Session management for Pro/Enterprise users
+- Enterprise: domain-based authentication (SSO), centralized access management
+- All auth is for subscription/billing purposes only — no meeting content flows through auth
+
+### b) Subscription & Billing
+
+- Subscription validation via App Store Server API or custom billing system
+- Feature gating based on subscription tier (Free vs Pro)
+- Usage tracking: minutes of audio processed via cloud, LLM tokens consumed
+- Usage limits and billing enforcement
+- Enterprise: volume licensing management
+
+### c) LLM Proxy
+
+Pro users do **not** manage their own API keys. The Voxema backend proxies LLM requests using Voxema's own API keys, replacing the direct-API CloudProvider mode with a fully managed experience.
+
+**Flow:**
+1. App sends text transcript to Voxema backend (encrypted in transit, TLS)
+2. Backend applies optimized server-side prompts
+3. Backend calls cloud LLM (Anthropic/OpenAI)
+4. Backend returns structured summary to app
+
+**Benefits:**
+- Server-side prompt management — optimized prompts for meeting summarization maintained and iterated on the backend, deployed independently of app releases
+- Per-user usage tracking and cost control
+- No API key management burden on users
+- Prompt iteration without app updates
+
+### d) Admin Dashboard
+
+For product owner / operator use during F&F beta stage:
+
+- User list with subscription status
+- Usage statistics per user (minutes, tokens, cost)
+- Grant / revoke access capability
+- API cost monitoring and spending alerts
+- Early stage: simple dashboard (not a full admin panel)
+- Can evolve into a more comprehensive admin system post-beta
+
+### Privacy Constraints for Backend
+
+| Constraint | Detail |
+|---|---|
+| Content-stateless | Backend stores no transcripts, summaries, audio, or PII from meetings |
+| Transit only | Transcript text passes through the LLM proxy in transit only (for the cloud LLM call), never persisted on server |
+| Stored data | User identity, subscription status, usage counters, billing records only |
+| Encryption in transit | All transcript transmission encrypted via TLS |
+| Server logs | Must not contain transcript text or any meeting content |
+
+### Enterprise Additions (post-MVP)
+
+- Domain-based authentication (SSO integration)
+- Centralized model management: IT admin can block cloud models to prevent data leaks, preset OnPremProvider endpoints
+- No backend dependency for Enterprise if fully self-hosted
 
 ---
 
@@ -244,6 +308,9 @@ The MVP delivers the core loop: **Record → Transcribe → Identify Speakers �
 - Cloud sync between devices
 - Enterprise tier features (OnPremProvider, volume licensing)
 - Monetization / paywall implementation
+- Backend services (authentication, billing, LLM proxy)
+- Admin dashboard
+- Server-side prompt management
 
 ---
 
@@ -260,6 +327,7 @@ The MVP delivers the core loop: **Record → Transcribe → Identify Speakers �
 | Dependencies | All dependencies must be auditable (prefer source-available) |
 | Distribution | Direct download (DMG) for MVP |
 | Model packaging | Requires Discovery — how models are bundled with app vs. downloaded on first launch, size implications for DMG distribution |
+| Backend technology stack | Requires Discovery — language, framework, hosting, and infrastructure decisions for the post-MVP backend (auth, billing, LLM proxy, admin dashboard) |
 
 ---
 
@@ -276,6 +344,7 @@ These are hard constraints, not preferences:
 | Full deletion | All meeting data (transcripts, summaries, voice profiles) deletable on demand |
 | No telemetry with content | Logs, analytics, crash reports never contain audio, transcript text, or PII |
 | Temporary audio cleanup | Raw audio files encrypted at rest, deleted after transcription completes successfully. On transcription failure: retry policy applies (max 3 retries); audio retained until retry exhaustion or manual cleanup. Audio files never persist beyond the processing session. |
+| Backend content-stateless | No transcripts, summaries, audio, or meeting content persisted on Voxema's backend servers. Transcript text passes through the LLM proxy in transit only (encrypted via TLS), never stored. Server logs must not contain meeting content. |
 
 ---
 
@@ -316,3 +385,4 @@ These are hard constraints, not preferences:
 | User expects real-time transcription | Clearly communicate that transcription happens post-recording in MVP |
 | Model packaging increases DMG size | Requires Discovery — evaluate bundling vs. first-launch download strategy |
 | Cloud provider unavailability blocks workflow | Offline-first design ensures local fallback always available (see [Offline-First UX](#offline-first-ux)) |
+| Backend dependency for Pro cloud features | If Voxema backend is down, Pro cloud summarization is unavailable. Mitigation: offline-first design ensures LocalProvider fallback is always available; cloud features are never blocking. |
