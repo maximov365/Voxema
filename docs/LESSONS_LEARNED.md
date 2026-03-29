@@ -35,3 +35,24 @@ Use one block per closed workflow. Keep it factual and short.
 ## Entries
 
 *(Iteration Manager appends below this line.)*
+
+## 2026-03-29 — PRD-update-v2 (PRD major revision)
+
+**Workflow outcome:** completed
+
+### What went wrong
+- none
+
+### Repeated must_fix / review / security themes
+- MVP scope inconsistency: Core Capabilities and User Flows described features (JSON export) not listed in MVP scope. Spec Reviewer caught the mismatch. Lesson: when adding capabilities to the PRD body, always cross-check the MVP scope list.
+- Data model cardinality must match PIPELINE_CONTRACTS.md. PRD stated Meeting→Summary as 1→1 but pipeline contracts define summary as optional. Lesson: any entity relationships in PRD must be validated against pipeline contracts before committing.
+
+### What worked well
+- User provided detailed change requirements upfront, which enabled a single Product pass with no ambiguity.
+- Quality loop resolved both must_fix items in one Reviser iteration (7.8 → 8.3).
+- Spec Reviewer caught a real source conflict (PRD vs PIPELINE_CONTRACTS.md cardinality) that would have caused schema issues downstream.
+
+### Follow-ups
+- FEAT-1: Discovery for monetization strategy
+- FEAT-2: Discovery for model packaging strategy
+- Spec Reviewer should_fix: clarify summary failure path in Typical Recording Flow; clarify Activation metric when summarization fails; add C++ bridging risk; add ECAPA-TDNN model availability risk; clarify Speaker entity vs SpeakerIdentity distinction

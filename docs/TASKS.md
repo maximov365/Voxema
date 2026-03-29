@@ -6,3 +6,5 @@
 
 | Task ID | Title | Status | Priority | Complexity |
 |---------|-------|--------|----------|------------|
+| FEAT-1  | Discovery: Monetization strategy (pricing, feature gating, go-to-market) | planned | high | medium |
+| FEAT-2  | Discovery: Model packaging strategy (bundled vs. first-launch download) | planned | medium | medium |
