@@ -366,3 +366,25 @@ Use one block per closed workflow. Keep it factual and short.
 
 ### Follow-ups
 - TASK-4: Audio capture module (ScreenCaptureKit + AVAudioEngine) — next
+
+---
+
+## 2026-03-29 — TASK-4: NetworkManager (NWPathMonitor, offline-first)
+
+**Workflow outcome:** completed (Reviewer APPROVED, 50/50 tests passed)
+
+### What went wrong
+- Nothing significant. Clean first-pass implementation.
+
+### What worked well
+- `@MainActor final class: ObservableObject` pattern gives both thread safety and SwiftUI compatibility with minimal boilerplate.
+- `Task { @MainActor in }` is the correct bridge from `NWPathMonitor`'s background dispatch queue to the main actor — avoids DispatchQueue.main.async anti-pattern in async/await context.
+- Polling loop in integration test (`testMonitorDetectsConnectivityAfterStart`) is more reliable than fixed sleep: exits as soon as status updates, avoids flaky timeouts.
+- `@Published` `.disconnected` as the initial value enforces offline-first in SwiftUI binding chains for free — any consumer starts in the safe state.
+
+### Patterns confirmed
+- For long-lived OS observers (NWPathMonitor, NotificationCenter): `@MainActor final class: ObservableObject` with `[weak self]` capture in the callback is the standard safe pattern.
+- `NWPathMonitor.cancel()` is irreversible — document that `stopMonitoring()` means "discard this instance".
+
+### Follow-ups
+- TASK-5: ModelManager (models-manifest.json, hardware detection, download infrastructure) — next

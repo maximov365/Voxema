@@ -15,7 +15,7 @@
 | FIX-1   | Create Voxema.xcodeproj: wire entitlements, Hardened Runtime, Sparkle XPC, Assets, fix .gitignore | completed | high | medium |
 | TASK-2  | Core data types and structured logging (PIPELINE_CONTRACTS.md structs, PipelineError, Logger) | completed | high | small |
 | TASK-3  | Security module: EncryptionManager (AES-256-GCM) and KeychainManager | completed | high | medium |
-| TASK-4  | NetworkManager: NWPathMonitor reachability monitoring, offline-first state | planned | high | small |
+| TASK-4  | NetworkManager: NWPathMonitor reachability monitoring, offline-first state | completed | high | small |
 | TASK-5  | ModelManager: models-manifest.json, hardware detection, download infrastructure | planned | high | large |
 | TASK-6  | PipelineCoordinator: stage orchestration, PipelineStage protocol, cross-stage rules | planned | high | medium |
 | TASK-7  | Capture module: SystemAudioCapture (ScreenCaptureKit) + MicrophoneCapture (AVAudioEngine) | planned | high | large |
