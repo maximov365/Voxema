@@ -37,7 +37,7 @@ private final class MockDiarizeStage: DiarizeStageProtocol {
     var result: [DiarizedSegment] = []
     private(set) var cancelCalled = false
 
-    func run(_ segments: [TranscribedSegment]) async throws -> [DiarizedSegment] {
+    func run(_ segments: [TranscribedSegment], audioStreams: [AudioStream]) async throws -> [DiarizedSegment] {
         if let err = error { throw err }
         return result
     }

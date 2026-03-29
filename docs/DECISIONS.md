@@ -240,3 +240,33 @@ Zero changes to `WhisperEngine.swift` are required.
 **Trade-offs:**
 - Stub returns empty transcriptions at runtime (expected and documented).
 - No performance tuning or Metal acceleration until real library is integrated.
+
+---
+
+## DEC-5 — ECAPA-TDNN integration: domain-specific C bridge (stub pattern)
+
+**Decision:** Implement ECAPA-TDNN speaker embedding via a Voxema-specific C bridge (`COnnxRuntime`) with a no-op stub, following the same pattern as `CWhisper` (DEC-4).
+
+**Context:** ECAPA-TDNN runs via ONNX Runtime (DEC-2). The ONNX Runtime C API is complex (hundreds of functions accessed through a function-table `OrtApi*`). Exposing the full API to Swift would create maintenance burden and tie Swift code to ORT internals.
+
+**Options considered:**
+
+1. Expose full ONNX Runtime C API to Swift (`onnxruntime_c_api.h`) — large header, tight coupling to ORT version
+2. Voxema-specific 4-function wrapper API (`voxema_ecapa.h`) hiding ORT details — minimal surface, easily swappable
+3. CoreML / CreateML directly (no ORT) — loses CoreML EP flexibility, limits model portability
+
+**Decision:** Option 2 — minimal domain-specific wrapper.
+
+**`voxema_ecapa.h` API:**
+- `voxema_ecapa_init(model_path)` → opaque context
+- `voxema_ecapa_free(ctx)`
+- `voxema_ecapa_embed(ctx, samples, n_samples, embedding_out, embedding_size)` → 192-dim float32
+- Stub (`voxema_ecapa_stub.c`) returns zero embeddings
+
+**Mechanical replacement path:**
+1. Remove `voxema_ecapa_stub.c`
+2. Add real implementation (`voxema_ecapa_ort.c`) that calls ONNX Runtime C API
+3. Link `onnxruntime.xcframework` (CoreML EP) in `project.pbxproj`
+4. No Swift code changes required
+
+**Status:** Stable. Real ORT implementation deferred until ECAPA-TDNN model is bundled.

@@ -151,7 +151,7 @@ public final class PipelineCoordinator: ObservableObject {
         updateProgress(.diarizing(progress: 0))
         let diarized: [DiarizedSegment]
         do {
-            diarized = try await diarizeStage.run(segments)
+            diarized = try await diarizeStage.run(segments, audioStreams: streams)
         } catch {
             let err = asPipelineError(error, fallback: .diarizeAllSegmentsBelowThreshold)
             state = .failed(err); throw err

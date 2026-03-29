@@ -1,0 +1,4 @@
+module COnnxRuntime {
+    header "voxema_ecapa.h"
+    export *
+}

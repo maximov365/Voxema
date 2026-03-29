@@ -14,13 +14,17 @@ let package = Package(
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.0.0"),
     ],
     targets: [
-        // Thin C bridge for whisper.cpp.
-        // whisper_stub.c provides no-op implementations so the app compiles and
-        // tests run without the real library. Replace or augment it with the
-        // real whisper.cpp + ggml sources (or a .binaryTarget) at model-integration time.
+        // Thin C bridge for whisper.cpp (stub pattern — see DEC-4).
         .target(
             name: "CWhisper",
             path: "Voxema/Bridge/CWhisper",
+            publicHeadersPath: "include"
+        ),
+        // Thin C bridge for ECAPA-TDNN via ONNX Runtime (stub pattern — see DEC-5).
+        // voxema_ecapa_stub.c returns zero embeddings; replace with real ORT implementation.
+        .target(
+            name: "COnnxRuntime",
+            path: "Voxema/Bridge/COnnxRuntime",
             publicHeadersPath: "include"
         ),
         .executableTarget(
@@ -29,6 +33,7 @@ let package = Package(
                 .product(name: "GRDB", package: "GRDB.swift"),
                 .product(name: "Sparkle", package: "Sparkle"),
                 "CWhisper",
+                "COnnxRuntime",
             ],
             path: "Voxema",
             exclude: [

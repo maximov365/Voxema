@@ -494,3 +494,28 @@ Use one block per closed workflow. Keep it factual and short.
 
 ### Known limitation
 - `whisper_stub.c` returns empty transcriptions. Real inference requires replacing the stub with whisper.cpp source or xcframework (DEC-4 documents this path).
+
+---
+
+## TASK-9 — Diarize module: EmbeddingEngine (COnnxRuntime C bridge) + SpeakerMatcher + VoiceProfileStore + DiarizeStage
+
+**Date:** 2026-03-29
+**Outcome:** Completed — 150 tests pass, xcodebuild SUCCEEDED
+
+### What went well
+- **Consistent stub pattern:** `COnnxRuntime` followed `CWhisper` exactly — C header, stub, modulemap, xcodeproj wiring. Zero friction.
+- **Domain-specific C API design:** A 4-function `voxema_ecapa.h` wrapper hiding ONNX Runtime internals proved simpler and more maintainable than exposing the full `OrtApi*` function table.
+- **Protocol extension for backward compat:** Adding `run(_ segments:)` as a default extension on `DiarizeStageProtocol` (delegating to `run(_:audioStreams:)`) avoided breaking `MockDiarizeStage` entirely and reduced the cascade to 1 targeted edit.
+- **Audio loaded once per stream:** Pre-decoding audio streams once (not per segment) is the right efficiency pattern for long meetings.
+- **`AudioSampleDecoder` reuse:** Already public within the `Voxema` module from TASK-8; no duplication needed.
+
+### Architectural decision
+- `DiarizeStageProtocol.run` now takes `audioStreams: [AudioStream]` as a required parameter. This was necessary for correct ECAPA-TDNN architecture — DiarizeStage must slice audio by timestamp to extract per-segment embeddings. Keeping the old single-parameter signature would have required a mutable state workaround (less safe, non-obvious).
+
+### Known limitation
+- `voxema_ecapa_stub.c` returns zero embeddings → cosine similarity always 0 → all remote segments become "Speaker A". Real speaker differentiation requires the actual ECAPA-TDNN ONNX model (DEC-5).
+- `VoiceProfileStore` is in-memory only. Cross-session speaker persistence via GRDB deferred to TASK-10.
+
+### Patterns confirmed
+- Same xcodeproj wiring for C bridges: `PBXBuildFile` + `PBXFileReference` + `PBXSourcesBuildPhase` + `SWIFT_INCLUDE_PATHS` + `HEADER_SEARCH_PATHS` + `OTHER_SWIFT_FLAGS`. Apply for any future C bridge.
+- `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` required for both `swift test` and `xcodebuild`.

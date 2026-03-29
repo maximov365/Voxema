@@ -27,6 +27,7 @@
 		A9FE4458BE2AD9F3B472BD29 /* CaptureStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D544B3B00BE2B45C33D8B7 /* CaptureStage.swift */; };
 		AC974F178490BC72174F2154 /* VoxemaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 870E41CE835DFCBC4B9BB89B /* VoxemaApp.swift */; };
 		B21C41BE842974668EA10D39 /* ONNXRuntimePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AA4531B96F4FB4B5EB49EF /* ONNXRuntimePlaceholder.swift */; };
+		88FC1D362F924271B46B8081 /* voxema_ecapa_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = 906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */; };
 		BBF747489A4ECBF50B35F5D3 /* whisper_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = 11B14214BB197C5F1E65C6C6 /* whisper_stub.c */; };
 		BE8242588E4BE25E7C924905 /* SystemAudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECF49B58438DDF0A5B40B27 /* SystemAudioCapture.swift */; };
 		D0674C669E0CF6CA2D978DDB /* MeetingDetailFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C1C49C29FFCFBC4C9F9A1B2 /* MeetingDetailFeature.swift */; };
@@ -44,6 +45,7 @@
 		05F446369FAFBB68D1DA4F16 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NetworkManager.swift; path = Voxema/Core/Networking/NetworkManager.swift; sourceTree = SOURCE_ROOT; };
 		0875409299C88494CAC62720 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Models.swift; path = Voxema/Core/Models/Models.swift; sourceTree = SOURCE_ROOT; };
 		0ECF49B58438DDF0A5B40B27 /* SystemAudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SystemAudioCapture.swift; path = Voxema/Pipeline/Capture/SystemAudioCapture.swift; sourceTree = SOURCE_ROOT; };
+		906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = voxema_ecapa_stub.c; path = Voxema/Bridge/COnnxRuntime/voxema_ecapa_stub.c; sourceTree = SOURCE_ROOT; };
 		11B14214BB197C5F1E65C6C6 /* whisper_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = whisper_stub.c; path = Voxema/Bridge/CWhisper/whisper_stub.c; sourceTree = SOURCE_ROOT; };
 		16D544B3B00BE2B45C33D8B7 /* CaptureStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CaptureStage.swift; path = Voxema/Pipeline/Capture/CaptureStage.swift; sourceTree = SOURCE_ROOT; };
 		18A046239045A9DF698277F7 /* SummarizeStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SummarizeStage.swift; path = Voxema/Pipeline/Summarize/SummarizeStage.swift; sourceTree = SOURCE_ROOT; };
@@ -111,6 +113,7 @@
 				0ECF49B58438DDF0A5B40B27 /* SystemAudioCapture.swift */,
 				BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */,
 				8B9C408EA17B70F29A5D2B42 /* WhisperEngine.swift */,
+				906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */,
 				11B14214BB197C5F1E65C6C6 /* whisper_stub.c */,
 			);
 			sourceTree = "<group>";
@@ -233,6 +236,7 @@
 				BE8242588E4BE25E7C924905 /* SystemAudioCapture.swift in Sources */,
 				799D4441A8AF7B351609577D /* MicrophoneCapture.swift in Sources */,
 				765144BEA197E8C16647A484 /* WhisperEngine.swift in Sources */,
+				88FC1D362F924271B46B8081 /* voxema_ecapa_stub.c in Sources */,
 				BBF747489A4ECBF50B35F5D3 /* whisper_stub.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -367,7 +371,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = NO;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/Voxema/Bridge/CWhisper/include";
+				HEADER_SEARCH_PATHS = ("$(SRCROOT)/Voxema/Bridge/CWhisper/include", "$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include");
 				INFOPLIST_FILE = Voxema/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -406,7 +410,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
-				OTHER_SWIFT_FLAGS = "-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include";
+				OTHER_SWIFT_FLAGS = ("-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include", "-Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include");
 				PRODUCT_BUNDLE_IDENTIFIER = com.voxema.Voxema;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -416,7 +420,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Voxema/Bridge/CWhisper/include";
+				SWIFT_INCLUDE_PATHS = ("$(SRCROOT)/Voxema/Bridge/CWhisper/include", "$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include");
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
@@ -437,7 +441,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = NO;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/Voxema/Bridge/CWhisper/include";
+				HEADER_SEARCH_PATHS = ("$(SRCROOT)/Voxema/Bridge/CWhisper/include", "$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include");
 				INFOPLIST_FILE = Voxema/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -476,7 +480,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
-				OTHER_SWIFT_FLAGS = "-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include";
+				OTHER_SWIFT_FLAGS = ("-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include", "-Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include");
 				PRODUCT_BUNDLE_IDENTIFIER = com.voxema.Voxema;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -486,7 +490,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Voxema/Bridge/CWhisper/include";
+				SWIFT_INCLUDE_PATHS = ("$(SRCROOT)/Voxema/Bridge/CWhisper/include", "$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include");
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";

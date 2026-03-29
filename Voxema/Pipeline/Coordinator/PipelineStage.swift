@@ -26,8 +26,17 @@ public protocol TranscribeStageProtocol: AnyObject {
 
 /// Contract for the Diarize stage.
 public protocol DiarizeStageProtocol: AnyObject {
-    func run(_ segments: [TranscribedSegment]) async throws -> [DiarizedSegment]
+    /// Diarizes `segments` using `audioStreams` for voice embedding extraction.
+    /// `audioStreams` must include the encrypted `.enc` files produced by `CaptureStage`.
+    func run(_ segments: [TranscribedSegment], audioStreams: [AudioStream]) async throws -> [DiarizedSegment]
     func cancel()
+}
+
+public extension DiarizeStageProtocol {
+    /// Convenience overload — diarizes without audio access (local-channel attribution only).
+    func run(_ segments: [TranscribedSegment]) async throws -> [DiarizedSegment] {
+        return try await run(segments, audioStreams: [])
+    }
 }
 
 /// Contract for the Summarize stage.
