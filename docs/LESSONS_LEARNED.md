@@ -217,3 +217,22 @@ Use one block per closed workflow. Keep it factual and short.
 - PIPELINE_CONTRACTS.md: Diarize stage input may need audio file path for ECAPA-TDNN (pre-existing gap)
 - AudioSessionManager: verify correct macOS API during Builder phase
 - All Discovery tasks (FEAT-1 through FEAT-5) complete — ready for implementation task breakdown
+
+---
+
+## FEATURE_MAP.md — Comprehensive update
+
+**Workflow:** Product → Spec Reviewer → Gatekeeper (accept with fixes) → direct fixes
+**Date:** 2026-03-29
+
+### Errors / unexpected
+- Spec Reviewer caught a must-fix: NETWORKING was placed in Phase 4 but is required by MODELS (Phase 1) and SUMMARIZE (Phase 2). Moved to Phase 1.
+- EXPORT → SUMMARIZE dependency wording overstated — summary is optional per PIPELINE_CONTRACTS.md. Clarified.
+
+### Repeated themes
+- Phase ordering contradicting dependency rules is a new pattern — similar to MVP scope inconsistencies: internal document consistency needs cross-checking.
+
+### What worked well
+- Structured capability index with MVP column prevents ambiguity.
+- "Key MVP scope clarifications" block directly addresses recurring MVP scope issue — proactive defense.
+- Decision References table links capabilities to DEC-1–DEC-4 for traceability.
