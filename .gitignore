@@ -8,12 +8,56 @@ __pycache__/
 
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
 
 # Xcode
-*.xcodeproj/xcuserdata/
+*.xcuserstate
+xcuserdata/
 *.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
 DerivedData/
 build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Xcode SPM package resolved file — commit for apps, exclude for libraries
+# (committing is recommended for reproducible builds)
+# Voxema.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
+# Code signing
+*.p12
+*.mobileprovision
+
+# Sparkle EdDSA keys — never commit private keys
+*.pem
+EdDSA*
+
+# Instruments
+*.trace
+
+# Model files — large binary files, not committed to git
+# Bundled models must be managed separately (see docs/DECISIONS.md DEC-2)
+Voxema/Resources/Models/
+*.gguf
+*.onnx
+*.mlmodel
+*.mlpackage
+*.mlmodelc
+*.bin
+
+# Environment
+.env
+.env.local
 
 # IDE
 .idea/
