@@ -6,6 +6,7 @@
 | ID | Title | Status | Date |
 |----|-------|--------|------|
 | DEC-1 | Monetization: Subscription-only Pro with Lemon Squeezy | accepted | 2026-03-29 |
+| DEC-3 | Backend stack: TypeScript (Hono) + Railway + PostgreSQL | accepted | 2026-03-29 |
 | DEC-2 | Model packaging: Hybrid bundle + on-demand download | accepted | 2026-03-29 |
 
 ---
@@ -93,3 +94,67 @@ Voxema requires multiple ML models (Whisper, ECAPA-TDNN, llama.cpp LLM) for its 
 ### Decision stability
 
 Hybrid bundle strategy: **stable**. ONNX Runtime for ECAPA-TDNN: **stable** (revisit if Apple MLX matures). LLM curated list: **evolving** — models and tier assignments updated as new models are benchmarked. LLM selection UX: **stable**.
+
+---
+
+## DEC-3 — Backend Stack: TypeScript (Hono) + Railway + PostgreSQL
+
+**Status:** accepted
+**Date:** 2026-03-29
+**Source:** Discovery FEAT-3 (`docs/discoveries/FEAT-3-backend-stack.md`)
+
+### Context
+
+Voxema needs a post-MVP backend for Pro tier services: authentication, subscription/billing (Lemon Squeezy webhooks), LLM proxy, usage tracking, and admin dashboard. Backend is content-stateless — never stores audio, transcripts, or summaries. Must be simple enough for a solo developer to operate.
+
+### Options Considered
+
+**Language/Framework:**
+1. Go (Echo/Chi) — 37/40
+2. TypeScript (Hono) — 37/40 (selected: Lemon Squeezy SDK advantage)
+3. Swift (Vapor) — 30/40
+4. Python (FastAPI) — 29/40
+5. Rust (Axum) — 31/40
+
+**Hosting:**
+1. Railway — 38/40 (selected)
+2. Fly.io — 33/40 (upgrade path)
+3. AWS (ECS/Lambda) — 28/40
+4. Hetzner + Docker — 30/40
+
+**Database:**
+1. PostgreSQL — 38/40 (selected)
+2. SQLite — 29/40 (eliminated: single-writer under concurrent LLM proxy)
+
+### Decision
+
+**Recommended stack:**
+
+- **Language/Framework:** TypeScript with Hono (ultralight, built-in JWT/CORS middleware)
+- **ORM:** Drizzle ORM (type-safe, lightweight)
+- **Database:** PostgreSQL (managed by Railway)
+- **Hosting:** Railway (usage-based pricing, ~$15–25/mo at launch)
+- **Auth:** Apple Sign In (server-side validation) + Email OTP (no passwords per PRD). JWT tokens with 7-day refresh cycle.
+- **Billing:** Lemon Squeezy webhook integration (official TypeScript SDK). License key validation with JWT offline support.
+- **LLM Proxy:** Prompt-wrapping proxy with SSE streaming. Claude Haiku 4.5 primary (~$0.27/user/month at 20 meetings), GPT-4o-mini fallback (~$0.04/user/month). Post-response token counting, database-backed rate limiting.
+- **Admin Dashboard:** Internal-only, same Hono backend serving a lightweight frontend (post-MVP, Pro launch phase).
+
+### Cost model
+
+| Scale | Infra/mo | LLM cost/mo | Revenue/mo | Gross margin |
+|---|---|---|---|---|
+| 100 Pro users | ~$50 | ~$27 | $800–1,200 | ~90% |
+| 1,000 Pro users | ~$265 | ~$270 | $8,000–12,000 | ~93% |
+| 10,000 Pro users | ~$2,100 | ~$2,700 | $80,000–120,000 | ~94% |
+
+### Rationale
+
+- TypeScript + Hono: fastest development velocity for a solo dev, Lemon Squeezy has official TS SDK and typed webhook library
+- Go was equally scored but lacks the Lemon Squeezy ecosystem advantage
+- Railway: simplest deploy (git push), managed Postgres, usage-based pricing; migration to Fly.io is a half-day task when EU data residency or edge deployment is needed
+- PostgreSQL over SQLite for backend: concurrent writes from LLM proxy requests require multi-writer support
+- 86–94% gross margins validate $12/mo ($8/mo annual) pricing from DEC-1
+
+### Decision stability
+
+Language (TypeScript/Hono): **stable**. Database (PostgreSQL): **stable**. ORM (Drizzle): **stable**. Hosting (Railway): **temporary** — revisit at scale or when EU data residency required, migrate to Fly.io. LLM primary provider (Haiku 4.5): **temporary** — revisit based on pricing changes and quality benchmarks. Auth flow (Apple Sign In + OTP): **stable**.

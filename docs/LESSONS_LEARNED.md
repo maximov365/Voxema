@@ -136,3 +136,37 @@ Use one block per closed workflow. Keep it factual and short.
 ### Follow-ups
 - FEAT-3: Backend tech stack Discovery (next)
 - Default LLM (Qwen 2.5 3B) marked as temporary — needs benchmarking with real transcripts post-Builder
+
+---
+
+## FEAT-2 refinement — LLM selection UX
+
+**Workflow:** User feedback → DEC-2 update (no quality loop — UX refinement within existing decision scope)
+**Date:** 2026-03-29
+
+### Errors / unexpected
+- None.
+
+### What worked well
+- User caught a UX gap (hardcoded default vs. user choice) before it became an implementation assumption. Refining decisions during Discovery phase is cheaper than changing them during Build.
+
+---
+
+## FEAT-3 — Discovery: Backend technology stack
+
+**Workflow:** Discovery → PRD update (direct, no quality loop — single table cell replacement)
+**Date:** 2026-03-29
+
+### Errors / unexpected
+- None. Change was scoped to replacing "Requires Discovery" placeholder in Technical Constraints.
+
+### Repeated themes
+- None this cycle. MVP scope check passed — backend is explicitly "Not in scope (MVP)", new content stays in that boundary.
+
+### What worked well
+- Cost model in DEC-3 validates DEC-1 pricing ($12/mo, $8/mo annual) with concrete margin data (86–94%).
+- Decision stability annotations distinguish what to lock in (language, DB, auth) from what to revisit (hosting, LLM provider).
+
+### Follow-ups
+- FEAT-4: ARCHITECTURE.md update for CloudProvider dual-mode
+- FEAT-5: Sparkle framework integration Discovery

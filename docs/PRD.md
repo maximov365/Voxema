@@ -406,7 +406,7 @@ The MVP delivers the core loop: **Record → Transcribe → Identify Speakers �
 | Distribution | Direct download (DMG) for MVP |
 | Update mechanism | Sparkle framework (preferred) for auto-update in DMG distribution. Requires Discovery for integration approach, code signing, and update hosting. |
 | Model packaging | Hybrid: bundle Whisper tiny (~75MB) + ECAPA-TDNN (~25MB) in DMG for immediate use. Whisper base/small and LLM downloaded on demand. LLM selected during onboarding from a curated list with hardware-based recommendation (see DEC-2). DMG ~150–180MB. Models stored in ~/Library/Application Support/Voxema/Models/. Curated model list and SHA-256 checksums in `models-manifest.json`. See DEC-2. |
-| Backend technology stack | Requires Discovery — language, framework, hosting, and infrastructure decisions for the post-MVP backend (auth, billing, LLM proxy, admin dashboard) |
+| Backend technology stack | TypeScript (Hono) + PostgreSQL (Drizzle ORM) on Railway. Auth: Apple Sign In + Email OTP, JWT tokens. Billing: Lemon Squeezy webhooks. LLM proxy: Claude Haiku 4.5 primary, GPT-4o-mini fallback, SSE streaming. Hosting temporary (Railway → Fly.io at scale). See DEC-3. |
 
 ---
 
