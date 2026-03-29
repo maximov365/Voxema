@@ -30,7 +30,7 @@ let package = Package(
         ),
         .testTarget(
             name: "VoxemaTests",
-            dependencies: [],
+            dependencies: ["Voxema"],
             path: "VoxemaTests"
         ),
     ]

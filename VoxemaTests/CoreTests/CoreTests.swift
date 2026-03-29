@@ -1,3 +1,1 @@
-import XCTest
-
-final class CoreTestsPlaceholder: XCTestCase {}
+// Placeholder superseded by DataTypesTests.swift (TASK-2)

@@ -13,7 +13,7 @@
 | FEAT-5  | Discovery: Sparkle framework integration (auto-update, code signing, update hosting) | completed | medium | small |
 | TASK-1  | Xcode project scaffold (target config, SPM deps, folder structure, entitlements) | completed | high | medium |
 | FIX-1   | Create Voxema.xcodeproj: wire entitlements, Hardened Runtime, Sparkle XPC, Assets, fix .gitignore | completed | high | medium |
-| TASK-2  | Core data types and structured logging (PIPELINE_CONTRACTS.md structs, PipelineError, Logger) | planned | high | small |
+| TASK-2  | Core data types and structured logging (PIPELINE_CONTRACTS.md structs, PipelineError, Logger) | completed | high | small |
 | TASK-3  | Security module: EncryptionManager (AES-256-GCM) and KeychainManager | planned | high | medium |
 | TASK-4  | NetworkManager: NWPathMonitor reachability monitoring, offline-first state | planned | high | small |
 | TASK-5  | ModelManager: models-manifest.json, hardware detection, download infrastructure | planned | high | large |
