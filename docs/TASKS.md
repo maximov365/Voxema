@@ -19,3 +19,4 @@
 | TASK-5  | ModelManager: models-manifest.json, hardware detection, download infrastructure | completed | high | large |
 | TASK-6  | PipelineCoordinator: stage orchestration, PipelineStage protocol, cross-stage rules | completed | high | medium |
 | TASK-7  | Capture module: SystemAudioCapture (ScreenCaptureKit) + MicrophoneCapture (AVAudioEngine) | completed | high | large |
+| TASK-8  | Transcription module: WhisperEngine (C bridge) + TranscribeStage (AudioSampleDecoder, no-speech gate) | completed | high | large |

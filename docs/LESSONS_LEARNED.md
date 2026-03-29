@@ -468,3 +468,29 @@ Use one block per closed workflow. Keep it factual and short.
 ### Follow-ups
 - `DEVELOPER_DIR` must be set to Xcode.app for `swift test` — document in README or set `xcode-select` system-wide.
 - Implement real `CaptureStage` integration test with `XCTSkipUnless(hasScreenRecordingPermission)`.
+
+---
+
+## TASK-8 — Transcription module (WhisperEngine + TranscribeStage)
+**Date:** 2026-03-29
+
+### What went wrong
+- `whisper_context *` in C is an opaque forward-declared struct; Swift imports `whisper_context *` as `OpaquePointer`, NOT `UnsafeMutablePointer<whisper_context>`. Using `UnsafeMutablePointer<whisper_context>` gives "cannot find type in scope".
+- `PipelineError.transcribeModelMissing` doesn't exist — the actual case is `transcribeModelNotFound(modelName: String)`.
+- `AVAudioFile(forReading:)` without specifying `commonFormat` uses a default processing format (often `pcmFormatInt16`) different from the written format (float32). Reading a float32 WAV into a buffer via mismatched format returns 0 frames. Fix: use `AVAudioFile(forReading:commonFormat:interleaved:)` to match exactly.
+- `AVAudioFile` must go out of scope (be released/closed) before reading its contents with `Data(contentsOf:)`. Reading while the file is still open may return incomplete/empty data. Fix: wrap writes in a `do {}` block.
+- `xcodebuild` cannot resolve SPM C targets (`CWhisper`) without a `module.modulemap` in the header search path and `SWIFT_INCLUDE_PATHS` set. Fix: create `include/module.modulemap` + configure `SWIFT_INCLUDE_PATHS` and `HEADER_SEARCH_PATHS` in xcodeproj build settings + add stub `.c` to Xcode compile sources.
+
+### What worked well
+- Local C stub pattern (DEC-4): zero build overhead, correct API surface, clear replacement path.
+- `defer { engine.unloadModel() }` pattern ensures model memory is released regardless of success or failure.
+- Protocol-based `WhisperEngineProtocol` + `MockWhisperEngine` enabled complete testing of TranscribeStage orchestration without any real inference.
+- `AudioSampleDecoder` encapsulates decrypt + decode into a single tested unit.
+
+### Patterns confirmed
+- **AVAudioFile write-then-read requires file close**: always use a `do {}` scope block to ensure file is released before reading Data back.
+- **C opaque structs → OpaquePointer**: forward-declared C structs (no body) are always `OpaquePointer` in Swift C interop.
+- **xcodebuild SPM C module**: requires module.modulemap + SWIFT_INCLUDE_PATHS + C file in Xcode compile sources.
+
+### Known limitation
+- `whisper_stub.c` returns empty transcriptions. Real inference requires replacing the stub with whisper.cpp source or xcframework (DEC-4 documents this path).

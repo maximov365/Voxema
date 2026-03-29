@@ -216,3 +216,27 @@ Framework (Sparkle 2): **stable**. Hosting (GitHub Pages/Releases): **stable**. 
 ### Critical operational note
 
 **EdDSA private key must be backed up securely** (password manager, not just on one machine). Loss of this key would prevent shipping updates that existing users' installations will accept.
+
+---
+
+## DEC-4 — whisper.cpp Integration: Local C Target (Stub Pattern)
+
+**Date:** 2026-03-29
+**Context:** TASK-8 required integrating the whisper.cpp speech recognition library. Options: full SPM package (ggerganov/whisper.cpp), WhisperKit (Argmax), xcframework binary, or local C stub target.
+
+**Decision:** Use a local C target (`CWhisper`) with stub no-op implementations for the `swift test` build path, combined with a `module.modulemap` and Xcode build settings for `xcodebuild`. The stub pattern allows the Swift wrapper (`WhisperEngine.swift`) to compile against the real whisper.cpp C API without the library being present.
+
+**Rationale:**
+- `ggerganov/whisper.cpp` SPM package is 400MB+ git history — impractical for CI and incremental development. First build would take 5–10 minutes.
+- WhisperKit uses CoreML model format (not `.gguf`) — incompatible with `models-manifest.json` and `ModelManager` (TASK-5 / DEC-2).
+- xcframework binary requires a separate build step and binary distribution.
+- Local stub pattern: zero build overhead, correct API surface, mechanical swap at model-integration milestone. `whisper_stub.c` clearly documents the replacement procedure.
+
+**Replacement path:** When ready for real inference, remove `whisper_stub.c` and replace with:
+- (a) Real `whisper.cpp` + `ggml` C source files in the `CWhisper` target, or
+- (b) A `.binaryTarget` pointing to a pre-built `CWhisper.xcframework`.
+Zero changes to `WhisperEngine.swift` are required.
+
+**Trade-offs:**
+- Stub returns empty transcriptions at runtime (expected and documented).
+- No performance tuning or Metal acceleration until real library is integrated.
