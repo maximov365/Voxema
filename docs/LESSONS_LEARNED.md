@@ -220,6 +220,29 @@ Use one block per closed workflow. Keep it factual and short.
 
 ---
 
+## TASK-1 — Xcode Project Scaffold
+
+**Workflow:** Product → Architect → Builder → Security Reviewer → Reviewer (APPROVED WITH MINOR CHANGES)
+**Date:** 2026-03-29
+
+### Errors / unexpected
+- Builder used `Package.swift` instead of `Voxema.xcodeproj` — correct approach for a code-only Builder (generating raw `.pbxproj` by hand is high-risk). Security Reviewer and Reviewer both noted entitlements not wired to build system. Accepted as valid deviation; FIX-1 created for Xcode project creation.
+- `.gitignore` directory-level exclusion prevented `Resources/Models/.gitkeep` from being tracked. Fixed in FIX-1.
+- `CFBundleVersion` missing from `Info.plist`. Fixed in FIX-1.
+
+### Repeated themes
+- None new this cycle.
+
+### What worked well
+- `Package.swift` + `swift build` gives immediate structural verification (zero errors, GRDB 6.29.3, Sparkle 2.9.0 linked).
+- Reviewer adjudication pattern: accept deviation + create follow-up FIX task rather than forcing Builder to repeat risky operation.
+
+### Follow-ups
+- FIX-1: Xcode project creation (must be done via Xcode UI, not by Builder writing `.pbxproj`)
+- TASK-2 can begin in parallel or after FIX-1
+
+---
+
 ## FEATURE_MAP.md — Comprehensive update
 
 **Workflow:** Product → Spec Reviewer → Gatekeeper (accept with fixes) → direct fixes
