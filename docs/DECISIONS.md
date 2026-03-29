@@ -72,12 +72,12 @@ Voxema requires multiple ML models (Whisper, ECAPA-TDNN, llama.cpp LLM) for its 
 **Hybrid bundle strategy:**
 
 - **Bundled in DMG:** Whisper tiny (~75MB) + ECAPA-TDNN ONNX (~25MB) → DMG ~150–180MB
-- **Downloaded on demand:** Whisper base (~142MB), small (~466MB), LLM Qwen 2.5 3B Q4_K_M (~1.9GB)
+- **Downloaded on demand:** Whisper base (~142MB), small (~466MB), LLM (user-selected during onboarding)
 - **Storage:** `~/Library/Application Support/Voxema/Models/` with subdirectories per model family
-- **Integrity:** SHA-256 checksums in `models-manifest.json` shipped with app
-- **Total disk budget (all MVP models):** ~2.6GB
+- **Integrity & catalog:** `models-manifest.json` shipped with app — contains curated LLM list, SHA-256 checksums, RAM requirements per model, and quality tier labels. Updated via Sparkle alongside the app.
+- **Total disk budget (all MVP models):** ~2.6GB (varies by LLM choice)
 - **ECAPA-TDNN runtime:** ONNX Runtime with CoreML Execution Provider (ANE/GPU delegation)
-- **Default LLM:** Qwen 2.5 3B Q4_K_M (1.93GB GGUF, fits 4GB peak on 8GB devices, multilingual, Apache 2.0)
+- **LLM selection UX:** During onboarding, app detects device RAM (`ProcessInfo.processInfo.physicalMemory`) and recommends the best-fit model. User sees human-readable quality tiers ("Good / Better / Best"), not model names. Model names shown as secondary detail. User can skip LLM download and set up later. Curated list at MVP: Qwen 2.5 3B Q4_K_M (~1.9GB, 8GB devices), Qwen 2.5 7B Q4_K_M (~4.5GB, 16GB+ devices). List will expand as models are benchmarked.
 
 ### Rationale
 
@@ -86,7 +86,10 @@ Voxema requires multiple ML models (Whisper, ECAPA-TDNN, llama.cpp LLM) for its 
 - On-demand download for larger models preserves install UX while offering quality upgrades
 - Every competitor (MacWhisper, Superwhisper, WhisperKit) uses on-demand model downloads
 - Qwen 2.5 3B is the best quality/size tradeoff for 8GB devices with 128K context window
+- Hardware-based recommendation removes decision burden from non-technical users
+- Plain-language tiers ("Good / Better / Best") keep onboarding accessible
+- Skip option respects users who plan to use CloudProvider
 
 ### Decision stability
 
-Hybrid bundle strategy: **stable**. ONNX Runtime for ECAPA-TDNN: **stable** (revisit if Apple MLX matures). Default LLM choice: **temporary** — revisit after benchmarking with real meeting transcripts.
+Hybrid bundle strategy: **stable**. ONNX Runtime for ECAPA-TDNN: **stable** (revisit if Apple MLX matures). LLM curated list: **evolving** — models and tier assignments updated as new models are benchmarked. LLM selection UX: **stable**.

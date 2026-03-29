@@ -188,7 +188,9 @@ For a macOS app using ScreenCaptureKit, onboarding is critical for activation. W
 2. **Screen Recording permission** — Guide user to grant Screen Recording access in macOS System Settings. Provide visual instructions specific to the macOS version.
 3. **Microphone permission** — Standard macOS microphone permission prompt via AVAudioEngine. Explain why both permissions are needed.
 4. **Permission verification** — Check that both permissions are granted before allowing first recording. Show clear status indicators (granted / not granted) for each permission.
-5. **Configuration** — Model selection (Whisper model size), microphone device selection. Sensible defaults pre-selected.
+5. **Configuration** — Microphone device selection, transcription quality (Whisper model size), and summarization model setup. Sensible defaults pre-selected based on detected hardware (RAM via `ProcessInfo.processInfo.physicalMemory`).
+   - **Summarization model step:** App detects device RAM and recommends the best-fit local model. User sees quality tiers described in plain language (e.g. "Good — faster, lighter" / "Better — recommended for your Mac" / "Best — highest quality, needs more memory"), not model names. A "Skip — I'll set this up later" option is available for users who plan to use cloud summarization or decide later. Recommended tier is pre-selected and highlighted. Download starts on confirmation with progress indicator.
+   - Model names and sizes are shown as secondary detail for advanced users, not as primary labels.
 6. **Ready state** — Confirm setup complete. Direct user to start first recording.
 
 ### Fallback Behavior
@@ -403,7 +405,7 @@ The MVP delivers the core loop: **Record → Transcribe → Identify Speakers �
 | Dependencies | All dependencies must be auditable (prefer source-available) |
 | Distribution | Direct download (DMG) for MVP |
 | Update mechanism | Sparkle framework (preferred) for auto-update in DMG distribution. Requires Discovery for integration approach, code signing, and update hosting. |
-| Model packaging | Hybrid: bundle Whisper tiny (~75MB) + ECAPA-TDNN (~25MB) in DMG for immediate use. Whisper base/small and LLM (Qwen 2.5 3B, ~1.9GB) downloaded on demand. DMG ~150–180MB. Models stored in ~/Library/Application Support/Voxema/Models/. SHA-256 checksums for integrity. See DEC-2. |
+| Model packaging | Hybrid: bundle Whisper tiny (~75MB) + ECAPA-TDNN (~25MB) in DMG for immediate use. Whisper base/small and LLM downloaded on demand. LLM selected during onboarding from a curated list with hardware-based recommendation (see DEC-2). DMG ~150–180MB. Models stored in ~/Library/Application Support/Voxema/Models/. Curated model list and SHA-256 checksums in `models-manifest.json`. See DEC-2. |
 | Backend technology stack | Requires Discovery — language, framework, hosting, and infrastructure decisions for the post-MVP backend (auth, billing, LLM proxy, admin dashboard) |
 
 ---
