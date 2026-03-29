@@ -36,6 +36,25 @@ Use one block per closed workflow. Keep it factual and short.
 
 *(Iteration Manager appends below this line.)*
 
+## 2026-03-29 — Xcode build: Sparkle binary artifact corruption
+
+**Workflow outcome:** closed (environment fix, no code changes)
+
+### What went wrong
+- After FIX-1 (Xcode project creation via UI), a prior Xcode session partially resolved Sparkle 2.9.0 via SPM — it downloaded the CLI tools (`bin/generate_appcast`, etc.) but failed to extract `Sparkle.xcframework` from the `Sparkle-for-Swift-Package-Manager.zip` binary artifact. The stale `SourcePackages/artifacts/sparkle/Sparkle/` directory contained only the tools, not the xcframework.
+- `xcodebuild` tried to copy the non-existent `Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework` and failed with `No such file or directory`. This cascaded into a `__preview.dylib` linker error.
+
+### Fix
+- Deleted `DerivedData` and `SourcePackages` entirely. A clean build succeeded immediately because the xcodeproj source files are currently scaffold/stubs that do not yet import GRDB or Sparkle.
+
+### Important follow-up pattern
+- `Voxema.xcodeproj` does NOT have GRDB or Sparkle added as package dependencies in its project settings — they only exist in `Package.swift`. Before implementing TASK-2 through TASK-7, GRDB and Sparkle must be added to the xcodeproj via Xcode UI (File → Add Package Dependencies).
+
+### Follow-ups
+- TASK-2: before starting, add GRDB + Sparkle to xcodeproj via Xcode UI
+
+---
+
 ## 2026-03-29 — PRD-update-v2 (PRD major revision)
 
 **Workflow outcome:** completed
