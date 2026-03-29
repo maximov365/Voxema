@@ -415,3 +415,26 @@ Use one block per closed workflow. Keep it factual and short.
 
 ### Follow-ups
 - TASK-6: PipelineCoordinator — stage orchestration — next
+
+---
+
+## 2026-03-29 — TASK-6: PipelineCoordinator (stage orchestration, PipelineStage protocol)
+
+**Workflow outcome:** completed (Reviewer APPROVED, 99/99 tests passed)
+
+### What went wrong
+- `PipelineStage.swift` (new file) was not in `Voxema.xcodeproj`, causing BUILD FAILED: "cannot find type CaptureStageProtocol in scope". Fixed by adding it via pbxproj Python library.
+- Stage files (CaptureStage.swift, etc.) were already in the xcodeproj from FIX-1 — only the new `PipelineStage.swift` needed to be added.
+
+### What worked well
+- Per-stage specific protocols (`CaptureStageProtocol`, `TranscribeStageProtocol`, etc.) are simpler and safer than a generic existential `any PipelineStage<Input, Output>` for coordinator-level orchestration. Avoids Swift existential boxing edge cases.
+- Mock stages injected into `PipelineCoordinator.init` give full control over stage behavior in tests: error injection, result control, cancel detection.
+- `asPipelineError(_:fallback:)` helper enforces typed errors at stage boundaries without verbose try/catch boilerplate.
+- `PipelineProgress.from(stage:stageCount:)` — stage index + progress fraction cleanly composes into overall progress without maintaining separate state.
+
+### Patterns confirmed
+- Every new Swift file must be added to Voxema.xcodeproj to be compiled by xcodebuild. Use pbxproj library for this (one-line add_file call). swift test uses Package.swift and does NOT require xcodeproj registration.
+- Dependency injection for all stage dependencies enables clean unit testing without any real hardware or model files.
+
+### Follow-ups
+- TASK-7: Capture module (ScreenCaptureKit system audio + AVAudioEngine microphone) — next
