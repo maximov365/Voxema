@@ -1,0 +1,192 @@
+# ============================================================================
+# Voxema — Project Configuration
+# All product-specific content extracted from the agent system.
+# Agents reference this file instead of hardcoding domain knowledge.
+# ============================================================================
+
+project:
+  name: "Voxema"
+  description: |-
+    Voxema is a privacy-first macOS application for Apple Silicon that records,
+    transcribes, and analyzes work meetings end-to-end (both sides of the conversation).
+
+    It captures system audio via ScreenCaptureKit and microphone input via AVAudioEngine
+    as two separate channels, transcribes locally using Whisper.cpp, identifies speakers
+    via voice embeddings (ECAPA-TDNN), and generates structured summaries with action items
+    through a local or cloud LLM. All audio data stays on the device.
+
+# ----------------------------------------------------------------------------
+# Target users
+# ----------------------------------------------------------------------------
+
+target_users:
+  - segment: "Freelancers"
+    need: "Record and summarize client calls without third-party services"
+  - segment: "Managers"
+    need: "Track decisions and action items across recurring team meetings"
+  - segment: "Distributed teams"
+    need: "Searchable meeting archive with speaker attribution"
+  - segment: "Privacy-conscious enterprises"
+    need: "On-device meeting intelligence with no data leaving the machine"
+
+# ----------------------------------------------------------------------------
+# Processing pipeline
+# ----------------------------------------------------------------------------
+
+pipeline:
+  stages:
+    - name: capture
+      description: "Parallel capture of two audio streams — system audio (ScreenCaptureKit) + microphone (AVAudioEngine). Streams are tagged as 'remote' and 'local'."
+      llm_allowed: false
+    - name: transcribe
+      description: "Speech-to-text via Whisper.cpp on each channel independently. Output: timestamped segments with text."
+      llm_allowed: false
+    - name: diarize
+      description: "Speaker identification. 'local' channel = user (known). 'remote' channel — speaker clustering via ECAPA-TDNN embeddings, matching against known voice profile database (SQLite + cosine similarity). New voices get temporary labels."
+      llm_allowed: false
+    - name: summarize
+      description: "Full transcript assembly → dynamic prompt (template + project context + few-shot examples from user edits) → generation via SummaryProvider. Output: summary, key decisions, action items, open questions."
+      llm_allowed: true
+    - name: export
+      description: "Persist to local database (SQLite). Export to Markdown, JSON. Calendar and task manager integrations — v2."
+      llm_allowed: false
+
+# ----------------------------------------------------------------------------
+# Domain rules
+# ----------------------------------------------------------------------------
+
+domain_rules:
+  llm_rules: |
+    - Only the summarize stage may invoke LLMs — no other stage directly or indirectly
+    - SummaryProvider is an abstraction with three implementations: LocalProvider (llama.cpp), CloudProvider (Anthropic/OpenAI API), OnPremProvider (user-specified endpoint)
+    - Provider switching happens in settings without changing the pipeline
+    - Never hardcode model names — use config constants
+    - Prompts must live in a dedicated prompts/ directory
+    - Retries must be explicit and bounded
+    - Prefer deterministic or low-temperature settings for structured output (action items, decisions)
+    - Log token usage at debug level for cost visibility
+    - When CloudProvider is used, only text transcript is sent — never audio
+
+  pipeline_principles: |
+    - Pipeline stages must remain conceptually distinct and independently testable
+    - Each stage has explicit inputs and outputs; stage contracts are stable interfaces
+    - Stages must not bypass or collapse the pipeline order
+    - No hidden cross-stage dependencies or side effects
+    - Domain logic must remain separate from infrastructure (macOS APIs, audio frameworks)
+    - Stages treat incoming data as immutable — produce new structures
+    - Errors raised at stage boundaries, never silently swallowed
+    - Models (Whisper, ECAPA-TDNN, LLM) are loaded lazily and unloaded between stages on 8GB RAM devices
+
+  privacy_rules: |
+    - ABSOLUTE RULE: audio data never leaves the device under any circumstances
+    - Text transcript may be sent to a cloud LLM only with explicit user consent per session
+    - Voice embeddings are biometric data — stored only locally in encrypted storage
+    - No telemetry, analytics, or crash reports contain audio content or transcripts
+    - Recording starts and stops only on explicit user action — no background recording
+    - All meeting data (transcripts, summaries, voice profiles) is fully and irreversibly deletable on user request
+    - No PII in logs or error payloads
+
+  audio_rules: |
+    - System audio captured via ScreenCaptureKit (macOS 13+, Apple Silicon)
+    - Microphone captured via AVAudioEngine
+    - Two channels maintained separately throughout capture and transcribe stages
+    - Audio format: 16kHz mono PCM per channel (Whisper.cpp requirement)
+    - Temporary audio files encrypted at rest, deleted after transcription completes
+    - No audio is persisted beyond the active processing session unless user opts in
+
+  speaker_id_rules: |
+    - Voice profiles stored in encrypted SQLite database
+    - Matching threshold: cosine similarity >= 0.75 for positive identification
+    - Unknown speakers assigned temporary labels (Speaker A, Speaker B, ...)
+    - User can rename, merge, or delete speaker profiles
+    - Voice embedding model: ECAPA-TDNN (192-dim embeddings)
+    - Local channel always attributed to the user — no embedding-based matching needed
+
+# ----------------------------------------------------------------------------
+# Technology stack
+# ----------------------------------------------------------------------------
+
+tech_stack:
+  platform: "macOS 13+ (Ventura), Apple Silicon only"
+  language: "Swift"
+  ui: "SwiftUI"
+  audio_capture: "ScreenCaptureKit (system audio) + AVAudioEngine (microphone)"
+  stt: "Whisper.cpp (C++ with Swift bindings)"
+  speaker_id: "ECAPA-TDNN via ONNX Runtime or CoreML"
+  llm_local: "llama.cpp (GGUF models)"
+  llm_cloud: "Anthropic Claude API / OpenAI API"
+  database: "SQLite (via GRDB or direct)"
+  encryption: "Apple Keychain + CryptoKit for local data encryption"
+  distribution: "Direct download (DMG) initially, Mac App Store later"
+
+# ----------------------------------------------------------------------------
+# SummaryProvider abstraction
+# ----------------------------------------------------------------------------
+
+summary_providers:
+  local:
+    name: "LocalProvider"
+    engine: "llama.cpp"
+    model_format: "GGUF"
+    notes: "Runs entirely on device. No network. Slower on 8GB devices."
+  cloud:
+    name: "CloudProvider"
+    supported_apis: ["anthropic", "openai"]
+    data_sent: "text transcript only (never audio)"
+    consent_required: true
+    notes: "Fastest and highest quality. Requires user opt-in per session."
+  on_prem:
+    name: "OnPremProvider"
+    endpoint: "user-configured URL"
+    notes: "For corporate users running their own LLM infrastructure."
+
+# ----------------------------------------------------------------------------
+# Memory management
+# ----------------------------------------------------------------------------
+
+memory_management:
+  strategy: "lazy load / eager unload"
+  whisper_model_sizes:
+    tiny: "~75 MB RAM"
+    base: "~140 MB RAM"
+    small: "~460 MB RAM"
+    medium: "~1.5 GB RAM"
+  llm_model_sizes:
+    7b_q4: "~4 GB RAM"
+    3b_q4: "~2 GB RAM"
+  speaker_model_size: "~50 MB RAM"
+  8gb_device_policy: |
+    On 8GB devices, only one model loaded at a time.
+    Models unloaded between pipeline stages.
+    Default Whisper model: tiny or base.
+    Default LLM: 3B Q4 or cloud provider.
+
+# ----------------------------------------------------------------------------
+# Analytics
+# ----------------------------------------------------------------------------
+
+analytics_by_default: false
+
+# ----------------------------------------------------------------------------
+# Output docs
+# ----------------------------------------------------------------------------
+
+output_docs:
+  has_brand_guide: false
+  custom_docs: []
+
+# ----------------------------------------------------------------------------
+# MVP non-goals
+# ----------------------------------------------------------------------------
+
+mvp_non_goals:
+  - "Windows or Linux support"
+  - "iOS / iPadOS app"
+  - "Real-time transcription display during recording"
+  - "Calendar integration"
+  - "Task manager integration (Notion, Linear, Jira)"
+  - "Multi-language transcription in a single meeting"
+  - "Video recording"
+  - "Mac App Store distribution (initial release is direct DMG)"
+  - "Collaborative editing of summaries"
+  - "Cloud sync of meeting data between devices"
