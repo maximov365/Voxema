@@ -170,3 +170,27 @@ Use one block per closed workflow. Keep it factual and short.
 ### Follow-ups
 - FEAT-4: ARCHITECTURE.md update for CloudProvider dual-mode
 - FEAT-5: Sparkle framework integration Discovery
+
+---
+
+## FEAT-4 — Comprehensive ARCHITECTURE.md update
+
+**Workflow:** Architect → Spec Reviewer → Gatekeeper (accept with should-fix) → direct fixes
+**Date:** 2026-03-29
+
+### Errors / unexpected
+- None major. Spec Review found 5 should-fix items (no must-fix): missing `generated_at` field in data model, omitted cross-stage rule #6, prompt template path inconsistency, Settings MVP annotations, data flow diagram completeness. All resolved in one pass.
+
+### Repeated themes
+- None this cycle. MVP scope boundaries were correctly marked throughout the document (9/10 score from Spec Reviewer).
+
+### What worked well
+- Comprehensive Architect update (238 → 489 lines) incorporated DEC-1/2/3 and FEAT-4 in a single pass, avoiding piecemeal doc updates.
+- Spec Reviewer caught the `prompts/` vs `Resources/Prompts/` path inconsistency between ARCHITECTURE_GUARDRAILS and ARCHITECTURE.md — important to resolve before Builder phase.
+- Observation about AudioSessionManager vs CoreAudio on macOS is useful context for Builder (implementation detail, not architectural concern).
+- Pre-existing gap noted: Diarize stage contract in PIPELINE_CONTRACTS.md lists only [TranscribedSegment] as input, but ECAPA-TDNN needs audio. This is a PIPELINE_CONTRACTS issue to address in a future task.
+
+### Follow-ups
+- FEAT-5: Sparkle framework integration Discovery (pending)
+- PIPELINE_CONTRACTS.md: Diarize stage input may need to include audio file path for ECAPA-TDNN embedding extraction (pre-existing gap)
+- AudioSessionManager: verify correct macOS API during Builder phase (CoreAudio vs AVAudioSession)
