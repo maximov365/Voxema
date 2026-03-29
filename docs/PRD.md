@@ -46,20 +46,70 @@ There is no high-quality, fully local meeting intelligence tool for macOS.
 
 ## Monetization Model
 
-Three tiers, structured around privacy boundaries:
+Three tiers, structured around privacy boundaries. Specifics below reflect Discovery **FEAT-1** (pricing, gating, payments, and go-to-market).
 
-| Tier | Processing Model | Key Features |
-|---|---|---|
-| **Free** | Fully local on user's device | Local Whisper models, local LLM (llama.cpp), all data on-device. CloudProvider (direct API) also available — user provides their own API key. Complete meeting pipeline without subscription. |
-| **Pro** | Local + managed cloud LLM | All Free features included. Adds managed cloud LLM summarization proxied through Voxema's backend — replaces direct-API CloudProvider with a fully managed experience. Users do not manage their own API keys. Backend handles API keys, server-side optimized prompts, and per-user usage tracking. Includes explicit per-session consent, text-only transmission (never audio), and encrypted transport. Subscription model. |
-| **Enterprise** | Corporate perimeter deployment | Installable within corporate infrastructure. Processing on corporate local servers with local models. Custom endpoint support (OnPremProvider). Volume licensing. Optional full self-hosting with no backend dependency. |
+### Pricing
+
+| Tier | Monthly | Annual | Effective Monthly |
+|------|---------|--------|-------------------|
+| Free | $0 | $0 | $0 |
+| Pro | $12/mo | $96/yr | $8/mo |
+| Enterprise | Custom | Custom | Custom |
+
+### Feature gating
+
+**Free tier (MVP and beyond)** — no limits on local functionality:
+
+- Full pipeline: capture → transcribe → diarize → summarize → export
+- LocalProvider (llama.cpp) — unlimited
+- CloudProvider (direct API) with user's own key — unlimited
+- All Whisper model sizes (MVP ships with tiny/base/small; medium available post-MVP based on performance validation)
+- Meeting library, search, all export formats
+- Voice profile management
+- No meeting count limits, no time limits
+
+**Pro tier (post-MVP)** — everything in Free, plus:
+
+- Managed cloud LLM summarization (Voxema proxy) — no API key management
+- Server-side optimized prompts (better summaries, iterate without app updates)
+- Priority access to latest/largest cloud models
+- Advanced export templates
+- Email support
+
+**Enterprise tier (later phase)** — everything in Pro, plus:
+
+- OnPremProvider support (custom LLM endpoints)
+- Volume licensing, SSO/SCIM
+- Admin dashboard, custom deployment support
+
+**CloudProvider (direct API) stays in Free tier** — gating it would feel hostile to the privacy audience. Pro sells convenience + quality, not access.
+
+### Payment infrastructure
+
+**Lemon Squeezy** — merchant of record (handles tax compliance); built-in license key API with JWT-based offline validation; **5% + $0.50** fee; offline-friendly: JWT with embedded public key enables validation without network.
+
+### Technical gating approach
+
+- **MVP:** no monetization code — Free tier ships as-is
+- **Post-MVP:** `LicenseManager` module in `Core/`, JWT token stored in Keychain
+- Feature gating at UI/Settings layer — pipeline stages unaffected
+- `VoxemaProxyProvider` added as new SummaryProvider conformance
+- Periodic online license refresh (every 7 days when connected)
+
+### Go-to-market path
+
+1. **F&F Beta** — Free tier only, direct DMG, collect pipeline quality feedback
+2. **Public Beta** — ProductHunt/HN launch, Free tier, build audience
+3. **Pro Launch** — Enable Pro with Lemon Squeezy checkout on voxema.com
+4. **Mac App Store** — evaluate after Pro tier is stable (30% cut vs discoverability)
 
 **Privacy guardrails per tier:**
-- Free: All processing on-device by default. CloudProvider (direct API) available with user's own key — network call for summarization text only, with per-session consent.
-- Pro: Audio never leaves device. Only text transcript sent to Voxema backend for cloud LLM summarization, only with per-session explicit consent. Transcript passes through the backend to the cloud LLM encrypted in transit (TLS), never persisted on Voxema's servers. No persistent cloud storage of transcripts.
-- Enterprise: All processing within corporate network. OnPremProvider endpoints configured by IT. No data leaves corporate perimeter.
 
-> **Note:** This tier structure directly affects architecture decisions (feature gating, paywall boundaries, licensing). Detailed pricing, feature gating granularity, and go-to-market strategy require a dedicated Discovery.
+- **Free:** All processing on-device by default. CloudProvider (direct API) available with user's own key — network call for summarization text only, with per-session consent.
+- **Pro:** Audio never leaves device. Only text transcript sent to Voxema backend for cloud LLM summarization, only with per-session explicit consent. Transcript passes through the backend to the cloud LLM encrypted in transit (TLS), never persisted on Voxema's servers. No persistent cloud storage of transcripts.
+- **Enterprise:** All processing within corporate network. OnPremProvider endpoints configured by IT. No data leaves corporate perimeter.
+
+> **Note:** Pricing validated against market data (Otter $8.33/mo, Krisp $8/mo, Fireflies $10/mo, Superwhisper $8.49/mo annual rates). Subject to adjustment after F&F beta user testing.
 
 ---
 
@@ -227,7 +277,7 @@ Principle #3 (Works offline) and Principle #6 (Graceful degradation) require spe
 
 ### b) Subscription & Billing
 
-- Subscription validation via App Store Server API or custom billing system
+- Subscription validation via Lemon Squeezy license key API (JWT-based offline validation) for direct distribution; App Store Server API if/when Mac App Store distribution is added
 - Feature gating based on subscription tier (Free vs Pro)
 - Usage tracking: minutes of audio processed via cloud, LLM tokens consumed
 - Usage limits and billing enforcement
@@ -236,6 +286,8 @@ Principle #3 (Works offline) and Principle #6 (Graceful degradation) require spe
 ### c) LLM Proxy
 
 Pro users do **not** manage their own API keys. The Voxema backend proxies LLM requests using Voxema's own API keys, replacing the direct-API CloudProvider mode with a fully managed experience.
+
+See [Monetization Model](#monetization-model) for payment infrastructure (Lemon Squeezy) and license validation approach.
 
 **Flow:**
 1. App sends text transcript to Voxema backend (encrypted in transit, TLS)
@@ -251,7 +303,7 @@ Pro users do **not** manage their own API keys. The Voxema backend proxies LLM r
 
 ### d) Admin Dashboard
 
-For product owner / operator use during F&F beta stage:
+For product owner / operator use in the Pro launch phase (post-MVP, when the backend ships), not during the Free-only F&F beta:
 
 - User list with subscription status
 - Usage statistics per user (minutes, tokens, cost)

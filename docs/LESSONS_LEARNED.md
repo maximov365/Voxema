@@ -95,3 +95,22 @@ Use one block per closed workflow. Keep it factual and short.
 ### Follow-ups
 - FEAT-5: Discovery for Sparkle integration
 - Spec Reviewer should_fix: tighten Sparkle MVP scope bullet wording to distinguish "check-for-updates" vs "full auto-update"; consider testable acceptance criterion for update mechanism
+
+## 2026-03-29 — FEAT-1 Discovery + PRD monetization update
+
+**Workflow outcome:** completed
+
+### What went wrong
+- MVP scope inconsistency (third occurrence): Monetization Free tier claimed "All Whisper model sizes" while MVP scope lists "tiny/base/small". Also Admin Dashboard described as "F&F beta stage" but MVP has no backend.
+
+### Repeated must_fix / review / security themes
+- MVP scope vs body mismatch is now a **three-time recurring pattern**. Every PRD update that adds capabilities to the body risks this. Lesson: before submitting ANY PRD change for review, run a literal line-by-line check of MVP In scope and Not in scope against every claim in the body.
+
+### What worked well
+- Discovery FEAT-1 produced comprehensive market research (7 competitors, concrete pricing data) and a clear recommendation (39/40 score).
+- Subscription-only Pro is the simplest viable choice — no pipeline changes, gating at UI layer only.
+- Lemon Squeezy's JWT offline validation aligns perfectly with offline-first design.
+
+### Follow-ups
+- FEAT-3: Backend tech stack Discovery (must account for Lemon Squeezy webhook integration)
+- Should_fix: qualify Free tier Whisper wording to lead with MVP scope; align Admin Dashboard "post-beta" phrasing
