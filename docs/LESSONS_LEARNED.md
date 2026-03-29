@@ -438,3 +438,33 @@ Use one block per closed workflow. Keep it factual and short.
 
 ### Follow-ups
 - TASK-7: Capture module (ScreenCaptureKit system audio + AVAudioEngine microphone) — next
+
+---
+
+## TASK-7 — Capture module (SystemAudioCapture + MicrophoneCapture)
+**Date:** 2026-03-29
+
+### What went wrong
+- `SCStreamConfiguration.excludesCurrentProcessAudioFromCapture` does not exist; correct property is `excludesCurrentProcessAudio` (macOS 13+).
+- `SCStreamOutput` method renamed from `ofType:` to `of:` in Swift 3; use `stream(_:didOutputSampleBuffer:of:)`.
+- `AVAudioFormat(cmAudioFormatDescription:)` returns a non-Optional in newer SDKs — `let format = ...` not `guard let`.
+- `AudioFileWriter.write()` was declared `throws` but never throws; API mismatch found by Reviewer. Fixed to non-throwing.
+- `xcode-select` points to CommandLineTools (not Xcode.app) on this machine. CommandLineTools lacks `XCTest.framework`, causing `swift test` to fail with "no such module 'XCTest'" in the `emit-module` pass. Workaround: `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test`. This is a machine-level configuration issue that must be set before every test run.
+
+### What worked well
+- Protocol-based dependency injection (`AudioCapturer`) enabled full unit test coverage of `CaptureStage` without hardware.
+- `MockAudioCapturer` that writes a real silent WAV file allowed `encryptAndDeletePlaintext` to be exercised in tests, confirming the privacy contract.
+- Concurrent start via `async let` correctly starts both hardware channels simultaneously.
+- `AudioFileWriter` serial queue pattern is thread-safe and avoids blocking the SCStream/AVAudioEngine audio callbacks.
+
+### Patterns confirmed
+- Internal protocols for hardware adapters are the correct testability boundary.
+- `AVAudioConverter` with callback-based `convert(to:error:withInputFrom:)` works for single-buffer sample rate + channel conversion.
+- Privacy contract: encrypt-then-delete in the same function (`encryptAndDeletePlaintext`) is the safest pattern; both operations must succeed or the plaintext file remains (acceptable failure mode for MVP).
+
+### Known limitation
+- In-memory encryption: `EncryptionManager.encrypt` loads the full WAV into memory before encrypting. For 60-minute recordings at 16kHz mono float32 (~230 MB), this may strain memory. Streaming encryption is the correct long-term fix (tracked as future work in TASK-8+).
+
+### Follow-ups
+- `DEVELOPER_DIR` must be set to Xcode.app for `swift test` — document in README or set `xcode-select` system-wide.
+- Implement real `CaptureStage` integration test with `XCTSkipUnless(hasScreenRecordingPermission)`.
