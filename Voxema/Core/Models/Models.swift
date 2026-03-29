@@ -339,29 +339,29 @@ public struct Meeting: Codable, Equatable, Hashable, Sendable {
 
 /// Typed errors raised at pipeline stage boundaries.
 ///
-/// - Important: Error messages must never contain transcript text, audio content,
-///   speaker names from recordings, or any other PII. This is a hard privacy constraint.
+/// Error messages must never contain transcript text, audio content,
+/// speaker names from recordings, or any PII. This is a hard privacy constraint.
 public enum PipelineError: Error, LocalizedError, Equatable, Sendable {
 
-    // MARK: Capture stage
+    // MARK: Capture
     case captureScreenRecordingPermissionDenied
     case captureMicrophonePermissionDenied
     case captureDeviceDisconnected(deviceName: String)
     case captureDiskSpaceInsufficient
 
-    // MARK: Transcribe stage
+    // MARK: Transcribe
     case transcribeModelNotFound(modelName: String)
     case transcribeModelCorrupt(modelName: String)
     case transcribeAudioFileCorrupt
     case transcribeAudioFileEmpty
     case transcribeInsufficientMemory(requiredGB: Float, availableGB: Float)
 
-    // MARK: Diarize stage
+    // MARK: Diarize
     case diarizeEmbeddingModelNotFound
     case diarizeVoiceProfileDatabaseCorrupt
     case diarizeAllSegmentsBelowThreshold
 
-    // MARK: Summarize stage
+    // MARK: Summarize
     case summarizeLocalModelTooLargeForRAM(modelName: String, requiredGB: Float)
     case summarizeCloudAPIError(statusCode: Int)
     case summarizeCloudConsentNotGranted
@@ -369,7 +369,7 @@ public enum PipelineError: Error, LocalizedError, Equatable, Sendable {
     case summarizeMalformedOutput
     case summarizeMaxRetriesExceeded(retries: Int)
 
-    // MARK: Export stage
+    // MARK: Export
     case exportDatabaseWriteFailure
     case exportFileWriteFailure
     case exportDiskSpaceInsufficient
@@ -377,9 +377,9 @@ public enum PipelineError: Error, LocalizedError, Equatable, Sendable {
     public var errorDescription: String? {
         switch self {
         case .captureScreenRecordingPermissionDenied:
-            return "[capture] Screen Recording permission is required. Grant it in System Settings → Privacy & Security → Screen Recording."
+            return "[capture] Screen Recording permission required. Grant it in System Settings → Privacy & Security → Screen Recording."
         case .captureMicrophonePermissionDenied:
-            return "[capture] Microphone permission is required. Grant it in System Settings → Privacy & Security → Microphone."
+            return "[capture] Microphone permission required. Grant it in System Settings → Privacy & Security → Microphone."
         case .captureDeviceDisconnected(let deviceName):
             return "[capture] Audio device '\(deviceName)' disconnected during recording."
         case .captureDiskSpaceInsufficient:
@@ -392,27 +392,27 @@ public enum PipelineError: Error, LocalizedError, Equatable, Sendable {
         case .transcribeAudioFileCorrupt:
             return "[transcribe] The captured audio file could not be read."
         case .transcribeAudioFileEmpty:
-            return "[transcribe] The captured audio file contains no audio data."
+            return "[transcribe] The captured audio file contains no data."
         case .transcribeInsufficientMemory(let required, let available):
-            return "[transcribe] Insufficient memory (required: \(String(format: "%.1f", required)) GB, available: \(String(format: "%.1f", available)) GB). Try a smaller model."
+            return "[transcribe] Insufficient memory (required \(String(format: "%.1f", required)) GB, available \(String(format: "%.1f", available)) GB)."
 
         case .diarizeEmbeddingModelNotFound:
             return "[diarize] Speaker embedding model not found. Re-download it from Settings."
         case .diarizeVoiceProfileDatabaseCorrupt:
-            return "[diarize] Voice profile database appears corrupt. A new database has been initialized."
+            return "[diarize] Voice profile database appears corrupt. A fresh database has been initialized."
         case .diarizeAllSegmentsBelowThreshold:
-            return "[diarize] Speaker confidence was too low. Temporary labels have been assigned."
+            return "[diarize] Speaker confidence too low. Temporary labels have been assigned."
 
         case .summarizeLocalModelTooLargeForRAM(let modelName, let required):
-            return "[summarize] Model '\(modelName)' requires \(String(format: "%.1f", required)) GB RAM. Try a smaller model or use cloud summarization."
+            return "[summarize] Model '\(modelName)' requires \(String(format: "%.1f", required)) GB RAM."
         case .summarizeCloudAPIError(let statusCode):
             return "[summarize] Cloud API returned error (status \(statusCode))."
         case .summarizeCloudConsentNotGranted:
             return "[summarize] Cloud summarization requires consent. Please confirm in the summary dialog."
         case .summarizeOnPremEndpointUnreachable:
-            return "[summarize] The on-premise LLM endpoint could not be reached."
+            return "[summarize] On-premise endpoint could not be reached."
         case .summarizeMalformedOutput:
-            return "[summarize] The summarization model returned output that could not be parsed."
+            return "[summarize] The model returned output that could not be parsed."
         case .summarizeMaxRetriesExceeded(let retries):
             return "[summarize] Summarization failed after \(retries) attempts."
 

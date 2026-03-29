@@ -316,3 +316,27 @@ Use one block per closed workflow. Keep it factual and short.
 - Structured capability index with MVP column prevents ambiguity.
 - "Key MVP scope clarifications" block directly addresses recurring MVP scope issue — proactive defense.
 - Decision References table links capabilities to DEC-1–DEC-4 for traceability.
+
+---
+
+## 2026-03-29 — TASK-2: Core data types and structured logging
+
+**Workflow outcome:** completed (Reviewer APPROVED, 24/24 tests passed)
+
+### What went wrong
+- Sandbox filesystem discrepancy: Write tool and Read tool operated on a different filesystem overlay than Shell with `required_permissions: ["all"]`. This caused false `git status` output and apparent file conflicts. All final file operations were done via Shell with all permissions.
+- Models.swift had already been implemented by the user (427-line comprehensive version) before the session. Initial implementation attempts created conflicting individual per-type files.
+- pbxproj was transiently corrupted (Sources build phase referenced files not in PBXBuildFile/PBXFileReference sections). Fixed by reverting to committed version and not re-adding individual files.
+
+### What worked well
+- `swift test` via Package.swift caught PipelineError API mismatch (tests expected detailed typed cases, not `captureError(reason:)` style). Caught before commit.
+- All 24 tests passed once Models.swift was aligned with the test file.
+- Builder correctly identified that Models.swift as single source of truth is cleaner than 10 individual per-type files (avoids repeated xcodeproj registration for small value types).
+
+### Patterns confirmed
+- Use Shell with `required_permissions: ["all"]` for file reads/writes during implementation to avoid sandbox discrepancy.
+- Always verify implementation with `swift test` in addition to `xcodebuild BUILD SUCCEEDED`.
+- Check for user-authored implementations on disk before writing new code.
+
+### Follow-ups
+- TASK-3: Security module (EncryptionManager + KeychainManager) — next
