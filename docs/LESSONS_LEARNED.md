@@ -77,3 +77,21 @@ Use one block per closed workflow. Keep it factual and short.
 - FEAT-3: Discovery for backend technology stack
 - FEAT-4: ARCHITECTURE.md update for CloudProvider dual-mode
 - Spec Reviewer should_fix: qualify Vision statement re cloud opt-in; qualify MVP scope CloudProvider as direct-API-only; plan PIPELINE_CONTRACTS.md update for provider_used granularity
+
+## 2026-03-29 — PRD-update-v4 (Versioning & Update Strategy, Accessibility)
+
+**Workflow outcome:** completed
+
+### What went wrong
+- none
+
+### Repeated must_fix / review / security themes
+- none (accepted on first pass; MVP scope cross-check lesson applied proactively — no scope inconsistencies introduced)
+
+### What worked well
+- Proactive MVP scope cross-checking (lesson from v2 and v3) prevented any must_fix items. First PRD update to pass quality loop on the first iteration.
+- Small, focused changes are lower risk and faster through the quality loop.
+
+### Follow-ups
+- FEAT-5: Discovery for Sparkle integration
+- Spec Reviewer should_fix: tighten Sparkle MVP scope bullet wording to distinguish "check-for-updates" vs "full auto-update"; consider testable acceptance criterion for update mechanism

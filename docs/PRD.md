@@ -278,6 +278,28 @@ For product owner / operator use during F&F beta stage:
 
 ---
 
+## Versioning & Update Strategy
+
+For direct download (DMG) distribution without the App Store, the app needs a built-in update mechanism. **Sparkle** is the standard solution for macOS DMG-distributed apps — open-source, widely adopted, and supports code signing verification.
+
+**Options:** automatic updates with explicit user consent, or a manual check-for-updates flow.
+
+This choice is **architecturally significant** — it must be reflected in [Technical Constraints](#technical-constraints) and the build pipeline (signing, update feed hosting, release cadence).
+
+**MVP:** At minimum, a check-for-updates mechanism that notifies the user when a newer version is available. Auto-update via Sparkle is the **preferred** approach once Discovery has settled integration, code signing, and update hosting.
+
+---
+
+## Accessibility
+
+**VoiceOver compatibility is not in MVP scope** — a conscious trade-off. The MVP prioritizes the core pipeline and privacy architecture; full accessibility is deferred but not forgotten.
+
+**During MVP:** Apply basic accessibility practices where cost is low: semantic SwiftUI labels, standard system controls, and keyboard navigation. SwiftUI provides reasonable default accessibility for standard components, so baseline compliance during MVP is inexpensive.
+
+**Post-MVP:** A full VoiceOver audit and remediation is planned. This is relevant for a future Mac App Store submission, where Apple reviews accessibility.
+
+---
+
 ## MVP Scope
 
 The MVP delivers the core loop: **Record → Transcribe → Identify Speakers → Summarize → View & Export**.
@@ -293,6 +315,7 @@ The MVP delivers the core loop: **Record → Transcribe → Identify Speakers �
 - Settings: model selection, provider selection, audio device selection
 - SwiftUI native interface
 - Direct download distribution (DMG)
+- Update notification or auto-update mechanism (Sparkle)
 - Onboarding flow with permission setup (see [Onboarding Flow](#onboarding-flow))
 
 ### Not in scope (MVP)
@@ -311,6 +334,7 @@ The MVP delivers the core loop: **Record → Transcribe → Identify Speakers �
 - Backend services (authentication, billing, LLM proxy)
 - Admin dashboard
 - Server-side prompt management
+- Full accessibility / VoiceOver audit
 
 ---
 
@@ -326,6 +350,7 @@ The MVP delivers the core loop: **Record → Transcribe → Identify Speakers �
 | Database | SQLite via GRDB |
 | Dependencies | All dependencies must be auditable (prefer source-available) |
 | Distribution | Direct download (DMG) for MVP |
+| Update mechanism | Sparkle framework (preferred) for auto-update in DMG distribution. Requires Discovery for integration approach, code signing, and update hosting. |
 | Model packaging | Requires Discovery — how models are bundled with app vs. downloaded on first launch, size implications for DMG distribution |
 | Backend technology stack | Requires Discovery — language, framework, hosting, and infrastructure decisions for the post-MVP backend (auth, billing, LLM proxy, admin dashboard) |
 
@@ -386,3 +411,4 @@ These are hard constraints, not preferences:
 | Model packaging increases DMG size | Requires Discovery — evaluate bundling vs. first-launch download strategy |
 | Cloud provider unavailability blocks workflow | Offline-first design ensures local fallback always available (see [Offline-First UX](#offline-first-ux)) |
 | Backend dependency for Pro cloud features | If Voxema backend is down, Pro cloud summarization is unavailable. Mitigation: offline-first design ensures LocalProvider fallback is always available; cloud features are never blocking. |
+| Users on outdated versions miss critical fixes | Built-in update mechanism (Sparkle). Version check on app launch. |
