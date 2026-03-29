@@ -262,6 +262,26 @@ Use one block per closed workflow. Keep it factual and short.
 
 ---
 
+## 2026-03-29 — FIX-1: Create Voxema.xcodeproj
+
+**Workflow outcome:** completed
+
+### What went wrong
+- `PBXFileSystemSynchronizedRootGroup` (Xcode 16 auto-grouping) caused duplicate file references. Had to be removed from `project.pbxproj` via script.
+- Sparkle SPM binary artifact (`Sparkle.xcframework`) was missing from `SourcePackages/artifacts/` — only CLI tools had been extracted. Resolved by deleting `DerivedData` and `SourcePackages` for a clean build (stubs don't import Sparkle yet).
+- `Voxema/Resources/Models/` was excluded from git by the directory-level `.gitignore` rule; fixed with `!.gitkeep` exception.
+- `CFBundleVersion` was missing from `Info.plist`; added value `1`.
+
+### What worked well
+- Writing the `.pbxproj` via `scripts/fix_xcodeproj.py` (rather than by hand) gave reproducible, reviewable results.
+- `ENABLE_APP_SANDBOX = NO` + `ENABLE_HARDENED_RUNTIME = YES` + `com.apple.security.cs.disable-library-validation = YES` combination correctly reflects ScreenCaptureKit + Sparkle XPC requirements.
+- `xcodebuild -scheme Voxema build` reached `BUILD SUCCEEDED` on clean environment.
+
+### Follow-ups
+- TASK-2: before starting, add GRDB + Sparkle to `Voxema.xcodeproj` via Xcode UI (File → Add Package Dependencies) — they currently live only in `Package.swift`.
+
+---
+
 ## FEATURE_MAP.md — Comprehensive update
 
 **Workflow:** Product → Spec Reviewer → Gatekeeper (accept with fixes) → direct fixes
