@@ -49,6 +49,7 @@ EdDSA*
 # Bundled models must be managed separately (see docs/DECISIONS.md DEC-2)
 Voxema/Resources/Models/*
 !Voxema/Resources/Models/.gitkeep
+!Voxema/Resources/Models/models-manifest.json
 *.gguf
 *.onnx
 *.mlmodel

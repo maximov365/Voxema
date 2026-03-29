@@ -1,0 +1,83 @@
+{
+  "version": "1.0.0",
+  "models": [
+    {
+      "id": "whisper-tiny",
+      "name": "Whisper Tiny",
+      "family": "whisper",
+      "variant": "tiny",
+      "size_bytes": 77692160,
+      "sha256": "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21",
+      "ram_gb": 0.2,
+      "tier": null,
+      "download_url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin",
+      "is_bundled": true,
+      "description": "Fastest transcription. Bundled with app."
+    },
+    {
+      "id": "whisper-base",
+      "name": "Whisper Base",
+      "family": "whisper",
+      "variant": "base",
+      "size_bytes": 148262912,
+      "sha256": "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe",
+      "ram_gb": 0.5,
+      "tier": null,
+      "download_url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin",
+      "is_bundled": false,
+      "description": "Balanced transcription quality and speed."
+    },
+    {
+      "id": "whisper-small",
+      "name": "Whisper Small",
+      "family": "whisper",
+      "variant": "small",
+      "size_bytes": 487635456,
+      "sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b",
+      "ram_gb": 1.0,
+      "tier": null,
+      "download_url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin",
+      "is_bundled": false,
+      "description": "Higher transcription accuracy. Recommended for accented speech."
+    },
+    {
+      "id": "ecapa-tdnn",
+      "name": "ECAPA-TDNN",
+      "family": "ecapa",
+      "variant": "onnx",
+      "size_bytes": 26214400,
+      "sha256": "placeholder-ecapa-sha256-computed-at-release",
+      "ram_gb": 0.1,
+      "tier": null,
+      "download_url": "https://placeholder.voxema.app/models/ecapa-tdnn.onnx",
+      "is_bundled": true,
+      "description": "Speaker embedding model for voice diarization. Bundled with app."
+    },
+    {
+      "id": "qwen2.5-3b-q4_k_m",
+      "name": "Qwen 2.5 3B",
+      "family": "llm",
+      "variant": "3B-Q4_K_M",
+      "size_bytes": 1941504000,
+      "sha256": "placeholder-qwen3b-sha256-computed-at-release",
+      "ram_gb": 2.5,
+      "tier": "good",
+      "download_url": "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf",
+      "is_bundled": false,
+      "description": "Good — faster, lighter. Recommended for 8 GB Macs."
+    },
+    {
+      "id": "qwen2.5-7b-q4_k_m",
+      "name": "Qwen 2.5 7B",
+      "family": "llm",
+      "variant": "7B-Q4_K_M",
+      "size_bytes": 4685398016,
+      "sha256": "placeholder-qwen7b-sha256-computed-at-release",
+      "ram_gb": 5.5,
+      "tier": "better",
+      "download_url": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q4_k_m.gguf",
+      "is_bundled": false,
+      "description": "Better — recommended quality. Best for 16 GB+ Macs."
+    }
+  ]
+}

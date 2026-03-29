@@ -388,3 +388,30 @@ Use one block per closed workflow. Keep it factual and short.
 
 ### Follow-ups
 - TASK-5: ModelManager (models-manifest.json, hardware detection, download infrastructure) — next
+
+---
+
+## 2026-03-29 — TASK-5: ModelManager (models-manifest.json, hardware detection, download)
+
+**Workflow outcome:** completed (Reviewer APPROVED, 77/77 tests passed)
+
+### What went wrong
+- `import Combine` missing on first build — `ObservableObject` and `@Published` require it explicitly even on macOS. Fixed immediately.
+
+### What worked well
+- `ModelManifest.decode(from: Data)` static method enables full unit-test coverage without Bundle access — all 27 tests inject manifests directly. No Package.swift changes needed.
+- `Data(contentsOf:options:.mappedIfSafe)` for SHA-256 of large model files avoids loading gigabytes into RAM — OS handles paging.
+- QualityTier Comparable via private `sortOrder` integer is clean and explicit; avoids raw-value ordering assumptions.
+- Atomic download pattern (URLSession temp → verify → move) prevents corrupt partial files on disk.
+
+### Security pre-release checklist (from Security Reviewer)
+- Replace `placeholder-*-sha256-computed-at-release` in `models-manifest.json` with real SHA-256 values once model binaries are finalized.
+- Replace `https://placeholder.voxema.app/models/ecapa-tdnn.onnx` with the real ECAPA-TDNN download URL.
+
+### Patterns confirmed
+- Always add `import Combine` when using `ObservableObject` + `@Published` in a file that otherwise doesn't need it.
+- Dependency-injectable init (manifest + modelsDirectory + deviceRAMBytes) is the correct pattern for testable infrastructure classes.
+- `availableLLMs.first` after sort descending = `recommendedLLM` — simple, correct, O(n log n).
+
+### Follow-ups
+- TASK-6: PipelineCoordinator — stage orchestration — next
