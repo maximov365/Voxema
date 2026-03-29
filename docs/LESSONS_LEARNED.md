@@ -340,3 +340,29 @@ Use one block per closed workflow. Keep it factual and short.
 
 ### Follow-ups
 - TASK-3: Security module (EncryptionManager + KeychainManager) — next
+
+---
+
+## 2026-03-29 — TASK-3: Security module (EncryptionManager + KeychainManager)
+
+**Workflow outcome:** completed (Reviewer APPROVED, 36/36 tests passed)
+
+### What went wrong
+- Nothing significant. Clean first-pass implementation.
+
+### What worked well
+- Implementing KeychainManager as enum namespace (no stored properties) satisfies both Sendable and zero-global-state requirements cleanly.
+- CryptoKit `AES.GCM.seal` with no nonce argument auto-generates a random nonce per call — `combined` output embeds it, so decryption is self-contained. No manual nonce management needed.
+- Test isolation via UUID-prefixed service names avoids Keychain collisions across test runs.
+- `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` is the correct attribute for encryption keys: blocks iCloud migration and backup export while remaining accessible during normal use.
+
+### Patterns confirmed
+- For infrastructure that wraps OS APIs with no state: prefer `enum` namespaces over structs/classes.
+- Always clean up Keychain items in `tearDown` when running tests that write to Keychain.
+- AES-GCM `combined` (nonce ‖ ciphertext ‖ tag) is the correct serialisation format for on-disk encrypted blobs.
+
+### TOCTOU note
+- `loadOrCreateKey` has a low-probability TOCTOU race if two callers use the same `keyIdentifier` concurrently. Under the sequential pipeline model this is benign. If concurrent encryption is ever needed, re-read the key after a failed `SecItemAdd` (errSecDuplicateItem → retry retrieve).
+
+### Follow-ups
+- TASK-4: Audio capture module (ScreenCaptureKit + AVAudioEngine) — next
