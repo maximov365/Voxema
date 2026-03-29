@@ -403,7 +403,7 @@ The MVP delivers the core loop: **Record → Transcribe → Identify Speakers �
 | Dependencies | All dependencies must be auditable (prefer source-available) |
 | Distribution | Direct download (DMG) for MVP |
 | Update mechanism | Sparkle framework (preferred) for auto-update in DMG distribution. Requires Discovery for integration approach, code signing, and update hosting. |
-| Model packaging | Requires Discovery — how models are bundled with app vs. downloaded on first launch, size implications for DMG distribution |
+| Model packaging | Hybrid: bundle Whisper tiny (~75MB) + ECAPA-TDNN (~25MB) in DMG for immediate use. Whisper base/small and LLM (Qwen 2.5 3B, ~1.9GB) downloaded on demand. DMG ~150–180MB. Models stored in ~/Library/Application Support/Voxema/Models/. SHA-256 checksums for integrity. See DEC-2. |
 | Backend technology stack | Requires Discovery — language, framework, hosting, and infrastructure decisions for the post-MVP backend (auth, billing, LLM proxy, admin dashboard) |
 
 ---
@@ -460,7 +460,7 @@ These are hard constraints, not preferences:
 | 8GB RAM insufficient for large models | Lazy loading, model unloading between stages, recommend smaller models. Sequential stage execution enforced on 8GB devices. |
 | macOS API changes break capture | Abstract capture behind protocol; monitor macOS betas |
 | User expects real-time transcription | Clearly communicate that transcription happens post-recording in MVP |
-| Model packaging increases DMG size | Requires Discovery — evaluate bundling vs. first-launch download strategy |
+| Model download required after install | Bundled Whisper tiny enables immediate use; larger models (base/small/LLM) require on-demand download (~0.5–2GB each). Mitigation: progress UI, background download, Whisper tiny works immediately. |
 | Cloud provider unavailability blocks workflow | Offline-first design ensures local fallback always available (see [Offline-First UX](#offline-first-ux)) |
 | Backend dependency for Pro cloud features | If Voxema backend is down, Pro cloud summarization is unavailable. Mitigation: offline-first design ensures LocalProvider fallback is always available; cloud features are never blocking. |
 | Users on outdated versions miss critical fixes | Built-in update mechanism (Sparkle). Version check on app launch. |

@@ -114,3 +114,25 @@ Use one block per closed workflow. Keep it factual and short.
 ### Follow-ups
 - FEAT-3: Backend tech stack Discovery (must account for Lemon Squeezy webhook integration)
 - Should_fix: qualify Free tier Whisper wording to lead with MVP scope; align Admin Dashboard "post-beta" phrasing
+
+---
+
+## FEAT-2 — Discovery: Model packaging strategy
+
+**Workflow:** Discovery → PRD update (direct, no quality loop — changes limited to two table cells replacing "Requires Discovery" with concrete strategy)
+**Date:** 2026-03-29
+
+### Errors / unexpected
+- None. Changes were scoped to replacing placeholder text; no new capabilities or scope items added, so MVP scope inconsistency risk was minimal.
+
+### Repeated themes
+- None this cycle.
+
+### What worked well
+- Discovery produced actionable research from 4 competitors (MacWhisper, Superwhisper, WhisperKit, speech-swift) confirming industry-standard hybrid bundle approach.
+- Explicit decision stability annotations (stable vs. temporary) help future agents know which decisions to revisit.
+- Pre-commit MVP scope verification check prevented potential issues — pattern from previous cycles applied proactively.
+
+### Follow-ups
+- FEAT-3: Backend tech stack Discovery (next)
+- Default LLM (Qwen 2.5 3B) marked as temporary — needs benchmarking with real transcripts post-Builder
