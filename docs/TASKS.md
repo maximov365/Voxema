@@ -11,3 +11,10 @@
 | FEAT-3  | Discovery: Backend technology stack (language, framework, hosting for auth/billing/LLM proxy) | completed | high | medium |
 | FEAT-4  | Comprehensive ARCHITECTURE.md update (CloudProvider dual-mode, DEC-1/2/3 alignment, new modules) | completed | medium | medium |
 | FEAT-5  | Discovery: Sparkle framework integration (auto-update, code signing, update hosting) | completed | medium | small |
+| TASK-1  | Xcode project scaffold (target config, SPM deps, folder structure, entitlements) | planned | high | medium |
+| TASK-2  | Core data types and structured logging (PIPELINE_CONTRACTS.md structs, PipelineError, Logger) | planned | high | small |
+| TASK-3  | Security module: EncryptionManager (AES-256-GCM) and KeychainManager | planned | high | medium |
+| TASK-4  | NetworkManager: NWPathMonitor reachability monitoring, offline-first state | planned | high | small |
+| TASK-5  | ModelManager: models-manifest.json, hardware detection, download infrastructure | planned | high | large |
+| TASK-6  | PipelineCoordinator: stage orchestration, PipelineStage protocol, cross-stage rules | planned | high | medium |
+| TASK-7  | Capture module: SystemAudioCapture (ScreenCaptureKit) + MicrophoneCapture (AVAudioEngine) | planned | high | large |
