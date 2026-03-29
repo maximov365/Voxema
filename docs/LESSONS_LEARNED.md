@@ -282,6 +282,24 @@ Use one block per closed workflow. Keep it factual and short.
 
 ---
 
+## 2026-03-29 — TASK-2: Core data types and structured logging
+
+**Workflow outcome:** completed
+
+### What went wrong
+- `Models.swift` was not a placeholder — it already had a complete implementation from a prior Builder pass (TASK-1 scope exceeded). New separate files created conflicting declarations. Fixed by deleting new files and updating the existing `Models.swift`.
+- `swift test` requires `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` when using XCTest — Command Line Tools `swift` does not include XCTest. Always run tests as `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --disable-sandbox`.
+- `xcodebuild` fails when writing to `~/Library/Developer/Xcode/DerivedData/` in sandboxed shell. Fix: always use `-derivedDataPath .xcode-derived` (project-local).
+
+### What worked well
+- Existing `Models.swift` was substantially correct — adding `format` field, `CodingKeys`, `Equatable` on `PipelineError` was incremental and reviewable.
+- 24 unit tests covering Codable round-trips, CodingKeys snake_case, PipelineError privacy guard, and Logger smoke test — comprehensive for pure value types.
+
+### Follow-ups
+- None blocking. TASK-3 (Security) is next.
+
+---
+
 ## FEATURE_MAP.md — Comprehensive update
 
 **Workflow:** Product → Spec Reviewer → Gatekeeper (accept with fixes) → direct fixes
