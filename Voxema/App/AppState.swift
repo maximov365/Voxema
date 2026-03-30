@@ -5,7 +5,6 @@ import GRDB
 import CoreGraphics
 import AVFoundation
 import AppKit
-import ScreenCaptureKit
 
 // MARK: - Permission alert kind
 
@@ -97,30 +96,20 @@ public final class AppState: ObservableObject {
 
     /// Starts audio capture. No-op if already recording.
     ///
-    /// Uses SCShareableContent as the screen recording permission check.
-    /// CGPreflightScreenCaptureAccess() checks the old kTCCServiceScreenCapture key
-    /// which is NOT the same as macOS 15's kTCCServiceScreenCaptureWithAudio
-    /// ("Screen & System Audio Recording"). After the app is registered in System
-    /// Settings (via the onboarding step), SCShareableContent calls are silent —
-    /// they succeed with permission or throw without showing any dialog.
+    /// No permission pre-flight here — CaptureStage checks SCK/AVFoundation internally
+    /// and throws typed PipelineErrors on denial. Handling them here lets us surface
+    /// targeted recovery UI (Settings deep-link + Restart) without a separate pre-check
+    /// that may not reflect macOS 15's new TCC key.
     public func startRecording() async {
-        do {
-            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-        } catch {
-            let e = error as NSError
-            log.error("SCShareableContent denied", "code=\(e.code) domain=\(e.domain) msg=\(e.localizedDescription)")
-            permissionRequired = .screenRecording
-            return
-        }
-        guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else {
-            permissionRequired = .microphone
-            return
-        }
         pipelineError = nil
         recordingDuration = 0
         do {
             try await coordinator.startRecording()
             startTimer()
+        } catch PipelineError.captureScreenRecordingPermissionDenied {
+            permissionRequired = .screenRecording
+        } catch PipelineError.captureMicrophonePermissionDenied {
+            permissionRequired = .microphone
         } catch let e as PipelineError {
             pipelineError = e
         } catch {

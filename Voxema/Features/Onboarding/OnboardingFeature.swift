@@ -251,7 +251,7 @@ struct OnboardingView: View {
             primaryButton(label: String(localized: "Get Started")) { vm.advance() }
 
         case .screenRecording:
-            VStack(spacing: 10) {
+            VStack(spacing: 12) {
                 primaryButton(
                     label: vm.screenRecordingGranted
                         ? String(localized: "Continue →")
@@ -260,9 +260,13 @@ struct OnboardingView: View {
                     if vm.screenRecordingGranted { vm.advance() }
                     else { vm.openScreenRecordingSettings() }
                 }
-                if !vm.screenRecordingGranted {
-                    skipButton { vm.advance() }
-                }
+                // Badge may stay "Not granted" on macOS 15 until the app restarts.
+                // The skip link lets users continue if they've already enabled the toggle.
+                skipButton(
+                    label: vm.screenRecordingGranted
+                        ? nil
+                        : String(localized: "Already enabled? Continue →")
+                ) { vm.advance() }
             }
 
         case .microphone:
@@ -336,11 +340,13 @@ struct OnboardingView: View {
             .foregroundColor(.secondary)
     }
 
-    private func skipButton(action: @escaping () -> Void) -> some View {
-        Button(String(localized: "Skip for now →"), action: action)
+    private func skipButton(label: String? = nil, action: @escaping () -> Void) -> some View {
+        let text = label ?? String(localized: "Skip for now →")
+        return Button(text, action: action)
             .buttonStyle(.plain)
-            .font(.system(size: 12, weight: .regular))
-            .foregroundColor(.secondary)
+            .font(.system(size: 12, weight: .medium))
+            .foregroundColor(.accentColor)
+            .opacity(label == nil ? 0.6 : 1.0)
     }
 }
 
@@ -385,7 +391,7 @@ private struct ScreenRecordingStep: View {
             permissionIcon(systemName: "record.circle", granted: vm.screenRecordingGranted)
             stepHeading(
                 title: String(localized: "Screen Recording"),
-                subtitle: String(localized: "Required to capture system audio from remote participants.\n\nTap the button below — a system dialog may appear, then System Settings opens. Enable the toggle next to Voxema.")
+                subtitle: String(localized: "Required to capture system audio from remote participants.\n\nTap the button, enable the toggle next to Voxema in System Settings. If the status still shows Not granted after enabling — tap \"Already enabled? Continue →\" below.")
             )
             statusBadge(
                 granted: vm.screenRecordingGranted,
