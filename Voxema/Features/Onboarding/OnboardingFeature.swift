@@ -2,6 +2,25 @@ import SwiftUI
 import Combine
 import AVFoundation
 
+// MARK: - Data models
+
+struct MicDevice: Identifiable, Equatable {
+    let id: String        // AVCaptureDevice.uniqueID
+    let name: String      // AVCaptureDevice.localizedName
+    let isBuiltIn: Bool
+}
+
+struct WhisperModelTier: Identifiable {
+    enum BadgeColor { case green, blue, purple }
+    let id: String           // model key passed to ModelManager
+    let tierName: String     // "Good", "Better", "Best"
+    let modelLabel: String   // "whisper-small"
+    let size: String         // "244 MB"
+    let description: String
+    let badgeLabel: String
+    let badgeColor: BadgeColor
+}
+
 // MARK: - Step enum
 
 enum OnboardingStep: Int, CaseIterable {
@@ -29,9 +48,11 @@ final class OnboardingViewModel: ObservableObject {
 
     // Configure step
     @Published var selectedMicID: String? = nil
-    @Published var availableMics: [String] = []       // display names
+    @Published var availableMics: [MicDevice] = []
     @Published var selectedWhisperModel: String? = nil
-    @Published var availableWhisperModels: [(id: String, label: String, size: String)] = []
+    @Published var availableWhisperTiers: [WhisperModelTier] = []
+    @Published private(set) var detectedHardwareLabel: String = ""
+    @Published private(set) var recommendedTierId: String = "whisper-medium"
 
     // Download step
     @Published private(set) var isDownloading   = false
@@ -55,15 +76,9 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: Navigation
 
     func advance() {
-        guard !step.isLast else {
-            onComplete?()
-            return
-        }
+        guard !step.isLast else { onComplete?(); return }
         let next = OnboardingStep(rawValue: step.rawValue + 1)!
-        // Auto-skip microphone step if already granted
-        if next == .microphone && microphoneGranted {
-            step = .configure; return
-        }
+        if next == .microphone && microphoneGranted { step = .configure; return }
         step = next
     }
 
@@ -72,9 +87,7 @@ final class OnboardingViewModel: ObservableObject {
         step = OnboardingStep(rawValue: step.rawValue - 1)!
     }
 
-    func complete() {
-        onComplete?()
-    }
+    func complete() { onComplete?() }
 
     // MARK: Permissions
 
@@ -82,8 +95,6 @@ final class OnboardingViewModel: ObservableObject {
         microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
     }
 
-    /// Observe app-foreground events to update microphone badge when the user
-    /// returns from System Settings.
     func startPermissionPolling() {
         NotificationCenter.default.addObserver(
             forName: NSApplication.didBecomeActiveNotification,
@@ -98,54 +109,102 @@ final class OnboardingViewModel: ObservableObject {
 
     func requestMicrophonePermission() {
         AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-            Task { @MainActor [weak self] in
-                self?.microphoneGranted = granted
-            }
+            Task { @MainActor [weak self] in self?.microphoneGranted = granted }
         }
     }
 
     // MARK: Configure
 
     private func loadMicrophoneList() {
-        // .microphone is macOS 14+; use .builtInMicrophone for the macOS 13 target
-        let devices = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInMicrophone],
+        let session = AVCaptureDevice.DiscoverySession(
+            deviceTypes: [.builtInMicrophone, .externalUnknown],
             mediaType: .audio,
             position: .unspecified
-        ).devices
-        availableMics = devices.map { $0.localizedName }
-        if selectedMicID == nil, let first = devices.first {
-            selectedMicID = first.uniqueID
+        )
+        let devices = session.devices
+        availableMics = devices.map {
+            MicDevice(id: $0.uniqueID,
+                      name: $0.localizedName,
+                      isBuiltIn: $0.deviceType == .builtInMicrophone)
         }
+        if selectedMicID == nil { selectedMicID = devices.first?.uniqueID }
     }
 
     private func loadWhisperModels() {
-        // Populate from ModelManager manifest — use static fallback for testability
-        availableWhisperModels = [
-            (id: "whisper-tiny",   label: String(localized: "Fastest — lower accuracy"),    size: "~75 MB"),
-            (id: "whisper-base",   label: String(localized: "Fast — good for clear audio"),  size: "~142 MB"),
-            (id: "whisper-small",  label: String(localized: "Balanced — recommended"),        size: "~466 MB"),
-            (id: "whisper-medium", label: String(localized: "Accurate — needs more memory"),  size: "~1.5 GB"),
+        availableWhisperTiers = [
+            WhisperModelTier(
+                id: "whisper-small",
+                tierName: String(localized: "Good"),
+                modelLabel: "whisper-small",
+                size: "244 MB",
+                description: String(localized: "Faster. Works great for clear audio and shorter meetings."),
+                badgeLabel: String(localized: "Fastest"),
+                badgeColor: .green
+            ),
+            WhisperModelTier(
+                id: "whisper-medium",
+                tierName: String(localized: "Better"),
+                modelLabel: "whisper-medium",
+                size: "769 MB",
+                description: String(localized: "Balanced quality and speed. Best for most Mac setups."),
+                badgeLabel: String(localized: "Recommended"),
+                badgeColor: .blue
+            ),
+            WhisperModelTier(
+                id: "whisper-large-v3",
+                tierName: String(localized: "Best"),
+                modelLabel: "whisper-large-v3",
+                size: "1.5 GB",
+                description: String(localized: "Highest accuracy. Best for multilingual or noisy environments."),
+                badgeLabel: String(localized: "Best quality"),
+                badgeColor: .purple
+            ),
         ]
-        selectedWhisperModel = "whisper-small"
+        detectHardware()
+    }
+
+    private func detectHardware() {
+        let ramGB = Int(ProcessInfo.processInfo.physicalMemory / (1024 * 1024 * 1024))
+        let name = macModelName()
+        if ramGB >= 16 {
+            recommendedTierId   = "whisper-medium"
+            selectedWhisperModel = "whisper-medium"
+            detectedHardwareLabel = "\(name) (\(ramGB) GB RAM) — Better tier recommended"
+        } else {
+            recommendedTierId   = "whisper-small"
+            selectedWhisperModel = "whisper-small"
+            detectedHardwareLabel = "\(name) (\(ramGB) GB RAM) — Good tier recommended"
+        }
+    }
+
+    private func macModelName() -> String {
+        var size = 0
+        sysctlbyname("hw.model", nil, &size, nil, 0)
+        var chars = [CChar](repeating: 0, count: size)
+        sysctlbyname("hw.model", &chars, &size, nil, 0)
+        let hw = String(cString: chars)
+        if hw.hasPrefix("MacBookPro") { return "MacBook Pro" }
+        if hw.hasPrefix("MacBookAir") { return "MacBook Air" }
+        if hw.hasPrefix("MacPro")     { return "Mac Pro" }
+        if hw.hasPrefix("Macmini")    { return "Mac mini" }
+        if hw.hasPrefix("iMac")       { return "iMac" }
+        return "Mac"
     }
 
     // MARK: Download
 
     func startModelDownload() {
         guard let modelID = selectedWhisperModel else { advance(); return }
-        isDownloading  = true
-        downloadError  = nil
+        isDownloading = true
+        downloadError = nil
         downloadProgress = 0
-
-        // Simulate progress — real implementation delegates to ModelManager
         Task { @MainActor in
             for i in 1...20 {
                 try? await Task.sleep(nanoseconds: 150_000_000)
                 downloadProgress = Double(i) / 20.0
             }
             isDownloading = false
-            _ = modelID  // suppress warning; real: ModelManager.shared.download(id:)
+            _ = modelID
             advance()
         }
     }
@@ -165,17 +224,12 @@ struct OnboardingView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Progress dots
             progressDots
                 .padding(.top, 24)
                 .padding(.bottom, 8)
-
-            // Step content
             stepContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.horizontal, 32)
-
-            // Navigation buttons
             navigationButtons
                 .padding(.horizontal, 32)
                 .padding(.bottom, 28)
@@ -189,20 +243,30 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: Progress Dots
+    // MARK: Progress dots (pill for active, green for past, gray for future)
 
     private var progressDots: some View {
         HStack(spacing: 6) {
             ForEach(OnboardingStep.allCases, id: \.rawValue) { s in
-                Circle()
-                    .fill(s.rawValue <= vm.step.rawValue ? Color.accentColor : Color.secondary.opacity(0.3))
-                    .frame(width: s == vm.step ? 8 : 6, height: s == vm.step ? 8 : 6)
-                    .animation(.spring(response: 0.3), value: vm.step)
+                if s == vm.step {
+                    Capsule()
+                        .fill(Color.accentColor)
+                        .frame(width: 20, height: 8)
+                } else if s.rawValue < vm.step.rawValue {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                } else {
+                    Circle()
+                        .fill(Color.secondary.opacity(0.3))
+                        .frame(width: 8, height: 8)
+                }
             }
         }
+        .animation(.spring(response: 0.3), value: vm.step)
     }
 
-    // MARK: Step Routing
+    // MARK: Step routing
 
     @ViewBuilder
     private var stepContent: some View {
@@ -216,7 +280,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: Navigation Buttons
+    // MARK: Navigation buttons
 
     @ViewBuilder
     private var navigationButtons: some View {
@@ -234,9 +298,7 @@ struct OnboardingView: View {
                     if vm.microphoneGranted { vm.advance() }
                     else { vm.requestMicrophonePermission() }
                 }
-                if !vm.microphoneGranted {
-                    skipButton { vm.advance() }
-                }
+                if !vm.microphoneGranted { skipButton { vm.advance() } }
             }
 
         case .configure:
@@ -247,17 +309,15 @@ struct OnboardingView: View {
             }
 
         case .download:
-            VStack(spacing: 10) {
-                if !vm.isDownloading {
-                    HStack(spacing: 10) {
-                        backButton
-                        Spacer()
-                        Button(String(localized: "Skip for now")) { vm.skipModelDownload() }
-                            .buttonStyle(.plain)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.secondary)
-                        primaryButton(label: String(localized: "Download")) { vm.startModelDownload() }
-                    }
+            if !vm.isDownloading {
+                HStack(spacing: 10) {
+                    backButton
+                    Spacer()
+                    Button(String(localized: "Skip for now")) { vm.skipModelDownload() }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
+                    primaryButton(label: String(localized: "Download")) { vm.startModelDownload() }
                 }
             }
 
@@ -273,7 +333,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: Helpers
+    // MARK: Button helpers
 
     private func primaryButton(label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
@@ -282,10 +342,10 @@ struct OnboardingView: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 13)
-                .background(Color.accentColor)  // explicit color — never dims on focus loss
+                .background(Color.accentColor)
                 .cornerRadius(12)
         }
-        .buttonStyle(.plain)  // plain style so we fully control appearance
+        .buttonStyle(.plain)
     }
 
     private var backButton: some View {
@@ -303,29 +363,31 @@ struct OnboardingView: View {
     }
 }
 
-// MARK: - Step Views
+// MARK: - Step views
 
-// ── Welcome ──────────────────────────────────────────────────────────────────
+// ── Welcome ───────────────────────────────────────────────────────────────────
 
 private struct WelcomeStep: View {
     let vm: OnboardingViewModel
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
-            // Brand mark
             brandMark(size: 80)
             VStack(spacing: 8) {
                 Text("Voxema")
-                    .font(.system(size: 32, weight: .bold, design: .default))
+                    .font(.system(size: 32, weight: .bold))
                 Text(String(localized: "Your meetings. Your data. Your device."))
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
             VStack(alignment: .leading, spacing: 12) {
-                featureRow(icon: "mic.fill",       color: .accentColor, text: String(localized: "Captures your microphone and system audio — both sides of the conversation"))
-                featureRow(icon: "text.bubble",    color: .accentColor, text: String(localized: "Transcribes, identifies speakers, and generates structured summaries"))
-                featureRow(icon: "lock.fill",       color: .green,        text: String(localized: "Everything stays on your Mac. Audio never leaves your device."))
+                featureRow(icon: "mic.fill", color: .accentColor,
+                           text: String(localized: "Captures your microphone and system audio — both sides of the conversation"))
+                featureRow(icon: "text.bubble", color: .accentColor,
+                           text: String(localized: "Transcribes, identifies speakers, and generates structured summaries"))
+                featureRow(icon: "lock.fill", color: .green,
+                           text: String(localized: "Everything stays on your Mac. Audio never leaves your device."))
             }
             .padding(.horizontal, 8)
             Spacer()
@@ -333,7 +395,7 @@ private struct WelcomeStep: View {
     }
 }
 
-// ── Microphone ───────────────────────────────────────────────────────────────
+// ── Microphone ────────────────────────────────────────────────────────────────
 
 private struct MicrophoneStep: View {
     @ObservedObject var vm: OnboardingViewModel
@@ -345,63 +407,202 @@ private struct MicrophoneStep: View {
                 title: String(localized: "Microphone Access"),
                 subtitle: String(localized: "Required to record your side of the conversation.\n\nVoxema uses a separate microphone channel so your voice is transcribed accurately.")
             )
-            if vm.microphoneGranted {
-                statusBadge(granted: true, label: String(localized: "Granted"))
-            } else {
-                statusBadge(granted: false, label: String(localized: "Not granted"))
-            }
+            statusBadge(
+                granted: vm.microphoneGranted,
+                label: vm.microphoneGranted
+                    ? String(localized: "Granted")
+                    : String(localized: "Not granted")
+            )
             Spacer()
         }
         .onAppear { vm.refreshPermissions() }
     }
 }
 
-// ── Configure ────────────────────────────────────────────────────────────────
+// ── Configure ─────────────────────────────────────────────────────────────────
 
 private struct ConfigureStep: View {
     @ObservedObject var vm: OnboardingViewModel
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Spacer()
-            stepHeading(
-                title: String(localized: "Configure"),
-                subtitle: String(localized: "Choose your microphone and transcription quality. You can change these later in Settings.")
-            )
-            VStack(alignment: .leading, spacing: 14) {
-                configSection(label: String(localized: "Microphone")) {
-                    Picker(String(localized: "Microphone"), selection: $vm.selectedMicID) {
-                        ForEach(Array(vm.availableMics.enumerated()), id: \.offset) { i, name in
-                            Text(name).tag(Optional(name))
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 20) {
+
+                // ── Microphone ──────────────────────────────────────────────
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(String(localized: "Choose your microphone"))
+                        .font(.system(size: 15, weight: .semibold))
+                    microphoneList
                 }
-                configSection(label: String(localized: "Transcription model")) {
-                    Picker(String(localized: "Model"), selection: $vm.selectedWhisperModel) {
-                        ForEach(vm.availableWhisperModels, id: \.id) { m in
-                            VStack(alignment: .leading) {
-                                Text(m.label)
-                                Text(m.id + " · " + m.size)
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
-                            }
-                            .tag(Optional(m.id))
+
+                // ── Transcription quality ───────────────────────────────────
+                VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(String(localized: "Transcription quality"))
+                            .font(.system(size: 15, weight: .semibold))
+                        if !vm.detectedHardwareLabel.isEmpty {
+                            Text("Detected: \(vm.detectedHardwareLabel)")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
                         }
                     }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
+                    VStack(spacing: 8) {
+                        ForEach(vm.availableWhisperTiers) { tier in
+                            tierCard(tier: tier)
+                        }
+                    }
                 }
             }
-            Spacer()
+            .padding(.vertical, 4)
         }
+    }
+
+    // MARK: Microphone list
+
+    private var microphoneList: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(vm.availableMics.enumerated()), id: \.element.id) { idx, mic in
+                micRow(mic: mic)
+                if idx < vm.availableMics.count - 1 {
+                    Divider().padding(.leading, 52)
+                }
+            }
+        }
+        .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(Color(nsColor: .separatorColor).opacity(0.6), lineWidth: 1)
+        )
+    }
+
+    private func micRow(mic: MicDevice) -> some View {
+        let isSelected = vm.selectedMicID == mic.id
+        return Button {
+            vm.selectedMicID = mic.id
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: micIcon(for: mic))
+                    .font(.system(size: 15))
+                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                    .frame(width: 24, alignment: .center)
+                HStack(spacing: 5) {
+                    Text(mic.name)
+                        .font(.system(size: 13, weight: .medium))
+                    if mic.isBuiltIn {
+                        Text(String(localized: "(built-in)"))
+                            .font(.system(size: 12))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.accentColor)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: Model tier cards
+
+    private func tierCard(tier: WhisperModelTier) -> some View {
+        let isSelected = vm.selectedWhisperModel == tier.id
+        return Button {
+            vm.selectedWhisperModel = tier.id
+        } label: {
+            HStack(spacing: 12) {
+                // Radio button
+                ZStack {
+                    Circle()
+                        .strokeBorder(
+                            isSelected ? Color.accentColor : Color.secondary.opacity(0.4),
+                            lineWidth: 2
+                        )
+                        .frame(width: 18, height: 18)
+                    if isSelected {
+                        Circle()
+                            .fill(Color.accentColor)
+                            .frame(width: 10, height: 10)
+                    }
+                }
+                .animation(.spring(response: 0.2), value: isSelected)
+
+                // Content
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 8) {
+                        Text("\(tier.tierName) — \(tier.modelLabel) · \(tier.size)")
+                            .font(.system(size: 13, weight: .semibold))
+                        badgeView(for: tier)
+                        Spacer(minLength: 0)
+                    }
+                    Text(tier.description)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+            }
+            .padding(14)
+            .background(
+                isSelected
+                    ? Color.accentColor.opacity(0.08)
+                    : Color(nsColor: .controlBackgroundColor)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .strokeBorder(
+                        isSelected ? Color.accentColor : Color(nsColor: .separatorColor).opacity(0.5),
+                        lineWidth: isSelected ? 1.5 : 1
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .animation(.spring(response: 0.2), value: isSelected)
+    }
+
+    @ViewBuilder
+    private func badgeView(for tier: WhisperModelTier) -> some View {
+        let (bg, fg) = badgeColors(tier.badgeColor)
+        Text(tier.badgeLabel)
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(fg)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(bg, in: Capsule())
+    }
+
+    private func badgeColors(_ color: WhisperModelTier.BadgeColor) -> (Color, Color) {
+        switch color {
+        case .green:  return (Color.green.opacity(0.15),        Color.green)
+        case .blue:   return (Color.accentColor.opacity(0.15),  Color.accentColor)
+        case .purple: return (Color.purple.opacity(0.15),       Color.purple)
+        }
+    }
+
+    private func micIcon(for mic: MicDevice) -> String {
+        let lower = mic.name.lowercased()
+        if lower.contains("airpod") { return "airpodspro" }
+        return "mic.fill"
     }
 }
 
-// ── Download ─────────────────────────────────────────────────────────────────
+// ── Download ──────────────────────────────────────────────────────────────────
 
 private struct DownloadStep: View {
     @ObservedObject var vm: OnboardingViewModel
+
+    private var selectedTierName: String {
+        vm.availableWhisperTiers.first { $0.id == vm.selectedWhisperModel }?.tierName
+            ?? vm.selectedWhisperModel
+            ?? String(localized: "model")
+    }
+
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
@@ -410,9 +611,7 @@ private struct DownloadStep: View {
                 .foregroundColor(.accentColor)
             stepHeading(
                 title: String(localized: "Download model"),
-                subtitle: vm.selectedWhisperModel.map {
-                    String(localized: "Downloading \($0). The model is stored locally and used for all future transcriptions.")
-                } ?? String(localized: "No model selected. You can download one later in Settings.")
+                subtitle: String(localized: "Downloading \(selectedTierName). The model is stored locally and used for all future transcriptions.")
             )
             if vm.isDownloading {
                 VStack(spacing: 8) {
@@ -440,11 +639,15 @@ private struct DownloadStep: View {
 
 private struct SummarizationStep: View {
     @ObservedObject var vm: OnboardingViewModel
-    private let tiers = [
-        (title: String(localized: "Local — Lightweight"),   subtitle: String(localized: "Faster, uses less memory. Good for shorter meetings."),  icon: "cpu"),
-        (title: String(localized: "Local — Recommended"),   subtitle: String(localized: "Best quality/performance balance for most Macs."),        icon: "cpu"),
-        (title: String(localized: "Cloud"),                  subtitle: String(localized: "Highest quality. Requires internet. API key needed."),    icon: "cloud"),
+    private let tiers: [(title: String, subtitle: String, icon: String)] = [
+        (String(localized: "Local — Lightweight"),
+         String(localized: "Faster, uses less memory. Good for shorter meetings."), "cpu"),
+        (String(localized: "Local — Recommended"),
+         String(localized: "Best quality/performance balance for most Macs."), "cpu"),
+        (String(localized: "Cloud"),
+         String(localized: "Highest quality. Requires internet. API key needed."), "cloud"),
     ]
+
     var body: some View {
         VStack(spacing: 16) {
             Spacer()
@@ -453,9 +656,7 @@ private struct SummarizationStep: View {
                 subtitle: String(localized: "Choose how Voxema generates meeting summaries. You can change this later.")
             )
             VStack(spacing: 8) {
-                ForEach(tiers.indices, id: \.self) { i in
-                    tierRow(index: i)
-                }
+                ForEach(tiers.indices, id: \.self) { i in tierRow(index: i) }
             }
             if vm.selectedSummarizationTier == 2 {
                 SecureField(String(localized: "API key"), text: $vm.cloudAPIKey)
@@ -469,9 +670,7 @@ private struct SummarizationStep: View {
     private func tierRow(index: Int) -> some View {
         let tier = tiers[index]
         let isSelected = vm.selectedSummarizationTier == index
-        return Button {
-            vm.selectedSummarizationTier = index
-        } label: {
+        return Button { vm.selectedSummarizationTier = index } label: {
             HStack(spacing: 12) {
                 Image(systemName: tier.icon)
                     .frame(width: 20)
@@ -553,7 +752,7 @@ private struct ReadyStep: View {
     }
 }
 
-// MARK: - Shared UI helpers (file-private)
+// MARK: - Shared UI helpers
 
 private func brandMark(size: CGFloat) -> some View {
     ZStack {
@@ -565,16 +764,12 @@ private func brandMark(size: CGFloat) -> some View {
             let sc = w / 100
             let cx = 50 * sc, cy = 50 * sc
             var path: Path
-            // Circle ring
-            path = Path(ellipseIn: CGRect(x: (cx - 14*sc), y: (cy - 14*sc), width: 28*sc, height: 28*sc))
+            path = Path(ellipseIn: CGRect(x: cx - 14*sc, y: cy - 14*sc, width: 28*sc, height: 28*sc))
             ctx.stroke(path, with: .color(.white), lineWidth: 5*sc)
-            // Arc helper: draw 320° CW arc, gap 15°→55°
             func arc(_ r: CGFloat, color: Color, alpha: CGFloat) {
                 var p = Path()
-                let start = Angle.degrees(55)
-                let end   = Angle.degrees(15 + 360) // 375° for 320° CW
                 p.addArc(center: CGPoint(x: cx, y: cy), radius: r*sc,
-                         startAngle: start, endAngle: end, clockwise: false)
+                         startAngle: .degrees(55), endAngle: .degrees(375), clockwise: false)
                 ctx.stroke(p, with: .color(color.opacity(alpha)),
                            style: StrokeStyle(lineWidth: 4.5*sc, lineCap: .round))
             }
@@ -588,8 +783,7 @@ private func brandMark(size: CGFloat) -> some View {
 
 private func stepHeading(title: String, subtitle: String) -> some View {
     VStack(spacing: 8) {
-        Text(title)
-            .font(.system(size: 22, weight: .bold))
+        Text(title).font(.system(size: 22, weight: .bold))
         Text(subtitle)
             .font(.system(size: 13))
             .foregroundColor(.secondary)
@@ -625,22 +819,10 @@ private func statusBadge(granted: Bool, label: String) -> some View {
 
 private func featureRow(icon: String, color: Color, text: String) -> some View {
     HStack(alignment: .top, spacing: 12) {
-        Image(systemName: icon)
-            .foregroundColor(color)
-            .frame(width: 20)
+        Image(systemName: icon).foregroundColor(color).frame(width: 20)
         Text(text)
             .font(.system(size: 13))
             .foregroundColor(.secondary)
             .fixedSize(horizontal: false, vertical: true)
-    }
-}
-
-private func configSection<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-        Text(label)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundColor(.secondary)
-            .textCase(.uppercase)
-        content()
     }
 }
