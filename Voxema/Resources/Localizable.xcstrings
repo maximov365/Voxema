@@ -416,6 +416,126 @@
         "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сегодня" } },
         "sr" : { "stringUnit" : { "state" : "translated", "value" : "Данас" } }
       }
+    },
+    "Your meetings. Your data. Your device." : {
+      "comment" : "Onboarding welcome tagline",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your meetings. Your data. Your device." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ваши встречи. Ваши данные. Ваше устройство." } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Ваши sastanci. Ваши подаци. Ваш уређај." } }
+      }
+    },
+    "Get Started" : {
+      "comment" : "Onboarding welcome CTA",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Get Started" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начать" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Почни" } }
+      }
+    },
+    "Screen Recording" : {
+      "comment" : "Onboarding step title",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Screen Recording" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Запись экрана" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Снимање екрана" } }
+      }
+    },
+    "Microphone Access" : {
+      "comment" : "Onboarding step title",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Microphone Access" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Доступ к микрофону" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Приступ микрофону" } }
+      }
+    },
+    "Configure" : {
+      "comment" : "Onboarding step title",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Configure" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Настройка" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Подешавање" } }
+      }
+    },
+    "Download model" : {
+      "comment" : "Onboarding download step title",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Download model" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Загрузка модели" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Преузимање модела" } }
+      }
+    },
+    "Summarization" : {
+      "comment" : "Onboarding step title",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Summarization" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Суммаризация" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Резиме" } }
+      }
+    },
+    "Ready" : {
+      "comment" : "Onboarding final step title",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ready" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Готово" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Спремно" } }
+      }
+    },
+    "Start Recording" : {
+      "comment" : "Onboarding ready step CTA",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Recording" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начать запись" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Покрени снимање" } }
+      }
+    },
+    "← Back" : {
+      "comment" : "Back navigation button",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "← Back" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "← Назад" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "← Назад" } }
+      }
+    },
+    "Skip for now" : {
+      "comment" : "Onboarding skip download button",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip for now" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Пропустить" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Прескочи" } }
+      }
+    },
+    "Download" : {
+      "comment" : "Onboarding download button",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Download" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Загрузить" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Преузми" } }
+      }
+    },
+    "Recommended" : {
+      "comment" : "Summarization tier badge",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recommended" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Рекомендуется" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Препоручено" } }
+      }
+    },
+    "New Recording" : {
+      "comment" : "Menu command to start a new recording",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Recording" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Новая запись" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Ново снимање" } }
+      }
+    },
+    "Voxema" : {
+      "comment" : "App name used in menu bar",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Voxema" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Voxema" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Voxema" } }
+      }
     }
   },
   "version" : "1.0"
