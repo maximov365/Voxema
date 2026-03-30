@@ -389,31 +389,3 @@ public final class AppState: ObservableObject {
     }
 }
 
-// MARK: - Fallback stubs for unrecoverable init errors
-
-extension ExportStage {
-    /// Returns an `ExportStage` that always throws `.exportDatabaseWriteFailure`.
-    static var failing: ExportStage {
-        // Use a guaranteed-writeable temp path so init doesn't throw,
-        // then the stage will fail at run-time if the DB path is broken.
-        let tmp = FileManager.default.temporaryDirectory
-            .appendingPathComponent("voxema-fallback-\(UUID()).db").path
-        return (try? ExportStage(config: ExportConfiguration(
-            databasePath: tmp,
-            exportsDirectory: FileManager.default.temporaryDirectory
-        ))) ?? ExportStage._forcedFailing
-    }
-
-    // Last-resort: reflect on internal init — just use a precondition-safe approach
-    private static var _forcedFailing: ExportStage {
-        // This should never be reached in practice.
-        fatalError("ExportStage: cannot create any fallback instance")
-    }
-}
-
-extension MeetingStore {
-    /// Returns an in-memory `MeetingStore` used when the production DB cannot be opened.
-    static var failing: MeetingStore {
-        return (try? MeetingStore(db: .init())) ?? { fatalError("MeetingStore in-memory init failed") }()
-    }
-}

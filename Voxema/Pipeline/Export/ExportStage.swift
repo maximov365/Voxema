@@ -206,3 +206,23 @@ public final class ExportStage: ExportStageProtocol {
         )
     }
 }
+
+// MARK: - Fallback stub
+
+extension ExportStage {
+    /// Returns an `ExportStage` backed by a throwaway temp database.
+    /// Used by `AppState.production()` when the real database cannot be opened.
+    /// The stage is functional but every write throws `.exportDatabaseWriteFailure`.
+    static var failing: ExportStage {
+        let tmp = FileManager.default.temporaryDirectory
+            .appendingPathComponent("voxema-fallback-\(UUID()).db").path
+        return (try? ExportStage(config: ExportConfiguration(
+            databasePath: tmp,
+            exportsDirectory: FileManager.default.temporaryDirectory
+        ))) ?? ExportStage._forcedFailing
+    }
+
+    private static var _forcedFailing: ExportStage {
+        fatalError("ExportStage: cannot create any fallback instance")
+    }
+}

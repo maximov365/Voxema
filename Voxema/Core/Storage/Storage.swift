@@ -189,3 +189,13 @@ private struct MeetingRow: FetchableRecord, PersistableRecord {
         )
     }
 }
+
+// MARK: - Fallback stub
+
+extension MeetingStore {
+    /// Returns an in-memory `MeetingStore` used when the production DB cannot be opened.
+    /// Queries succeed but nothing is persisted to disk.
+    static var failing: MeetingStore {
+        return (try? MeetingStore(db: DatabaseQueue())) ?? { fatalError("MeetingStore in-memory init failed") }()
+    }
+}
