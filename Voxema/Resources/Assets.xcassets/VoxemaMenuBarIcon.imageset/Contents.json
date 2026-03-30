@@ -1,12 +1,10 @@
 {
   "images" : [
     {
-      "filename" : "VoxemaMenuBarIcon.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "VoxemaMenuBarIcon@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

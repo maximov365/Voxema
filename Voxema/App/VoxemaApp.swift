@@ -31,7 +31,7 @@ struct VoxemaApp: App {
             }
         }
 
-        MenuBarExtra(String(localized: "Voxema"), image: "VoxemaMenuBarIcon") {
+        MenuBarExtra(String(localized: "Voxema"), systemImage: "waveform") {
             MenuBarView()
                 .environmentObject(appState)
         }
