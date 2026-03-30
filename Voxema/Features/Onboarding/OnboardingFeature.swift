@@ -520,18 +520,34 @@ private struct ReadyStep: View {
                 subtitle: String(localized: "Voxema is configured and ready. Click Start Recording to capture your first meeting.")
             )
             VStack(alignment: .leading, spacing: 8) {
-                readySummaryRow(icon: "record.circle",  text: String(localized: "Screen Recording — granted"))
-                readySummaryRow(icon: "mic.fill",        text: String(localized: "Microphone — granted"))
-                readySummaryRow(icon: "cpu",             text: String(localized: "Transcription model — ready"))
+                readySummaryRow(
+                    icon: vm.microphoneGranted ? "mic.fill" : "mic.slash.fill",
+                    color: vm.microphoneGranted ? .green : .orange,
+                    text: vm.microphoneGranted
+                        ? String(localized: "Microphone — granted")
+                        : String(localized: "Microphone — not granted")
+                )
+                readySummaryRow(
+                    icon: "record.circle",
+                    color: .secondary,
+                    text: String(localized: "Screen Recording — checked on first recording")
+                )
+                readySummaryRow(
+                    icon: "cpu",
+                    color: .green,
+                    text: vm.skipDownload
+                        ? String(localized: "Transcription model — will download later")
+                        : String(localized: "Transcription model — ready")
+                )
             }
             .padding(.horizontal, 20)
             Spacer()
         }
     }
 
-    private func readySummaryRow(icon: String, text: String) -> some View {
+    private func readySummaryRow(icon: String, color: Color, text: String) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: icon).foregroundColor(.green).frame(width: 18)
+            Image(systemName: icon).foregroundColor(color).frame(width: 18)
             Text(text).font(.system(size: 13))
         }
     }

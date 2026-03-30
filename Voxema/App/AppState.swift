@@ -102,16 +102,23 @@ public final class AppState: ObservableObject {
     /// that may not reflect macOS 15's new TCC key.
     public func startRecording() async {
         pipelineError = nil
+        permissionRequired = nil
         recordingDuration = 0
+        // If the coordinator is stuck in .failed from a previous attempt, reset to .idle
+        if case .failed = coordinator.state { coordinator.reset() }
         do {
             try await coordinator.startRecording()
             startTimer()
-        } catch PipelineError.captureScreenRecordingPermissionDenied {
-            permissionRequired = .screenRecording
-        } catch PipelineError.captureMicrophonePermissionDenied {
-            permissionRequired = .microphone
         } catch let e as PipelineError {
-            pipelineError = e
+            // Explicit switch is more reliable than catch-pattern matching for enum cases
+            switch e {
+            case .captureScreenRecordingPermissionDenied:
+                permissionRequired = .screenRecording
+            case .captureMicrophonePermissionDenied:
+                permissionRequired = .microphone
+            default:
+                pipelineError = e
+            }
         } catch {
             log.error("startRecording unexpected error")
         }
