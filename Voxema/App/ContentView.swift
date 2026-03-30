@@ -119,7 +119,7 @@ struct ContentView: View {
                 }
                 .font(.system(size: 10))
                 .buttonStyle(.borderless)
-                .foregroundStyle(.accentColor)
+                .foregroundStyle(Color.accentColor)
             }
             Text(appState.sckDiagnostics)
                 .font(.system(size: 10, design: .monospaced))
