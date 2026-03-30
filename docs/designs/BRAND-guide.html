@@ -362,71 +362,67 @@
     <h2><span class="num">02</span> Mark Anatomy</h2>
 
     <div class="grid2">
-      <!-- Annotated SVG -->
-      <div style="background:var(--ink-soft);border-radius:14px;padding:36px;border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;">
-        <svg width="260" height="220" viewBox="0 0 260 220" fill="none">
-          <!-- the mark, centered at 110,110 -->
-          <!-- scale: r_circle=14 → 36px, so scale≈2.57 -->
-          <!-- scaled: r=14→36, r=23→59, r=32→82, r=41→105 -->
-          <!-- center at 110,110 -->
 
-          <!-- Arc 3 outer -->
-          <path d="M 162.8 215.8 A 105 105 0 1 1 220.8 145.7"
-                stroke="#4080c0" stroke-width="5" stroke-linecap="round"/>
-          <!-- Arc 2 mid -->
-          <path d="M 145.8 201.1 A 82 82 0 1 1 207.0 161.2"
-                stroke="#80b4ff" stroke-width="5.5" stroke-linecap="round"/>
-          <!-- Arc 1 inner -->
-          <path d="M 132.5 176.6 A 59 59 0 1 1 185.6 161.5"
-                stroke="white" stroke-width="6" stroke-linecap="round"/>
-          <!-- Circle -->
-          <circle cx="110" cy="110" r="36" stroke="white" stroke-width="6.5"/>
-
-          <!-- annotation lines -->
-          <line x1="110" y1="74" x2="110" y2="12" stroke="#3a3a3c" stroke-width="1" stroke-dasharray="3,3"/>
-          <text x="114" y="10" font-size="9" fill="#80b4ff" font-family="-apple-system,sans-serif">Circle ring — white · r=14</text>
-
-          <line x1="169" y1="78" x2="195" y2="30" stroke="#3a3a3c" stroke-width="1" stroke-dasharray="3,3"/>
-          <text x="197" y="28" font-size="9" fill="#80b4ff" font-family="-apple-system,sans-serif">Arc 1 — white · r=23 · 320°</text>
-
-          <line x1="183" y1="70" x2="205" y2="16" stroke="#3a3a3c" stroke-width="1" stroke-dasharray="3,3"/>
-          <text x="207" y="14" font-size="9" fill="#80b4ff" font-family="-apple-system,sans-serif">Arc 2 — #80b4ff · r=32 · 320°</text>
-
-          <!-- gap indicator -->
-          <path d="M 140 36 A 74 74 0 0 1 193 70" stroke="rgba(10,132,255,0.35)" stroke-width="2" stroke-dasharray="4,3" fill="none"/>
-          <text x="167" y="34" font-size="8" fill="rgba(10,132,255,0.6)" font-family="-apple-system,sans-serif">gap ~40°</text>
-
+      <!-- Large clean render of the mark (no annotation SVG, no custom coordinates) -->
+      <div style="background:var(--ink-soft);border-radius:14px;padding:40px;border:1px solid var(--stroke);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+        <svg width="180" height="180" viewBox="0 0 100 100" fill="none">
+          <!-- Canonical mark — exact same paths as production SVG -->
+          <circle cx="50" cy="50" r="14" stroke="white" stroke-width="5"/>
+          <path d="M 63.2 68.8 A 23 23 0 1 1 72.2 56.0" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M 68.4 76.2 A 32 32 0 1 1 80.9 58.3" stroke="#80b4ff" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 73.5 83.6 A 41 41 0 1 1 89.6 60.6" stroke="#4080c0" stroke-width="3.5" stroke-linecap="round"/>
           <!-- center dot -->
-          <circle cx="110" cy="110" r="3" fill="rgba(255,255,255,0.15)"/>
-          <text x="5" y="215" font-size="9" fill="#48484a" font-family="'SF Mono',monospace">viewBox 0 0 100 100 · all arcs centered at (50,50) · stroke-linecap:round</text>
+          <circle cx="50" cy="50" r="1.5" fill="rgba(255,255,255,0.2)"/>
+          <!-- gap indicator arc (dashed, upper-right) -->
+          <path d="M 72.2 56.0 A 23 23 0 0 1 63.2 68.8" stroke="rgba(10,132,255,0.35)" stroke-width="3" stroke-dasharray="2,2" stroke-linecap="round" fill="none"/>
+          <path d="M 80.9 58.3 A 32 32 0 0 1 68.4 76.2" stroke="rgba(10,132,255,0.2)" stroke-width="2.5" stroke-dasharray="2,2" stroke-linecap="round" fill="none"/>
+          <path d="M 89.6 60.6 A 41 41 0 0 1 73.5 83.6" stroke="rgba(10,132,255,0.12)" stroke-width="2" stroke-dasharray="2,2" stroke-linecap="round" fill="none"/>
         </svg>
+        <div style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;text-align:center;line-height:1.8;">
+          viewBox 0 0 100 100<br>center (50, 50) · all paths stroke-linecap:round<br>
+          <span style="color:rgba(10,132,255,0.5);">- - -</span> gap ~40° upper-right (15°→55°)
+        </div>
       </div>
 
       <!-- Construction notes -->
       <div style="display:flex;flex-direction:column;gap:10px;">
         <div style="background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--stroke);">
-          <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Circle ring</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:14px;height:14px;border-radius:50%;border:2.5px solid white;flex-shrink:0;"></div>
+            <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;">Circle ring</div>
+          </div>
           <div style="font-size:12px;color:var(--secondary);line-height:1.6;"><code>cx=50 cy=50 r=14</code> · Full circle, stroke white, no fill. Anchors the composition.</div>
         </div>
         <div style="background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--stroke);">
-          <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Arc 1 — inner</div>
-          <div style="font-size:12px;color:var(--secondary);line-height:1.6;"><code>r=23</code> · 320° clockwise · stroke white (same as circle). Arc reads as a direct extension of the circle's energy.</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:20px;height:3px;background:white;border-radius:2px;flex-shrink:0;"></div>
+            <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;">Arc 1 — inner</div>
+          </div>
+          <div style="font-size:12px;color:var(--secondary);line-height:1.6;"><code>r=23 · 320° CW · white</code> Continues visually from the circle ring — same colour, same energy.</div>
         </div>
         <div style="background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--stroke);">
-          <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Arc 2 — mid</div>
-          <div style="font-size:12px;color:var(--secondary);line-height:1.6;"><code>r=32</code> · 320° clockwise · stroke <code>#80b4ff</code>. Mid-distance wave — blue shift signals energy dispersing.</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:20px;height:3px;background:#80b4ff;border-radius:2px;flex-shrink:0;"></div>
+            <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;">Arc 2 — mid</div>
+          </div>
+          <div style="font-size:12px;color:var(--secondary);line-height:1.6;"><code>r=32 · 320° CW · #80b4ff</code> Blue shift — energy dispersing outward.</div>
         </div>
         <div style="background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--stroke);">
-          <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Arc 3 — outer</div>
-          <div style="font-size:12px;color:var(--secondary);line-height:1.6;"><code>r=41</code> · 320° clockwise · stroke <code>#4080c0</code>. Dimmer — farthest wave, fading into background.</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:20px;height:3px;background:#4080c0;border-radius:2px;flex-shrink:0;"></div>
+            <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;">Arc 3 — outer</div>
+          </div>
+          <div style="font-size:12px;color:var(--secondary);line-height:1.6;"><code>r=41 · 320° CW · #4080c0</code> Dimmest — farthest wave, fades towards background.</div>
         </div>
         <div style="background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--stroke);">
-          <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Gap</div>
-          <div style="font-size:12px;color:var(--secondary);line-height:1.6;">All arcs share the same ~40° opening positioned in the upper-right quadrant (from ~15° to ~55°). Consistent gap across all three arcs.</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:20px;height:3px;border-top:2px dashed rgba(10,132,255,0.5);flex-shrink:0;"></div>
+            <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;">Gap</div>
+          </div>
+          <div style="font-size:12px;color:var(--secondary);line-height:1.6;">~40° opening, upper-right quadrant, consistent across all three arcs (from ~15° to ~55°).</div>
         </div>
         <div class="note" style="font-size:11px;">
-          The mark is <strong>stroke-only</strong> — zero fills. Changing all stroke colors
-          to a single value instantly produces the menu bar template image.
+          Stroke-only — zero fills. Swap all strokes to a single colour for menu bar template rendering.
         </div>
       </div>
     </div>
