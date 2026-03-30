@@ -86,8 +86,21 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: Permissions
 
     func refreshPermissions() {
-        screenRecordingGranted = CGPreflightScreenCaptureAccess()
         microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
+        // Screen recording check is async — kick off but don't block
+        Task { await refreshScreenRecordingPermission() }
+    }
+
+    /// The only reliable cross-version check: attempt SCShareableContent and
+    /// treat success as granted. CGPreflightScreenCaptureAccess() is macOS 14.2+
+    /// and returns wrong values in debug/unsigned builds on earlier versions.
+    func refreshScreenRecordingPermission() async {
+        do {
+            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
+            screenRecordingGranted = true
+        } catch {
+            screenRecordingGranted = false
+        }
     }
 
     /// Start observing app-foreground events to refresh permission state
@@ -99,20 +112,9 @@ final class OnboardingViewModel: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                self?.refreshPermissions()
+                self?.microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
+                await self?.refreshScreenRecordingPermission()
             }
-        }
-    }
-
-    /// Attempt a ScreenCaptureKit call so macOS registers Voxema in
-    /// System Settings → Privacy & Security → Screen Recording.
-    /// The app won't appear in that list until it has tried to use screen capture APIs.
-    func triggerScreenRecordingRegistration() {
-        Task {
-            _ = try? await SCShareableContent.excludingDesktopWindows(
-                false, onScreenWindowsOnly: false
-            )
-            refreshPermissions()
         }
     }
 
@@ -376,9 +378,8 @@ private struct ScreenRecordingStep: View {
             Spacer()
         }
         .onAppear {
-            vm.refreshPermissions()
-            // First call to SCShareableContent registers app in Screen Recording privacy list
-            vm.triggerScreenRecordingRegistration()
+            // SCShareableContent call registers app in Screen Recording list AND checks status
+            Task { await vm.refreshScreenRecordingPermission() }
         }
     }
 }
