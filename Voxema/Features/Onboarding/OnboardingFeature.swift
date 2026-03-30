@@ -1,14 +1,11 @@
 import SwiftUI
 import Combine
 import AVFoundation
-import CoreGraphics
-import ScreenCaptureKit
 
 // MARK: - Step enum
 
 enum OnboardingStep: Int, CaseIterable {
     case welcome
-    case screenRecording
     case microphone
     case configure
     case download
@@ -28,8 +25,7 @@ final class OnboardingViewModel: ObservableObject {
     @Published private(set) var step: OnboardingStep = .welcome
 
     // Permissions
-    @Published private(set) var screenRecordingGranted = false
-    @Published private(set) var microphoneGranted      = false
+    @Published private(set) var microphoneGranted = false
 
     // Configure step
     @Published var selectedMicID: String? = nil
@@ -64,10 +60,7 @@ final class OnboardingViewModel: ObservableObject {
             return
         }
         let next = OnboardingStep(rawValue: step.rawValue + 1)!
-        // Auto-skip permission steps if already granted
-        if next == .screenRecording && screenRecordingGranted {
-            step = .microphone; return
-        }
+        // Auto-skip microphone step if already granted
         if next == .microphone && microphoneGranted {
             step = .configure; return
         }
@@ -86,27 +79,11 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: Permissions
 
     func refreshPermissions() {
-        microphoneGranted      = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
-        // CGPreflightScreenCaptureAccess reads TCC directly — no dialog, no caching
-        screenRecordingGranted = CGPreflightScreenCaptureAccess()
+        microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
     }
 
-    /// Button tap handler: registers the app in the Screen Recording list (shows macOS
-    /// dialog once if needed), then opens System Settings so user can enable the toggle.
-    func openScreenRecordingSettings() {
-        Task {
-            // Registers Voxema in System Settings → Screen Recording (one-time macOS dialog).
-            // On subsequent calls this is silent — user already decided.
-            _ = try? await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
-                NSWorkspace.shared.open(url)
-            }
-        }
-    }
-
-    /// Observe app-foreground events to update permission badges when the user
-    /// returns from System Settings. Uses CGPreflightScreenCaptureAccess() —
-    /// a lightweight TCC read that shows no dialog and has no process-level caching.
+    /// Observe app-foreground events to update microphone badge when the user
+    /// returns from System Settings.
     func startPermissionPolling() {
         NotificationCenter.default.addObserver(
             forName: NSApplication.didBecomeActiveNotification,
@@ -114,9 +91,7 @@ final class OnboardingViewModel: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                guard let self else { return }
-                microphoneGranted      = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
-                screenRecordingGranted = CGPreflightScreenCaptureAccess()
+                self?.microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
             }
         }
     }
@@ -232,13 +207,12 @@ struct OnboardingView: View {
     @ViewBuilder
     private var stepContent: some View {
         switch vm.step {
-        case .welcome:        WelcomeStep(vm: vm)
-        case .screenRecording: ScreenRecordingStep(vm: vm)
-        case .microphone:     MicrophoneStep(vm: vm)
-        case .configure:      ConfigureStep(vm: vm)
-        case .download:       DownloadStep(vm: vm)
-        case .summarization:  SummarizationStep(vm: vm)
-        case .ready:          ReadyStep(vm: vm)
+        case .welcome:       WelcomeStep(vm: vm)
+        case .microphone:    MicrophoneStep(vm: vm)
+        case .configure:     ConfigureStep(vm: vm)
+        case .download:      DownloadStep(vm: vm)
+        case .summarization: SummarizationStep(vm: vm)
+        case .ready:         ReadyStep(vm: vm)
         }
     }
 
@@ -249,25 +223,6 @@ struct OnboardingView: View {
         switch vm.step {
         case .welcome:
             primaryButton(label: String(localized: "Get Started")) { vm.advance() }
-
-        case .screenRecording:
-            VStack(spacing: 12) {
-                primaryButton(
-                    label: vm.screenRecordingGranted
-                        ? String(localized: "Continue →")
-                        : String(localized: "Open System Settings")
-                ) {
-                    if vm.screenRecordingGranted { vm.advance() }
-                    else { vm.openScreenRecordingSettings() }
-                }
-                // Badge may stay "Not granted" on macOS 15 until the app restarts.
-                // The skip link lets users continue if they've already enabled the toggle.
-                skipButton(
-                    label: vm.screenRecordingGranted
-                        ? nil
-                        : String(localized: "Already enabled? Continue →")
-                ) { vm.advance() }
-            }
 
         case .microphone:
             VStack(spacing: 10) {
@@ -340,13 +295,11 @@ struct OnboardingView: View {
             .foregroundColor(.secondary)
     }
 
-    private func skipButton(label: String? = nil, action: @escaping () -> Void) -> some View {
-        let text = label ?? String(localized: "Skip for now →")
-        return Button(text, action: action)
+    private func skipButton(action: @escaping () -> Void) -> some View {
+        Button(String(localized: "Skip for now →"), action: action)
             .buttonStyle(.plain)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundColor(.accentColor)
-            .opacity(label == nil ? 0.6 : 1.0)
+            .font(.system(size: 12, weight: .regular))
+            .foregroundColor(.secondary)
     }
 }
 
@@ -375,30 +328,6 @@ private struct WelcomeStep: View {
                 featureRow(icon: "lock.fill",       color: .green,        text: String(localized: "Everything stays on your Mac. Audio never leaves your device."))
             }
             .padding(.horizontal, 8)
-            Spacer()
-        }
-    }
-}
-
-// ── Screen Recording ─────────────────────────────────────────────────────────
-
-private struct ScreenRecordingStep: View {
-    @ObservedObject var vm: OnboardingViewModel
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
-            permissionIcon(systemName: "record.circle", granted: vm.screenRecordingGranted)
-            stepHeading(
-                title: String(localized: "Screen Recording"),
-                subtitle: String(localized: "Required to capture system audio from remote participants.\n\nTap the button, enable the toggle next to Voxema in System Settings. If the status still shows Not granted after enabling — tap \"Already enabled? Continue →\" below.")
-            )
-            statusBadge(
-                granted: vm.screenRecordingGranted,
-                label: vm.screenRecordingGranted
-                    ? String(localized: "Granted")
-                    : String(localized: "Not granted")
-            )
             Spacer()
         }
     }
