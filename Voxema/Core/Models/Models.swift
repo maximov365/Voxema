@@ -139,7 +139,8 @@ public struct SpeakerIdentity: Codable, Equatable, Hashable, Sendable {
 /// A speaker-attributed transcript segment produced by the Diarize stage.
 /// `segmentId` is the same UUID as the corresponding `TranscribedSegment`.
 /// Corresponds to `DiarizedSegment` in PIPELINE_CONTRACTS.md.
-public struct DiarizedSegment: Codable, Equatable, Hashable, Sendable {
+public struct DiarizedSegment: Codable, Equatable, Hashable, Sendable, Identifiable {
+    public var id: UUID { segmentId }
     /// Matches `TranscribedSegment.segmentId` for the source segment.
     public let segmentId: UUID
     public let startTime: Float
@@ -287,7 +288,8 @@ public struct MeetingMetadata: Codable, Equatable, Hashable, Sendable {
 
 /// Top-level entity representing a single recorded and processed meeting.
 /// Corresponds to `Meeting` in PIPELINE_CONTRACTS.md.
-public struct Meeting: Codable, Equatable, Hashable, Sendable {
+public struct Meeting: Codable, Equatable, Hashable, Sendable, Identifiable {
+    public var id: UUID { meetingId }
     public let meetingId: UUID
     public let title: String
     public let recordedAt: Date

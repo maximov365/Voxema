@@ -293,3 +293,20 @@ Zero changes to `WhisperEngine.swift` are required.
 4. No Swift code changes required
 
 **Status:** Stable. Real llama.cpp implementation deferred until GGUF model is bundled.
+
+---
+
+## DEC-13: AppState uses ObservableObject (@MainActor) instead of @Observable
+
+**Date:** 2026-03-30
+**Task:** TASK-12
+**Status:** accepted
+
+**Context:** macOS 13+ compatibility is required (per PRD). `@Observable` (Swift 5.9 Observation framework) requires macOS 14.0+. SwiftUI's `NavigationSplitView` and `MenuBarExtra` are used as the primary layout primitives — both available from macOS 13.
+
+**Decision:** `AppState` uses `ObservableObject` with `@Published` properties and `@StateObject` at the root. All mutations are dispatched on `@MainActor`.
+
+**Tradeoffs:**
+- `ObservableObject` requires explicit `@Published` annotation on every observed property — more boilerplate than `@Observable`, but no runtime version gate.
+- `@Observable` would allow finer-grained dependency tracking and fewer redraws, but is only available macOS 14+.
+- Migration to `@Observable` is a mechanical rename when minimum deployment target is raised to macOS 14.

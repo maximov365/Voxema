@@ -65,11 +65,13 @@ final class MeetingStoreTests: XCTestCase {
 
     func testFetchAllReturnsMostRecentFirst() throws {
         let store = try makeStore()
-        let m1 = makeMeeting(title: "Older")
-        let m2 = makeMeeting(title: "Newer")
+        let now = Date()
+        // Use explicit timestamps so the ordering is deterministic regardless of wall clock speed
+        let m1 = Meeting(title: "Older", recordedAt: now.addingTimeInterval(-60), durationSeconds: 60,
+                         metadata: MeetingMetadata(whisperModel: "tiny", summaryProvider: "local", languageDetected: "en", segmentCount: 0, wordCount: 0))
+        let m2 = Meeting(title: "Newer", recordedAt: now, durationSeconds: 60,
+                         metadata: MeetingMetadata(whisperModel: "tiny", summaryProvider: "local", languageDetected: "en", segmentCount: 0, wordCount: 0))
         try store.save(m1)
-        // Small sleep to ensure different timestamps
-        Thread.sleep(forTimeInterval: 0.01)
         try store.save(m2)
         let all = try store.fetchAll()
         XCTAssertEqual(all.count, 2)

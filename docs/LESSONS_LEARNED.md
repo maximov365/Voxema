@@ -577,3 +577,34 @@ Local C targets (CWhisper, COnnxRuntime, CLlama) only need source file + include
 - `searchText` uses `LIKE '%query%'` — full table scan for prefix wildcards. FTS5 virtual table for proper full-text search deferred to TASK-12.
 - Database is unencrypted (standard SQLite). SQLCipher encryption deferred to TASK-12.
 - Export file generation (Markdown, JSON) is implemented but not yet triggered from the UI.
+
+---
+
+## TASK-12: AppState + Core UI Shell
+
+**Date:** 2026-03-30
+
+### 1. `@Observable` vs `ObservableObject` — macOS 13 constraint
+
+`@Observable` (Swift 5.9 Observation) is macOS 14+ only. Using it would break the macOS 13 deployment target. `ObservableObject` + `@Published` was chosen with an explicit `@MainActor` annotation on `AppState`. Migration is mechanical when the target floor is raised.
+
+### 2. macOS 13 SwiftUI API surface is narrower than expected
+
+Several SwiftUI APIs required downgrade during implementation:
+- `.symbolEffect(.pulse)` → removed (macOS 14+)
+- `onChange(of:) { }` (new closure form) → `.onChange(of:) { _ in }` (macOS 13 form)
+- `.foregroundStyle(.accentColor)` on `Text` → `.foregroundColor(.accentColor)` (ShapeStyle.accentColor is macOS 14+)
+
+Pattern: always verify deployment availability for `SF Symbols`, `Observation`, and new SwiftUI modifiers before using them.
+
+### 3. Flaky ordering test — capture `Date()` before sleep, not after
+
+`testFetchAllReturnsMostRecentFirst` was flaky because both meetings were created with `Date()` before the `Thread.sleep` separator. The fix: pass explicit `recordedAt` values with a deterministic offset. Never rely on wall-clock precision below 100ms for ordering assertions.
+
+### 4. New Swift source files must be added to `project.pbxproj` manually
+
+Confirmed pattern from TASK-11: `swift build` picks up new `.swift` files automatically via `Package.swift`, but `xcodebuild` requires explicit entries in `project.pbxproj` (`PBXFileReference`, `PBXBuildFile`, group membership, `PBXSourcesBuildPhase`). Use the Python injection script pattern for each new file.
+
+### 5. `GRDB` import leak into App layer for fallback factory
+
+`AppState.failing` and `MeetingStore.failing` static vars require `import GRDB` in `AppState.swift`. This is a minor abstraction leak — the App layer should not know about GRDB. Tracked as TASK-14 for cleanup.
