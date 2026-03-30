@@ -544,3 +544,36 @@ Use one block per closed workflow. Keep it factual and short.
 - `voxema_llm_stub.c` returns a static JSON string. Real inference requires replacing the stub with a llama.cpp C wrapper and linking a GGUF model (DEC-6).
 - `CloudProvider.makeFromKeychain` uses `try?` on failure — cloud is silently downgraded to `LocalProvider` stub. Production code should surface this error through the Settings UI.
 - `httpBody` uses `try?` for JSON serialization (silent failure → nil body → API error → retry). Acceptable for MVP but should be made explicit in production.
+
+---
+
+## TASK-11 — Export module: MeetingStore (GRDB SQLite) + MarkdownExporter + JSONExporter + ExportStage
+
+**Date:** 2026-03-30
+**Outcome:** Completed — 190 tests pass, xcodebuild SUCCEEDED
+
+### What went well
+- **GRDB integration:** `FetchableRecord` + `PersistableRecord` with explicit `init(row:)` and `encode(to:)` gave full control over column mapping. No implicit magic.
+- **JSON blob + searchText pattern:** Storing the full `Meeting` as a JSON blob enables round-trip fidelity without complex normalized tables. `searchText` column enables `LIKE` search as a simple MVP.
+- **`audioDeleted` column-wins fix:** The `toMeeting()` approach of overriding the JSON blob's `audioDeleted` with the DB column value is clean and avoids re-encoding the full blob on every `markAudioDeleted` call.
+- **In-memory GRDB testing:** `DatabaseQueue()` (no path) creates an in-memory database. Zero boilerplate for store tests.
+
+### xcodeproj GRDB/Sparkle wiring
+**Issue:** `Storage.swift` added `import GRDB` but GRDB was not referenced in `Voxema.xcodeproj`. The xcodeproj had no `XCRemoteSwiftPackageReference` entries — `swift test` worked (SPM handles dependencies) but `xcodebuild` failed.
+
+**Fix:** Added `XCRemoteSwiftPackageReference` for GRDB and Sparkle, `XCSwiftPackageProductDependency` entries, linked them in `packageProductDependencies` and `PBXFrameworksBuildPhase` via Python script. Both packages resolved successfully (`GRDB 6.29.3`, `Sparkle 2.9.1`).
+
+### Pattern: adding remote SPM packages to xcodeproj
+When a new `import SomePackage` is added to app code, AND `SomePackage` is a remote SPM dependency (not a local C target), the xcodeproj needs:
+1. `XCRemoteSwiftPackageReference` (repositoryURL + requirement)
+2. `XCSwiftPackageProductDependency` (product name + package ref)
+3. `PBXBuildFile` with `productRef` (not `fileRef`)
+4. Entry in `PBXFrameworksBuildPhase.files`
+5. Entry in app target's `packageProductDependencies`
+
+Local C targets (CWhisper, COnnxRuntime, CLlama) only need source file + include paths — no package ref.
+
+### Known limitations
+- `searchText` uses `LIKE '%query%'` — full table scan for prefix wildcards. FTS5 virtual table for proper full-text search deferred to TASK-12.
+- Database is unencrypted (standard SQLite). SQLCipher encryption deferred to TASK-12.
+- Export file generation (Markdown, JSON) is implemented but not yet triggered from the UI.

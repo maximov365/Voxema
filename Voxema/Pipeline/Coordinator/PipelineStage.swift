@@ -46,16 +46,25 @@ public protocol SummarizeStageProtocol: AnyObject {
 }
 
 /// Combined input to the Export stage.
-/// Wraps the three inputs into a single value to keep the stage protocol uniform.
+/// Wraps the three pipeline outputs plus the encrypted audio file paths into a single value.
 public struct ExportStageInput: Sendable {
     public let segments: [DiarizedSegment]
     public let summary: MeetingSummary?
     public let metadata: MeetingMetadata
+    /// Paths of temporary encrypted audio files (`.enc`) to delete after successful DB write.
+    /// Defaults to `[]` — audio is not deleted when this is empty.
+    public let audioFilePaths: [String]
 
-    public init(segments: [DiarizedSegment], summary: MeetingSummary?, metadata: MeetingMetadata) {
-        self.segments = segments
-        self.summary = summary
-        self.metadata = metadata
+    public init(
+        segments: [DiarizedSegment],
+        summary: MeetingSummary?,
+        metadata: MeetingMetadata,
+        audioFilePaths: [String] = []
+    ) {
+        self.segments       = segments
+        self.summary        = summary
+        self.metadata       = metadata
+        self.audioFilePaths = audioFilePaths
     }
 }
 

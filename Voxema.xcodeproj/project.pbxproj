@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		971CC19C76E7467CABD26579 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 5A68113763614767A3E5CFF5 /* GRDB */; };
+		EB01E5579F7A4BA6AB64A22E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6E66AA4FE9344087A9996939 /* Sparkle */; };
 		02BD4BA095355D76BF93A537 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BF42BE8D185A762C01B2F5 /* Storage.swift */; };
 		11974B20BD9E895CCA83509C /* OnboardingFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1E446B894ABD98541008CE /* OnboardingFeature.swift */; };
 		15AF4E9995E9017153B20B7A /* AudioFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72974C2385E06A6471151AA0 /* AudioFileWriter.swift */; };
@@ -80,6 +82,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				971CC19C76E7467CABD26579 /* GRDB in Frameworks */,
+				EB01E5579F7A4BA6AB64A22E /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -151,6 +155,8 @@
 			);
 			name = Voxema;
 			packageProductDependencies = (
+				5A68113763614767A3E5CFF5 /* GRDB */,
+				6E66AA4FE9344087A9996939 /* Sparkle */,
 			);
 			productName = Voxema;
 			productReference = 824EA6BF2F7956E4009B7E04 /* Voxema.app */;
@@ -161,6 +167,10 @@
 /* Begin PBXProject section */
 		824EA6B72F7956E4009B7E04 /* Project object */ = {
 			isa = PBXProject;
+			packageReferences = (
+				CF79C73C418B490F971CE1A9 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+				C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2640;
@@ -188,6 +198,38 @@
 				824EA6BE2F7956E4009B7E04 /* Voxema */,
 			);
 		};
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CF79C73C418B490F971CE1A9 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = "6.0.0";
+			};
+		};
+		C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = "2.0.0";
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5A68113763614767A3E5CFF5 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CF79C73C418B490F971CE1A9 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+		6E66AA4FE9344087A9996939 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */

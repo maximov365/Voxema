@@ -22,3 +22,4 @@
 | TASK-8  | Transcription module: WhisperEngine (C bridge) + TranscribeStage (AudioSampleDecoder, no-speech gate) | completed | high | large |
 | TASK-9  | Diarize module: EmbeddingEngine (COnnxRuntime C bridge) + SpeakerMatcher + VoiceProfileStore + DiarizeStage | completed | high | large |
 | TASK-10 | Summarize module: CLlama C bridge + SummaryProvider (LocalProvider + CloudProvider) + PromptBuilder + SummarizeStage | completed | high | large |
+| TASK-11 | Export module: MeetingStore (GRDB SQLite) + MarkdownExporter + JSONExporter + ExportStage | completed | high | large |

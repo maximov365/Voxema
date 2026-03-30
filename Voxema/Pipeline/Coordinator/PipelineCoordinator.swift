@@ -177,7 +177,12 @@ public final class PipelineCoordinator: ObservableObject {
         let meeting: Meeting
         do {
             meeting = try await exportStage.run(
-                ExportStageInput(segments: diarized, summary: summary, metadata: metadata)
+                ExportStageInput(
+                    segments: diarized,
+                    summary: summary,
+                    metadata: metadata,
+                    audioFilePaths: streams.map(\.filePath)
+                )
             )
         } catch {
             let err = asPipelineError(error, fallback: .exportDatabaseWriteFailure)
