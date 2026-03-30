@@ -513,6 +513,30 @@
         "sr" : { "stringUnit" : { "state" : "translated", "value" : "Преузми" } }
       }
     },
+    "Restart required" : {
+      "comment" : "Screen Recording badge when permission granted but restart needed (macOS 15)",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Restart required" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Требуется перезапуск" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Потребан рестарт" } }
+      }
+    },
+    "Restart Voxema to Activate" : {
+      "comment" : "Button label when macOS 15 requires app restart for screen recording",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Restart Voxema to Activate" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Перезапустить Voxema" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Поново покрени Voxemu" } }
+      }
+    },
+    "Screen Recording was enabled in System Settings.\n\nRestart Voxema to activate it — macOS requires a relaunch for this permission to take effect." : {
+      "comment" : "Screen Recording subtitle when restart is needed",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Screen Recording was enabled in System Settings.\n\nRestart Voxema to activate it — macOS requires a relaunch for this permission to take effect." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Доступ к записи экрана предоставлен в Настройках системы.\n\nДля активации перезапустите Voxema — macOS требует перезапуска приложения." } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Снимање екрана је омогућено у Системским подешавањима.\n\nПоново покрените Voxemu да бисте активирали — macOS захтева поновно покретање." } }
+      }
+    },
     "Recommended" : {
       "comment" : "Summarization tier badge",
       "localizations" : {
