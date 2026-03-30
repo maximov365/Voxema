@@ -90,6 +90,20 @@ final class OnboardingViewModel: ObservableObject {
         microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
     }
 
+    /// Start observing app-foreground events to refresh permission state
+    /// automatically when the user returns from System Settings.
+    func startPermissionPolling() {
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.refreshPermissions()
+            }
+        }
+    }
+
     /// Attempt a ScreenCaptureKit call so macOS registers Voxema in
     /// System Settings → Privacy & Security → Screen Recording.
     /// The app won't appear in that list until it has tried to use screen capture APIs.
@@ -197,6 +211,7 @@ struct OnboardingView: View {
         .onAppear {
             vm.onComplete = onComplete
             vm.refreshPermissions()
+            vm.startPermissionPolling()
         }
     }
 
@@ -237,33 +252,23 @@ struct OnboardingView: View {
             primaryButton(label: String(localized: "Get Started")) { vm.advance() }
 
         case .screenRecording:
-            VStack(spacing: 10) {
-                primaryButton(label: vm.screenRecordingGranted
-                              ? String(localized: "Continue →")
-                              : String(localized: "Open System Settings")) {
-                    if vm.screenRecordingGranted { vm.advance() }
-                    else { vm.openScreenRecordingSettings() }
-                }
-                if !vm.screenRecordingGranted {
-                    Button(String(localized: "Already granted — continue")) {
-                        vm.refreshPermissions()
-                        if vm.screenRecordingGranted { vm.advance() }
-                    }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-                }
+            primaryButton(
+                label: vm.screenRecordingGranted
+                    ? String(localized: "Continue →")
+                    : String(localized: "Open System Settings")
+            ) {
+                if vm.screenRecordingGranted { vm.advance() }
+                else { vm.openScreenRecordingSettings() }
             }
 
         case .microphone:
-            VStack(spacing: 10) {
-                primaryButton(label: vm.microphoneGranted
-                              ? String(localized: "Continue →")
-                              : String(localized: "Allow Microphone Access")) {
-                    if vm.microphoneGranted { vm.advance() }
-                    else { vm.requestMicrophonePermission() }
-                }
-                backButton
+            primaryButton(
+                label: vm.microphoneGranted
+                    ? String(localized: "Continue →")
+                    : String(localized: "Allow Microphone Access")
+            ) {
+                if vm.microphoneGranted { vm.advance() }
+                else { vm.requestMicrophonePermission() }
             }
 
         case .configure:
