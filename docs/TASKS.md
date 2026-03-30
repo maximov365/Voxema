@@ -24,7 +24,7 @@
 | TASK-10 | Summarize module: CLlama C bridge + SummaryProvider (LocalProvider + CloudProvider) + PromptBuilder + SummarizeStage | completed | high | large |
 | TASK-11 | Export module: MeetingStore (GRDB SQLite) + MarkdownExporter + JSONExporter + ExportStage | completed | high | large |
 | TASK-12 | AppState + Core UI Shell (NavigationSplitView, RecordingView, LibraryView, MeetingDetailView, MenuBarView) | completed | high | large |
-| TASK-13 | Export error feedback: surface write failures in MeetingDetailView export actions | planned | low | small |
+| TASK-13 | Export error feedback: surface write failures in MeetingDetailView export actions | completed | low | small |
 | TASK-14 | Decouple GRDB from AppState: move failing-store factory into Storage module | planned | low | small |
 | TASK-15 | UI Localization: Localizable.xcstrings + EN/RU/SR translations | completed | medium | medium |
 | TASK-16 | Brand assets: AppIcon.appiconset + menu bar template image + UI token alignment | completed | high | small |
