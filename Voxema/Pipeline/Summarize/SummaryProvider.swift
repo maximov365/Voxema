@@ -178,6 +178,25 @@ public final class CloudProvider: SummaryProviderProtocol {
         static let account = "api-key"
     }
 
+    // MARK: API key Keychain helpers
+
+    /// Persists the user's cloud API key in the Keychain.
+    /// Called by the onboarding flow when the user completes setup with the Cloud tier selected.
+    public static func storeAPIKey(_ key: String) throws {
+        try KeychainManager.storeString(key, service: KeychainKey.service, account: KeychainKey.account)
+    }
+
+    /// Loads the stored cloud API key from the Keychain.
+    /// Returns `nil` if no key has been stored yet.
+    public static func loadAPIKey() -> String? {
+        try? KeychainManager.retrieveString(service: KeychainKey.service, account: KeychainKey.account)
+    }
+
+    /// Removes the stored cloud API key from the Keychain.
+    public static func deleteAPIKey() throws {
+        try KeychainManager.delete(service: KeychainKey.service, account: KeychainKey.account)
+    }
+
     private let target: APITarget
     private let modelName: String
     private let consentGranted: Bool

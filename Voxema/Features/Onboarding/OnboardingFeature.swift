@@ -68,6 +68,7 @@ final class OnboardingViewModel: ObservableObject {
     var onComplete: (() -> Void)?
 
     init() {
+        cloudAPIKey = CloudProvider.loadAPIKey() ?? ""
         refreshPermissions()
         loadMicrophoneList()
         loadWhisperModels()
@@ -76,7 +77,7 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: Navigation
 
     func advance() {
-        guard !step.isLast else { onComplete?(); return }
+        guard !step.isLast else { complete(); return }
         let next = OnboardingStep(rawValue: step.rawValue + 1)!
         if next == .microphone && microphoneGranted { step = .configure; return }
         step = next
@@ -87,7 +88,12 @@ final class OnboardingViewModel: ObservableObject {
         step = OnboardingStep(rawValue: step.rawValue - 1)!
     }
 
-    func complete() { onComplete?() }
+    func complete() {
+        if selectedSummarizationTier == 2 && !cloudAPIKey.trimmingCharacters(in: .whitespaces).isEmpty {
+            try? CloudProvider.storeAPIKey(cloudAPIKey.trimmingCharacters(in: .whitespaces))
+        }
+        onComplete?()
+    }
 
     // MARK: Permissions
 
