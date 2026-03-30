@@ -98,7 +98,40 @@ struct ContentView: View {
             .buttonStyle(.plain)
             .padding(.top, 4)
             .disabled(appState.pipelineState != .idle)
+
+            #if DEBUG
+            SCKDiagnosticsView()
+            #endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+
+    #if DEBUG
+    private func SCKDiagnosticsView() -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("SCK Diagnostics")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Check ⇧⌘K") {
+                    Task { await appState.refreshSCKDiagnostics() }
+                }
+                .font(.system(size: 10))
+                .buttonStyle(.borderless)
+                .foregroundStyle(.accentColor)
+            }
+            Text(appState.sckDiagnostics)
+                .font(.system(size: 10, design: .monospaced))
+                .foregroundStyle(.primary)
+                .textSelection(.enabled)
+                .lineLimit(4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(10)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+        .frame(maxWidth: 480)
+        .padding(.top, 16)
+    }
+    #endif
 }

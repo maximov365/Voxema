@@ -5,6 +5,7 @@ import GRDB
 import CoreGraphics
 import AVFoundation
 import AppKit
+import ScreenCaptureKit
 
 // MARK: - Permission alert kind
 
@@ -45,6 +46,11 @@ public final class AppState: ObservableObject {
     @Published public private(set) var notificationsAuthorized = false
     /// Set before recording starts when a required permission is missing.
     @Published public var permissionRequired: PermissionRequired? = nil
+
+    #if DEBUG
+    /// Live SCK diagnostic string — updated by refreshSCKDiagnostics().
+    @Published public var sckDiagnostics: String = "not checked"
+    #endif
 
     // MARK: - Dependencies
 
@@ -152,6 +158,27 @@ public final class AppState: ObservableObject {
             exit(0)
         }
     }
+
+    #if DEBUG
+    /// Runs a live SCK content check and updates sckDiagnostics with the result.
+    /// Called from Debug menu → Check SCK Permission (⇧⌘K).
+    public func refreshSCKDiagnostics() async {
+        sckDiagnostics = "checking…"
+        let preflight = CGPreflightScreenCaptureAccess()
+        do {
+            let content = try await SCShareableContent.excludingDesktopWindows(
+                false, onScreenWindowsOnly: false
+            )
+            let displays = content.displays.count
+            let windows = content.windows.count
+            sckDiagnostics = "✅ granted — \(displays) display(s), \(windows) window(s) | CGPreflight=\(preflight) | bundle=\(Bundle.main.bundlePath)"
+            log.info("SCK diagnostic: granted")
+        } catch let e as NSError {
+            sckDiagnostics = "❌ denied — \(e.domain) \(e.code): \(e.localizedDescription) | CGPreflight=\(preflight) | bundle=\(Bundle.main.bundlePath)"
+            log.error("SCK diagnostic: denied", "\(e.domain) \(e.code)")
+        }
+    }
+    #endif
 
     /// Stops capture and triggers the processing pipeline.
     public func stopRecording() async {

@@ -9,9 +9,9 @@ struct VoxemaApp: App {
 
     init() {
         #if DEBUG
-        // Always show onboarding in debug builds so the flow can be tested on each run.
-        // Remove this block before shipping to production.
-        UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+        // Skip onboarding in debug builds so the main UI is reached immediately.
+        // Use Debug menu → Reset Onboarding (⇧⌘O) to test the flow manually.
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
         #endif
     }
 
@@ -48,6 +48,19 @@ struct VoxemaApp: App {
                 .keyboardShortcut("r", modifiers: .command)
                 .disabled(appState.pipelineState != .idle)
             }
+            #if DEBUG
+            CommandMenu("Debug") {
+                Button("Reset Onboarding") {
+                    UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+                }
+                .keyboardShortcut("o", modifiers: [.command, .shift])
+
+                Button("Check SCK Permission") {
+                    Task { await appState.refreshSCKDiagnostics() }
+                }
+                .keyboardShortcut("k", modifiers: [.command, .shift])
+            }
+            #endif
         }
 
         MenuBarExtra(String(localized: "Voxema"), systemImage: "waveform") {
