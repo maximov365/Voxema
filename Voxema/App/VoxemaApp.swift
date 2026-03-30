@@ -1,5 +1,4 @@
 import SwiftUI
-import ScreenCaptureKit
 
 @main
 struct VoxemaApp: App {
@@ -26,16 +25,6 @@ struct VoxemaApp: App {
                     }
                     .frame(width: 480, height: 560)
                     .interactiveDismissDisabled()
-                }
-                .task {
-                    // Register with TCC so the app appears in System Settings →
-                    // Screen & System Audio Recording before the first recording attempt.
-                    // On macOS 15 CGPreflightScreenCaptureAccess() checks the old TCC key
-                    // and is unreliable, so we always call SCK here; if already granted it
-                    // returns silently, otherwise macOS shows the one-time permission prompt.
-                    _ = try? await SCShareableContent.excludingDesktopWindows(
-                        false, onScreenWindowsOnly: false
-                    )
                 }
         }
         .windowStyle(.titleBar)

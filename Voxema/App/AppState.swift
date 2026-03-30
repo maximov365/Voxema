@@ -46,6 +46,9 @@ public final class AppState: ObservableObject {
     @Published public private(set) var notificationsAuthorized = false
     /// Set before recording starts when a required permission is missing.
     @Published public var permissionRequired: PermissionRequired? = nil
+    /// Set when user returns from System Settings after being sent there for screen recording.
+    /// Triggers the "Restart to activate" prompt.
+    @Published public var awaitingScreenCaptureRestart = false
 
     #if DEBUG
     /// Live SCK diagnostic string — updated by refreshSCKDiagnostics().
@@ -62,6 +65,8 @@ public final class AppState: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private var timerTask: Task<Void, Never>?
+    /// Set to true when we open Screen Recording settings; cleared on next app-foreground event.
+    private var awaitingSettingsReturn = false
 
     // MARK: - Init
 
@@ -136,6 +141,9 @@ public final class AppState: ObservableObject {
         switch kind {
         case .screenRecording:
             urlString = "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
+            // Track that we sent the user to Screen Recording settings so we can
+            // show the "Restart to activate" prompt when they return.
+            awaitingSettingsReturn = true
         case .microphone:
             urlString = "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"
         }
@@ -274,6 +282,19 @@ public final class AppState: ObservableObject {
         coordinator.$progress
             .receive(on: RunLoop.main)
             .assign(to: &$pipelineProgress)
+
+        // When the user returns from System Settings (after we opened Screen Recording there),
+        // show the "Restart to activate" prompt instead of the original permission alert.
+        NotificationCenter.default
+            .publisher(for: NSApplication.didBecomeActiveNotification)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self, self.awaitingSettingsReturn else { return }
+                self.awaitingSettingsReturn = false
+                self.permissionRequired = nil
+                self.awaitingScreenCaptureRestart = true
+            }
+            .store(in: &cancellables)
     }
 
     private func applySearch() {

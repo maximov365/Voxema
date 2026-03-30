@@ -537,6 +537,46 @@
         "sr" : { "stringUnit" : { "state" : "translated", "value" : "Поново покрени Voxemu" } }
       }
     },
+    "Restart to Activate Screen Recording" : {
+      "comment" : "Alert title — user returned from Settings after enabling screen recording",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Restart to Activate Screen Recording" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Перезапустите, чтобы активировать запись экрана" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Поново покрените да активирате снимање екрана" } }
+      }
+    },
+    "You enabled Screen Recording in System Settings. Voxema needs to restart for this to take effect." : {
+      "comment" : "Alert message — restart required after granting screen recording",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You enabled Screen Recording in System Settings. Voxema needs to restart for this to take effect." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вы включили запись экрана в Системных настройках. Voxema должна перезапуститься, чтобы изменения вступили в силу." } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Омогућили сте снимање екрана у Системским подешавањима. Voxema треба да се поново покрене да би ово ступило на снагу." } }
+      }
+    },
+    "Restart Now" : {
+      "comment" : "Alert button — restart app immediately to activate screen recording",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Restart Now" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Перезапустить сейчас" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Поново покрени одмах" } }
+      }
+    },
+    "Later" : {
+      "comment" : "Alert button — dismiss restart prompt, handle it later",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Later" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Позже" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Касније" } }
+      }
+    },
+    "Screen Recording is required to capture system audio from remote meeting participants.\n\nEnable it in System Settings, then return to Voxema." : {
+      "comment" : "Alert message — screen recording permission missing",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Screen Recording is required to capture system audio from remote meeting participants.\n\nEnable it in System Settings, then return to Voxema." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Запись экрана необходима для захвата системного звука от удалённых участников встречи.\n\nВключите её в Системных настройках, затем вернитесь в Voxema." } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Снимање екрана је потребно за снимање системског звука удаљених учесника. \n\nОмогућите га у Системским подешавањима, а затим се вратите у Voxemu." } }
+      }
+    },
     "Recommended" : {
       "comment" : "Summarization tier badge",
       "localizations" : {
