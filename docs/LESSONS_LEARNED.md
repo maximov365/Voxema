@@ -630,3 +630,45 @@ For localized strings with runtime values (e.g. `"● Recording — \(time)"`), 
 ### 4. `Localizable.xcstrings` compiles into the app bundle, not accessible via `swift build`
 
 The `.xcstrings` file is processed by Xcode and placed in `Contents/Resources/`. `swift build` does not process it. Unit tests cannot verify localized output at the string level — only build + manual runtime check confirms localization works.
+
+---
+
+## TASK-16 — Brand assets (AppIcon + menu bar icon)
+
+**Date:** 2026-03-30
+**Outcome:** Completed — BUILD SUCCEEDED
+
+### What went wrong
+- Pbxproj corruption on first injection attempt: inserting multiple entries in one Python pass with an anchor that had a duplicate match corrupted the file. Fixed by `git checkout` + clean single-anchor insertion per entry.
+- No SVG→PNG converter available in sandbox (no `rsvg-convert`, `convert`, or `cairosvg`). Menu bar icon generated via pure-Python PNG renderer using arc/circle rasterization.
+- `Assets.xcassets` was empty (only top-level `Contents.json`) — needed explicit wiring into `PBXFileReference`, `PBXBuildFile`, and `PBXResourcesBuildPhase`.
+
+### What worked well
+- `sips -z size size src --out dst` is reliable for generating all macOS app icon sizes from a 1024px source. One command per size.
+- Template image rendering intent in `Contents.json` (`"template-rendering-intent": "template"`) is the correct way to mark a menu bar image as monochrome template.
+- `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon` was already in the build settings from FIX-1 — only the asset files were missing.
+
+### Pattern confirmed
+- pbxproj multi-entry injection: always use unambiguous, unique anchor strings. Never anchor on a line that could match multiple locations. Insert one entry per Python pass.
+
+---
+
+## TASK-17 — Onboarding wizard
+
+**Date:** 2026-03-30
+**Outcome:** Completed — BUILD SUCCEEDED, 202+ tests pass
+
+### What went wrong
+- Missing `import Combine` — `ObservableObject` + `@Published` require it. Third recurrence of this pattern (TASK-4, TASK-5, TASK-12 documented it). Must always add `import Combine` when using `ObservableObject`.
+- `.microphone` device type is macOS 14+. The project targets macOS 13 — must use `.builtInMicrophone` for `AVCaptureDevice.DiscoverySession`. Pattern: always check macOS deployment target before using new API.
+
+### What worked well
+- `@AppStorage("hasCompletedOnboarding")` in `VoxemaApp` is the cleanest first-launch gate — no AppState changes needed.
+- `.interactiveDismissDisabled()` correctly prevents users from bypassing onboarding by swiping the sheet.
+- Canvas-based brand mark rendering in pure SwiftUI (no image asset) — correct for the welcome screen illustration, matches brand guide exactly.
+- `CGPreflightScreenCaptureAccess()` for screen recording status check (no permission prompt, just a preflight check).
+
+### Patterns confirmed
+- ALWAYS add `import Combine` when declaring `ObservableObject` or using `@Published`.
+- Use `.builtInMicrophone` (not `.microphone`) for macOS 13 targets in `AVCaptureDevice.DiscoverySession`.
+- `NSWorkspace.shared.open(URL("x-apple.systempreferences:..."))` is the correct macOS deep-link to System Settings privacy sections.
