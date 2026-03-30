@@ -86,9 +86,11 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: Permissions
 
     func refreshPermissions() {
+        // Microphone: synchronous check, safe to call anywhere
         microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
-        // Screen recording check is async — kick off but don't block
-        Task { await refreshScreenRecordingPermission() }
+        // Screen recording check is intentionally NOT triggered here —
+        // SCShareableContent shows a system dialog, so it must only be called
+        // from the Screen Recording step, never on general init.
     }
 
     /// The only reliable cross-version check: attempt SCShareableContent and
@@ -112,8 +114,12 @@ final class OnboardingViewModel: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                self?.microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
-                await self?.refreshScreenRecordingPermission()
+                guard let self else { return }
+                self.microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
+                // Only re-check screen recording when on that step (avoids triggering dialog elsewhere)
+                if self.step == .screenRecording {
+                    await self.refreshScreenRecordingPermission()
+                }
             }
         }
     }
