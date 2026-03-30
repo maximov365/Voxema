@@ -124,15 +124,14 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
-    /// Check screen recording by actually trying SCShareableContent.
-    /// Called only when returning to foreground on this step — silent after first registration.
+    /// Check screen recording permission when returning from System Settings.
+    /// Uses CGPreflightScreenCaptureAccess() which reads the TCC database directly —
+    /// unlike SCShareableContent it is NOT cached at the process level, so it correctly
+    /// reflects changes made in System Settings without requiring an app restart.
     func recheckScreenRecordingPermission() async {
-        do {
-            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-            screenRecordingGranted = true
-        } catch {
-            screenRecordingGranted = false
-        }
+        // Small delay so the TCC database write completes before we read it
+        try? await Task.sleep(nanoseconds: 300_000_000)
+        screenRecordingGranted = CGPreflightScreenCaptureAccess()
     }
 
     func requestMicrophonePermission() {
@@ -324,11 +323,13 @@ struct OnboardingView: View {
         Button(action: action) {
             Text(label)
                 .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
+                .padding(.vertical, 13)
+                .background(Color.accentColor)  // explicit color — never dims on focus loss
+                .cornerRadius(12)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
+        .buttonStyle(.plain)  // plain style so we fully control appearance
     }
 
     private var backButton: some View {
@@ -379,7 +380,7 @@ private struct ScreenRecordingStep: View {
             permissionIcon(systemName: "record.circle", granted: vm.screenRecordingGranted)
             stepHeading(
                 title: String(localized: "Screen Recording"),
-                subtitle: String(localized: "Required to capture system audio from remote participants.\n\nTap the button below — Voxema will open System Settings where you can enable access.")
+                subtitle: String(localized: "Required to capture system audio from remote participants.\n\nTap the button, click \"Open System Settings\" in the dialog that appears, then enable Voxema.")
             )
             if vm.screenRecordingGranted {
                 statusBadge(granted: true, label: String(localized: "Granted"))
