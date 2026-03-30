@@ -23,6 +23,36 @@ struct ContentView: View {
         } message: {
             Text(appState.pipelineError?.errorDescription ?? "An unknown error occurred.")
         }
+        .alert(
+            appState.permissionRequired == .screenRecording
+                ? String(localized: "Screen Recording Required")
+                : String(localized: "Microphone Access Required"),
+            isPresented: Binding(
+                get: { appState.permissionRequired != nil },
+                set: { if !$0 { appState.permissionRequired = nil } }
+            ),
+            presenting: appState.permissionRequired
+        ) { kind in
+            Button(String(localized: "Open System Settings")) {
+                appState.openPermissionSettings(for: kind)
+                appState.permissionRequired = nil
+            }
+            if kind == .screenRecording {
+                Button(String(localized: "Restart Voxema")) {
+                    appState.restartApp()
+                }
+            }
+            Button(String(localized: "Cancel"), role: .cancel) {
+                appState.permissionRequired = nil
+            }
+        } message: { kind in
+            switch kind {
+            case .screenRecording:
+                Text(String(localized: "Screen Recording is required to capture meeting audio from remote participants.\n\nIf you already enabled it in System Settings, tap Restart Voxema — macOS requires a relaunch for this permission to take effect."))
+            case .microphone:
+                Text(String(localized: "Microphone access is required to record your side of the conversation.\n\nEnable it in System Settings, then return to Voxema."))
+            }
+        }
     }
 
     @ViewBuilder

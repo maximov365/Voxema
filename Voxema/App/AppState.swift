@@ -2,6 +2,19 @@ import Foundation
 import Combine
 import UserNotifications
 import GRDB
+import CoreGraphics
+import AVFoundation
+import AppKit
+
+// MARK: - Permission alert kind
+
+/// Identifies which permission is missing when the user tries to start recording.
+public enum PermissionRequired: Equatable {
+    case screenRecording
+    case microphone
+}
+
+// MARK: - AppState
 
 /// Central observable state for the Voxema app.
 ///
@@ -30,6 +43,8 @@ public final class AppState: ObservableObject {
     @Published public var pipelineError: PipelineError?
     /// `true` while notifications permission is being requested.
     @Published public private(set) var notificationsAuthorized = false
+    /// Set before recording starts when a required permission is missing.
+    @Published public var permissionRequired: PermissionRequired? = nil
 
     // MARK: - Dependencies
 
@@ -80,7 +95,20 @@ public final class AppState: ObservableObject {
     // MARK: - Recording
 
     /// Starts audio capture. No-op if already recording.
+    ///
+    /// Performs a permission pre-flight before starting the pipeline.
+    /// On macOS 15, screen recording permission requires a relaunch if the process
+    /// was denied at launch — this is surfaced via `permissionRequired` for the UI
+    /// to handle with an appropriate alert.
     public func startRecording() async {
+        guard CGPreflightScreenCaptureAccess() else {
+            permissionRequired = .screenRecording
+            return
+        }
+        guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else {
+            permissionRequired = .microphone
+            return
+        }
         pipelineError = nil
         recordingDuration = 0
         do {
@@ -90,6 +118,32 @@ public final class AppState: ObservableObject {
             pipelineError = e
         } catch {
             log.error("startRecording unexpected error")
+        }
+    }
+
+    /// Opens the System Settings pane for the specified permission.
+    public func openPermissionSettings(for kind: PermissionRequired) {
+        let urlString: String
+        switch kind {
+        case .screenRecording:
+            urlString = "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
+        case .microphone:
+            urlString = "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"
+        }
+        if let url = URL(string: urlString) {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    /// Relaunches Voxema so a newly-granted Screen Recording permission takes effect.
+    /// Uses Process + asyncAfter to ensure the new instance starts before terminating.
+    public func restartApp() {
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        task.arguments = ["-n", Bundle.main.bundlePath]
+        try? task.run()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            NSApp.terminate(nil)
         }
     }
 
