@@ -66,5 +66,9 @@ struct VoxemaApp: App {
                 .environmentObject(appState)
         }
         .menuBarExtraStyle(.window)
+
+        Settings {
+            SettingsView()
+        }
     }
 }

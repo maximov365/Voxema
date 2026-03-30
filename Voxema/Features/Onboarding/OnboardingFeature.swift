@@ -89,8 +89,23 @@ final class OnboardingViewModel: ObservableObject {
     }
 
     func complete() {
+        // Persist cloud API key if cloud tier selected
         if selectedSummarizationTier == 2 && !cloudAPIKey.trimmingCharacters(in: .whitespaces).isEmpty {
             try? CloudProvider.storeAPIKey(cloudAPIKey.trimmingCharacters(in: .whitespaces))
+        }
+        // Persist pipeline preferences so AppState.production() picks them up on next launch
+        let prefs = AppPreferences.shared
+        prefs.microphoneDeviceUID   = selectedMicID ?? ""
+        prefs.whisperModelId        = selectedWhisperModel
+        prefs.summarizationProvider = selectedSummarizationTier == 2 ? "cloud" : "local"
+        // Map summarization tier → LLM model ID from manifest
+        if selectedSummarizationTier != 2 {
+            let mm   = ModelManager.shared
+            let llms = mm.availableLLMs
+            let llm: ModelInfo? = selectedSummarizationTier == 0
+                ? llms.last                  // lowest tier = smallest model
+                : (llms.first { $0.tier == .better } ?? llms.first)
+            prefs.llmModelId = llm?.id ?? ""
         }
         onComplete?()
     }

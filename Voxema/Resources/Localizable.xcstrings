@@ -25,6 +25,118 @@
         "sr" : { "stringUnit" : { "state" : "translated", "value" : "Дошло је до непознате грешке." } }
       }
     },
+    "General" : {
+      "comment" : "Settings tab label",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "General" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Основные" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Опште" } }
+      }
+    },
+    "Good" : {
+      "comment" : "Settings — LLM quality tier label",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Good" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Хорошо" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Добро" } }
+      }
+    },
+    "Input device" : {
+      "comment" : "Settings — microphone picker label",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Input device" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Устройство ввода" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Улазни уређај" } }
+      }
+    },
+    "Local LLM" : {
+      "comment" : "Settings — section header for local LLM models",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local LLM" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Локальная модель" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Локални LLM" } }
+      }
+    },
+    "Local model (offline, private)" : {
+      "comment" : "Settings — summarization provider option",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Local model (offline, private)" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Локальная модель (офлайн, приватно)" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Локални модел (офлајн, приватно)" } }
+      }
+    },
+    "Microphone" : {
+      "comment" : "Settings — section header for microphone",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Microphone" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Микрофон" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Микрофон" } }
+      }
+    },
+    "Models" : {
+      "comment" : "Settings tab label for transcription models",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Models" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Модели" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Модели" } }
+      }
+    },
+    "Provider" : {
+      "comment" : "Settings — summarization provider picker label",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Provider" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Провайдер" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Провајдер" } }
+      }
+    },
+    "Ready" : {
+      "comment" : "Settings — model status badge: downloaded and verified",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ready" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Готова" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Спреман" } }
+      }
+    },
+    "Save" : {
+      "comment" : "Settings — button to save API key",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сохранить" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Сачувај" } }
+      }
+    },
+    "Summarization" : {
+      "comment" : "Settings tab label",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Summarization" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Суммаризация" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Резиме" } }
+      }
+    },
+    "System Default" : {
+      "comment" : "Settings — microphone option: use system default input device",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "System Default" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Системный по умолчанию" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Системски подразумевани" } }
+      }
+    },
+    "Transcription Model" : {
+      "comment" : "Settings — section header for Whisper model selection",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Transcription Model" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Модель транскрипции" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Модел транскрипције" } }
+      }
+    },
+    "Your key is stored in the system Keychain. Audio never leaves your device — only the text transcript is sent to the cloud LLM, with your explicit consent before each session." : {
+      "comment" : "Settings — API key privacy footnote",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your key is stored in the system Keychain. Audio never leaves your device — only the text transcript is sent to the cloud LLM, with your explicit consent before each session." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ключ хранится в системном Keychain. Аудио никогда не покидает устройство — только текст транскрипта отправляется в облачную модель с вашего явного согласия перед каждой сессией." } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Ваш кључ је похрањен у системском Keychain-у. Звук никада не напушта уређај — само текст транскрипта се шаље у cloud LLM, уз ваш изричит пристанак пре сваке сесије." } }
+      }
+    },
     "Cancel" : {
       "comment" : "Cancel button in confirmation dialogs",
       "localizations" : {
@@ -559,6 +671,70 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Restart Now" } },
         "ru" : { "stringUnit" : { "state" : "translated", "value" : "Перезапустить сейчас" } },
         "sr" : { "stringUnit" : { "state" : "translated", "value" : "Поново покрени одмах" } }
+      }
+    },
+    "API Key" : {
+      "comment" : "Settings — API key section header",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "API Key" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "API-ключ" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "API кључ" } }
+      }
+    },
+    "Better" : {
+      "comment" : "Settings — LLM quality tier label",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Better" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Лучше" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Боље" } }
+      }
+    },
+    "Best" : {
+      "comment" : "Settings — LLM quality tier label",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Best" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Максимум" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Најбоље" } }
+      }
+    },
+    "Bundled" : {
+      "comment" : "Settings — model status badge: shipped with app",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Bundled" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Встроена" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Уграђен" } }
+      }
+    },
+    "Changes take effect on the next app launch." : {
+      "comment" : "Settings — footer note about restart",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Changes take effect on the next app launch." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Изменения вступят в силу при следующем запуске." } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Промене ступају на снагу при следећем покретању." } }
+      }
+    },
+    "Cloud API (OpenAI / Anthropic)" : {
+      "comment" : "Settings — summarization provider option",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cloud API (OpenAI / Anthropic)" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Cloud API (OpenAI / Anthropic)" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Cloud API (OpenAI / Anthropic)" } }
+      }
+    },
+    "Corrupt" : {
+      "comment" : "Settings — model status badge: file failed checksum",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Corrupt" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Повреждена" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Оштећен" } }
+      }
+    },
+    "Download" : {
+      "comment" : "Settings — button to download a model",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Download" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Скачать" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Преузми" } }
       }
     },
     "Export Failed" : {

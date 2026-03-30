@@ -71,28 +71,65 @@ public final class AppState: ObservableObject {
     // MARK: - Init
 
     /// Production factory — creates real pipeline stages and opens the database.
+    /// Stage configurations are read from `AppPreferences.shared`.
     public static func production() -> AppState {
+        let coordinator = makeCoordinator()
         do {
             let store = try MeetingStore(databasePath: ExportConfiguration.default.databasePath)
-            let coordinator = PipelineCoordinator(
-                captureStage:    CaptureStage(),
-                transcribeStage: TranscribeStage(),
-                diarizeStage:    DiarizeStage(),
-                summarizeStage:  SummarizeStage(),
-                exportStage:     (try? ExportStage()) ?? ExportStage.failing
-            )
             return AppState(coordinator: coordinator, store: store)
         } catch {
-            // If the DB can't be opened, run with a no-op store — app is still usable for recording.
-            let coordinator = PipelineCoordinator(
-                captureStage:    CaptureStage(),
-                transcribeStage: TranscribeStage(),
-                diarizeStage:    DiarizeStage(),
-                summarizeStage:  SummarizeStage(),
-                exportStage:     ExportStage.failing
-            )
             return AppState(coordinator: coordinator, store: MeetingStore.failing)
         }
+    }
+
+    // MARK: - Coordinator factory (reads AppPreferences)
+
+    private static func makeCoordinator() -> PipelineCoordinator {
+        let prefs = AppPreferences.shared
+        let mm    = ModelManager.shared
+
+        // Microphone: empty UID = system default
+        let micUID: String? = prefs.microphoneDeviceUID.isEmpty ? nil : prefs.microphoneDeviceUID
+        let captureConfig = CaptureConfiguration(
+            tempDirectory: CaptureConfiguration.default.tempDirectory,
+            encryptionKeyId: CaptureConfiguration.default.encryptionKeyId,
+            microphoneDeviceUID: micUID
+        )
+
+        // Whisper: resolve model ID → local file URL via ModelManager
+        let whisperURL: URL = {
+            let id = prefs.whisperModelId
+            guard !id.isEmpty,
+                  let model = mm.manifest.models.first(where: { $0.id == id && $0.family == .whisper })
+            else { return URL(fileURLWithPath: "") }
+            return mm.localURL(for: model)
+        }()
+        let transcribeConfig = TranscribeConfiguration(modelURL: whisperURL)
+
+        // Summarization: resolve provider + LLM model
+        let provider: ProviderType = prefs.summarizationProvider == "cloud" ? .cloud : .local
+        let llmURL: URL = {
+            let id = prefs.llmModelId
+            guard !id.isEmpty,
+                  let model = mm.manifest.models.first(where: { $0.id == id && $0.family == .llm })
+            else { return URL(fileURLWithPath: "") }
+            return mm.localURL(for: model)
+        }()
+        let summarizeConfig = SummarizeConfiguration(
+            provider: provider,
+            modelName: prefs.llmModelId,
+            promptTemplate: PromptBuilder.defaultTemplate(),
+            consentGranted: false,
+            localModelURL: llmURL
+        )
+
+        return PipelineCoordinator(
+            captureStage:    CaptureStage(config: captureConfig),
+            transcribeStage: TranscribeStage(config: transcribeConfig),
+            diarizeStage:    DiarizeStage(),
+            summarizeStage:  SummarizeStage(config: summarizeConfig),
+            exportStage:     (try? ExportStage()) ?? ExportStage.failing
+        )
     }
 
     /// Designated init — accepts injected dependencies (also used in tests).
