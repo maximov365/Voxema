@@ -44,9 +44,9 @@ struct LibrarySidebarView: View {
 
     private var recordButtonLabel: String {
         switch appState.pipelineState {
-        case .recording: return "Recording…"
-        case .processing: return "Processing…"
-        default: return "New Recording"
+        case .recording:  return String(localized: "Recording…")
+        case .processing: return String(localized: "Processing…")
+        default:          return String(localized: "New Recording")
         }
     }
 
@@ -176,15 +176,12 @@ struct MeetingRowView: View {
     }
 
     private var relativeDate: String {
-        let df = RelativeDateTimeFormatter()
-        df.dateTimeStyle = .named
-        df.unitsStyle = .abbreviated
-        if Calendar.current.isDateInToday(meeting.recordedAt) { return "Today" }
-        if Calendar.current.isDateInYesterday(meeting.recordedAt) { return "Yesterday" }
-        let df2 = DateFormatter()
-        df2.dateStyle = .medium
-        df2.timeStyle = .none
-        return df2.string(from: meeting.recordedAt)
+        if Calendar.current.isDateInToday(meeting.recordedAt) { return String(localized: "Today") }
+        if Calendar.current.isDateInYesterday(meeting.recordedAt) { return String(localized: "Yesterday") }
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        df.timeStyle = .none
+        return df.string(from: meeting.recordedAt)
     }
 
     private var durationText: String {

@@ -36,11 +36,13 @@ struct MenuBarView: View {
 
     private var headerSubtitle: String {
         switch appState.pipelineState {
-        case .recording:              return "● Recording — \(formattedDuration)"
-        case .processing:             return "Processing…"
-        case .complete:               return "Ready"
-        case .failed:                 return "Error — tap to view"
-        default:                      return "Ready to record"
+        case .recording:
+            return String(localized: "● Recording — %@", defaultValue: "● Recording — \(formattedDuration)")
+                .replacingOccurrences(of: "%@", with: formattedDuration)
+        case .processing:             return String(localized: "Processing…")
+        case .complete:               return String(localized: "Ready")
+        case .failed:                 return String(localized: "Error — tap to view")
+        default:                      return String(localized: "Ready to record")
         }
     }
 
@@ -50,8 +52,11 @@ struct MenuBarView: View {
                 Button {
                     Task { await appState.stopRecording() }
                 } label: {
-                    Label("Stop Recording — \(formattedDuration)", systemImage: "stop.fill")
-                        .frame(maxWidth: .infinity)
+                    Label(
+                        String(localized: "Stop Recording — %@").replacingOccurrences(of: "%@", with: formattedDuration),
+                        systemImage: "stop.fill"
+                    )
+                    .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(MenuBarActionButtonStyle(tint: .secondary))
             } else {

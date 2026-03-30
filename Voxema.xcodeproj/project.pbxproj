@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		43B0EC1AFCDC423F8FB924D9 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = C949F91ACBCF46AA959F8D6A /* Localizable.xcstrings */; };
 		A27B4219CEE1433381449F00 /* models-manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 6AC8C9D953764CD2B350BB0A /* models-manifest.json */; };
 		02BD4BA095355D76BF93A537 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BF42BE8D185A762C01B2F5 /* Storage.swift */; };
 		11974B20BD9E895CCA83509C /* OnboardingFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1E446B894ABD98541008CE /* OnboardingFeature.swift */; };
@@ -46,6 +47,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C949F91ACBCF46AA959F8D6A /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "Localizable.xcstrings"; path = Voxema/Resources/Localizable.xcstrings; sourceTree = SOURCE_ROOT; };
 		6AC8C9D953764CD2B350BB0A /* models-manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "models-manifest.json"; path = Voxema/Resources/Models/models-manifest.json; sourceTree = SOURCE_ROOT; };
 		001F42E79B4AF6153DFE7562 /* ExportStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ExportStage.swift; path = Voxema/Pipeline/Export/ExportStage.swift; sourceTree = SOURCE_ROOT; };
 		0056483CBD12B4E426183543 /* MeetingLibraryFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeetingLibraryFeature.swift; path = Voxema/Features/MeetingLibrary/MeetingLibraryFeature.swift; sourceTree = SOURCE_ROOT; };
@@ -117,6 +119,7 @@
 				B22E49F9BB542993C30ED696 /* Logger.swift */,
 				B45042E2906A245B1FA47D8B /* UpdateManager.swift */,
 				786D40B188704EF95C45E824 /* ContentView.swift */,
+				C949F91ACBCF46AA959F8D6A /* Localizable.xcstrings */,
 				6AC8C9D953764CD2B350BB0A /* models-manifest.json */,
 				9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */,
 				B59005DF71F247CA9A047490 /* AppState.swift */,
@@ -213,6 +216,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A27B4219CEE1433381449F00 /* models-manifest.json in Resources */,
+				43B0EC1AFCDC423F8FB924D9 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

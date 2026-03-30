@@ -608,3 +608,25 @@ Confirmed pattern from TASK-11: `swift build` picks up new `.swift` files automa
 ### 5. `GRDB` import leak into App layer for fallback factory
 
 `AppState.failing` and `MeetingStore.failing` static vars require `import GRDB` in `AppState.swift`. This is a minor abstraction leak — the App layer should not know about GRDB. Tracked as TASK-14 for cleanup.
+
+---
+
+## TASK-15: UI Localization (EN/RU/SR)
+
+**Date:** 2026-03-30
+
+### 1. SwiftUI Text literals auto-localize via LocalizedStringKey — zero code change needed
+
+SwiftUI `Text("Start Recording")` accepts `LocalizedStringKey`, not `String`. It automatically looks up `Bundle.main` for a translation. This means ~80% of UI strings localize for free once `Localizable.xcstrings` is added to the bundle — no Swift code changes required.
+
+### 2. Computed vars returning `String` break auto-localization
+
+`Text(someComputedVar)` where `someComputedVar: String` bypasses `LocalizedStringKey` lookup. These need explicit `String(localized: "key")` substitution. Pattern: audit all computed properties that return `String` and are passed to SwiftUI views.
+
+### 3. String interpolation in localized strings — use %@ keys
+
+For localized strings with runtime values (e.g. `"● Recording — \(time)"`), store the key with `%@` placeholder in the catalog and do `.replacingOccurrences(of: "%@", with: value)` at runtime. The alternative (`String(format:)`) requires `NSLocalizedString` which is more verbose. This is acceptable for MVP; `stringsdict` covers pluralization later.
+
+### 4. `Localizable.xcstrings` compiles into the app bundle, not accessible via `swift build`
+
+The `.xcstrings` file is processed by Xcode and placed in `Contents/Resources/`. `swift build` does not process it. Unit tests cannot verify localized output at the string level — only build + manual runtime check confirms localization works.

@@ -1,0 +1,422 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "● Recording — %@" : {
+      "comment" : "Menu bar subtitle showing recording state and duration",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "● Recording — %@" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "● Запись — %@" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "● Снимање — %@" } }
+      }
+    },
+    "Action Items" : {
+      "comment" : "Section header in meeting summary",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Action Items" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Задачи" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Задаци" } }
+      }
+    },
+    "An unknown error occurred." : {
+      "comment" : "Fallback error message in alert",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "An unknown error occurred." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Произошла неизвестная ошибка." } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Дошло је до непознате грешке." } }
+      }
+    },
+    "Cancel" : {
+      "comment" : "Cancel button in confirmation dialogs",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отмена" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Откажи" } }
+      }
+    },
+    "Delete" : {
+      "comment" : "Delete button label",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Обриши" } }
+      }
+    },
+    "Done" : {
+      "comment" : "Status label for a completed pipeline step",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Готово" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Готово" } }
+      }
+    },
+    "Earlier" : {
+      "comment" : "Sidebar section header for past meetings when processing is active",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Earlier" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ранее" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Раније" } }
+      }
+    },
+    "Error — tap to view" : {
+      "comment" : "Menu bar subtitle shown when pipeline failed",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Error — tap to view" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ошибка — нажмите для просмотра" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Грешка — тапните за преглед" } }
+      }
+    },
+    "JSON" : {
+      "comment" : "Export button label for JSON format",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "JSON" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "JSON" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "JSON" } }
+      }
+    },
+    "Key Decisions" : {
+      "comment" : "Section header in meeting summary",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Key Decisions" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ключевые решения" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Кључне одлуке" } }
+      }
+    },
+    "MD" : {
+      "comment" : "Export button label for Markdown format",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "MD" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "MD" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "MD" } }
+      }
+    },
+    "Meeting ready" : {
+      "comment" : "System notification title when meeting processing is complete",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Meeting ready" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Встреча готова" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Састанак је спреман" } }
+      }
+    },
+    "Meeting title" : {
+      "comment" : "Placeholder text in the meeting title text field",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Meeting title" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Название встречи" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Назив sastanka" } }
+      }
+    },
+    "Meetings" : {
+      "comment" : "Sidebar section header for the meeting list",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Meetings" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Встречи" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Састанци" } }
+      }
+    },
+    "Microphone" : {
+      "comment" : "Channel pill label for microphone input",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Microphone" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Микрофон" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Микрофон" } }
+      }
+    },
+    "New Recording" : {
+      "comment" : "Button/menu command to start a new recording",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Recording" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Новая запись" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Нови снимак" } }
+      }
+    },
+    "New meeting" : {
+      "comment" : "Default title used in notification when meeting has no title",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New meeting" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Новая встреча" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Нови sastanak" } }
+      }
+    },
+    "No meeting selected" : {
+      "comment" : "Empty state title in the detail pane",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No meeting selected" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Встреча не выбрана" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Није изабран sastanak" } }
+      }
+    },
+    "No meetings yet" : {
+      "comment" : "Empty state label in the sidebar",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No meetings yet" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Встреч пока нет" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Нема sastanaka" } }
+      }
+    },
+    "No summary available" : {
+      "comment" : "Placeholder when meeting has no summary",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No summary available" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Резюме недоступно" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Резиме није доступан" } }
+      }
+    },
+    "No transcript available" : {
+      "comment" : "Placeholder when meeting has no transcript",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No transcript available" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Транскрипт недоступен" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Транскрипт није доступан" } }
+      }
+    },
+    "Now" : {
+      "comment" : "Sidebar section header for the currently processing meeting",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Now" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сейчас" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Сада" } }
+      }
+    },
+    "OK" : {
+      "comment" : "Confirmation button in error alert",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "ОК" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "У реду" } }
+      }
+    },
+    "Open Library" : {
+      "comment" : "Button in menu bar popover to open the main window",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open Library" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть библиотеку" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Отвори библиотеку" } }
+      }
+    },
+    "Open Questions" : {
+      "comment" : "Section header in meeting summary",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open Questions" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открытые вопросы" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Отворена питања" } }
+      }
+    },
+    "Overview" : {
+      "comment" : "Section header for the main summary text",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Overview" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обзор" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Преглед" } }
+      }
+    },
+    "Processing your meeting" : {
+      "comment" : "Title shown in the detail pane during processing",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Processing your meeting" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обработка встречи" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Обрада састанка" } }
+      }
+    },
+    "Processing…" : {
+      "comment" : "Status label and menu bar/sidebar subtitle during processing",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Processing…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обработка…" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Обрада…" } }
+      }
+    },
+    "Quit" : {
+      "comment" : "Quit button in menu bar popover",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quit" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выйти" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Затвори" } }
+      }
+    },
+    "Ready" : {
+      "comment" : "Menu bar subtitle when pipeline is complete",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ready" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Готово" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Спремно" } }
+      }
+    },
+    "Ready to record" : {
+      "comment" : "Menu bar subtitle in idle state",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ready to record" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Готово к записи" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Спремно за снимање" } }
+      }
+    },
+    "Recording Error" : {
+      "comment" : "Title of the error alert shown when recording fails",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recording Error" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ошибка записи" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Грешка снимања" } }
+      }
+    },
+    "Recording in progress" : {
+      "comment" : "Status label shown below the recording indicator",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recording in progress" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Запись идёт" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Снимање у току" } }
+      }
+    },
+    "Recording…" : {
+      "comment" : "Sidebar record button label while recording is active",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recording…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Запись…" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Снимање…" } }
+      }
+    },
+    "Rename meeting" : {
+      "comment" : "Tooltip on the pencil icon button in meeting detail header",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rename meeting" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Переименовать встречу" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Преименуј sastanak" } }
+      }
+    },
+    "Running…" : {
+      "comment" : "Status tag for the currently active pipeline step",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Running…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выполняется…" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "У току…" } }
+      }
+    },
+    "Saving" : {
+      "comment" : "Pipeline step label for the export stage",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Saving" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сохранение" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Чување" } }
+      }
+    },
+    "Search meetings…" : {
+      "comment" : "Placeholder text in the search field",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search meetings…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Поиск встреч…" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Претрага sastanaka…" } }
+      }
+    },
+    "Speaker identification" : {
+      "comment" : "Pipeline step label for the diarization stage",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Speaker identification" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Определение говорящих" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Идентификација говорника" } }
+      }
+    },
+    "Start Recording" : {
+      "comment" : "Primary button to begin a recording session",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Recording" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начать запись" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Почни снимање" } }
+      }
+    },
+    "Start a new recording or select a meeting from the list." : {
+      "comment" : "Empty state subtitle in the detail pane",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start a new recording or select a meeting from the list." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Начните новую запись или выберите встречу из списка." } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Покрените ново снимање или изаберите sastanak са листе." } }
+      }
+    },
+    "Stop Recording" : {
+      "comment" : "Button to stop the active recording",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop Recording" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Остановить запись" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Заустави снимање" } }
+      }
+    },
+    "Stop Recording — %@" : {
+      "comment" : "Menu bar button label while recording, showing elapsed time",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop Recording — %@" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Остановить запись — %@" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Заустави снимање — %@" } }
+      }
+    },
+    "Summary" : {
+      "comment" : "Tab label in the meeting detail view",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Summary" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Резюме" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Резиме" } }
+      }
+    },
+    "System audio" : {
+      "comment" : "Channel pill label for system audio input",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "System audio" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Системный звук" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Системски звук" } }
+      }
+    },
+    "This action is permanent and cannot be undone." : {
+      "comment" : "Destructive confirmation dialog message body",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This action is permanent and cannot be undone." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Это действие необратимо." } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Ова акција је трајна и не може се поништити." } }
+      }
+    },
+    "Transcript" : {
+      "comment" : "Tab label in the meeting detail view",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Transcript" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Транскрипт" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Транскрипт" } }
+      }
+    },
+    "Transcription" : {
+      "comment" : "Pipeline step label for the transcription stage",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Transcription" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Транскрипция" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Транскрипција" } }
+      }
+    },
+    "Voxema" : {
+      "comment" : "App name in menu bar popover header",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Voxema" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Voxema" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Voxema" } }
+      }
+    },
+    "Waiting" : {
+      "comment" : "Status tag for pipeline steps not yet started",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Waiting" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ожидание" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Чека" } }
+      }
+    },
+    "Yesterday" : {
+      "comment" : "Relative date label for yesterday's meetings",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Yesterday" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вчера" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Јуче" } }
+      }
+    },
+    "Today" : {
+      "comment" : "Relative date label for today's meetings",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сегодня" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Данас" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

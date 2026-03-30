@@ -209,12 +209,12 @@ public final class AppState: ObservableObject {
         guard notificationsAuthorized else { return }
         let meeting = meetings.first { $0.meetingId == meetingId }
         let content = UNMutableNotificationContent()
-        content.title = "Meeting ready"
+        content.title = String(localized: "Meeting ready")
         let durationStr = Self.formatDuration(meeting?.durationSeconds ?? 0)
         let speakerCount = meeting?.speakers.count ?? 0
         let actionCount = meeting?.summary?.actionItems.count ?? 0
         content.body = [
-            meeting?.title ?? "New meeting",
+            meeting?.title ?? String(localized: "New meeting"),
             durationStr,
             "\(speakerCount) speaker\(speakerCount == 1 ? "" : "s")",
             actionCount > 0 ? "\(actionCount) action item\(actionCount == 1 ? "" : "s")" : nil

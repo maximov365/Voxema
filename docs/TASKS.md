@@ -26,3 +26,4 @@
 | TASK-12 | AppState + Core UI Shell (NavigationSplitView, RecordingView, LibraryView, MeetingDetailView, MenuBarView) | completed | high | large |
 | TASK-13 | Export error feedback: surface write failures in MeetingDetailView export actions | planned | low | small |
 | TASK-14 | Decouple GRDB from AppState: move failing-store factory into Storage module | planned | low | small |
+| TASK-15 | UI Localization: Localizable.xcstrings + EN/RU/SR translations | completed | medium | medium |
