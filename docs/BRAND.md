@@ -1,10 +1,9 @@
 # Voxema — Brand Identity Guide
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** Approved  
 **Owner:** Iteration Manager  
-**Visual reference:** `docs/designs/BRAND-guide.html`  
-**Icon concepts:** `docs/designs/` (voxema-icon-v1 through v3, voxema-icon-final)
+**Visual reference:** `docs/designs/BRAND-guide.html`
 
 ---
 
@@ -17,53 +16,93 @@
 
 ---
 
-## Logo & Mark
+## Logo Mark — Circle + Arcs
 
-### Primary Mark — The V Waveform
+### Concept
 
-The Voxema mark is a **V formed from audio equalizer bars**. Each leg of the V is constructed from stacked rectangular segments that graduate in color from white at the top to Voxema Blue at the vertex bottom.
+The Voxema mark is a **circle + three concentric arcs**.
 
-**Meaning encoded:**
-- **V** — the initial letter and brand monogram
-- **Waveform bars** — the visual language of audio capture and analysis
-- **Converging V** — two channels (system audio + microphone) meeting in a single intelligence pipeline
+- The **circle** represents the meeting — a closed, bounded conversation.
+- The **three arcs** emanate rightward like a voice source broadcasting outward, evoking both audio waves and the "speaker / signal" metaphor.
+- Together they read as **voice being captured and understood**.
+
+The mark is purely geometric — arcs and a circle — placing it firmly in the SF Symbols / system icon aesthetic that macOS professionals expect.
+
+### Canonical SVG
+
+```xml
+<!-- Voxema Mark — viewBox 100×100 — stroke-only, no fills -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+
+  <!-- Circle ring -->
+  <circle cx="38" cy="50" r="22"
+          stroke="white" stroke-width="5"/>
+
+  <!-- Arc 1 — inner, white -->
+  <path d="M 63 28 A 30 30 0 0 1 63 72"
+        stroke="white" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Arc 2 — mid, #80b4ff -->
+  <path d="M 68 20 A 40 40 0 0 1 68 80"
+        stroke="#80b4ff" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- Arc 3 — outer, #4080c0 -->
+  <path d="M 74 13 A 50 50 0 0 1 74 87"
+        stroke="#4080c0" stroke-width="4" stroke-linecap="round"/>
+
+</svg>
+```
+
+**Rules:**
+- The mark is **stroke-only** — no fills, no gradients on the paths themselves.
+- `stroke-linecap: round` on all arcs. Always.
+- Scale `stroke-width` proportionally when resizing.
+- Background color must always come from the approved color system.
+
+### Color States
+
+| State | Circle & Arc 1 | Arc 2 | Arc 3 | Background |
+|---|---|---|---|---|
+| Idle (dark) | `white` | `#80b4ff` | `#4080c0` | `#0f1923` (Ink) |
+| Idle (light) | `#1c1c1e` | `#007aff` | `#4090d0` | `#f2f2f7` (Cloud) |
+| Recording | `#e53e3e` | `#ff6060` | `#c02020` | `#0f1923` + pulse animation |
+| Monochrome / menu bar | `rgba(235,235,245,0.9)` | `rgba(235,235,245,0.5)` | `rgba(235,235,245,0.25)` | System template |
 
 ### App Icon
 
-- Shape: macOS superellipse rounded square (`corner-radius ≈ 22.37%` of side)
-- Background: Ink (`#0a0e14`) — deep near-black navy
-- Mark: V waveform, white-to-blue gradient, subtle inner glow
+- Shape: macOS superellipse (`corner-radius ≈ 22.37%` of side)
+- Background: `#0f1923` (Ink Soft)
+- Mark: centered, Idle (dark) state
 
 ### Menu Bar Icon
 
-- Same V-waveform mark as PDF/SVG template image
-- **Idle state:** white/blue bars
-- **Recording state:** bars switch to Record Red (`#e53e3e`)
-- Fallback SF Symbol: `mic.fill` (idle) / `mic.fill` with tint (recording)
+- Format: PDF template image (single-color, system compositing)
+- **Idle:** white strokes, system renders at system label color
+- **Recording:** all strokes switch to `#e53e3e` + 2s pulse animation (scale 1.0→1.08→1.0, ease-in-out)
+- Fallback SF Symbol: `waveform` (idle) / `waveform` with red tint (recording)
 
 ### Wordmark
 
-Font: **-apple-system SF Pro Display, 800 weight, letter-spacing -0.8px**  
-Name: `Voxema` — always title case, never all caps, never all lowercase.
+Font: `-apple-system SF Pro Display`, weight 800, letter-spacing −0.8px, title case only.  
+Name: **Voxema** — never `VOXEMA`, never `voxema`.
 
-### Logo Variants
+### Wordmark Variants
 
-| Variant | Background | Mark color |
+| Variant | Background | Mark strokes |
 |---|---|---|
-| Primary dark | `#0a0e14` (Ink) | White → Blue gradient |
-| On night | `#1c1c1e` (Night) | White → Blue gradient |
-| Light | `#f2f2f7` (Cloud) | Dark navy → Blue gradient |
-| On brand color | `#0a84ff` | White, progressively transparent |
-| Menu bar | System (macOS template) | White/blue or red |
+| Primary horizontal | `#0a0e14` Ink | white + blue arcs |
+| Vertical stacked | `#1c1c1e` Night | white + blue arcs |
+| Light | `#f2f2f7` Cloud | dark navy + blue arcs |
+| On brand color | `#0a84ff` | all white, progressively transparent |
 
 ### Minimum Sizes
 
-| Context | Minimum size |
+| Context | Minimum |
 |---|---|
 | App icon | 16×16px |
+| Mark alone | 20×20px |
 | Wordmark horizontal | 120px wide |
 | Wordmark vertical | 80px wide |
-| Standalone mark | 20×20px |
 
 ---
 
@@ -74,9 +113,10 @@ Name: `Voxema` — always title case, never all caps, never all lowercase.
 | Token | Hex | Role |
 |---|---|---|
 | `vox-blue` | `#0a84ff` | Primary accent, CTAs, active states, links |
-| `vox-blue-light` | `#40a0ff` | Hover, focus ring |
+| `vox-blue-light` | `#40a0ff` | Hover state, focus ring |
 | `vox-blue-glow` | `rgba(10,132,255,0.18)` | Active background tint |
 | `ink` | `#0a0e14` | Deepest background, icon bg |
+| `ink-soft` | `#0f1923` | App icon bg, hero sections |
 | `night` | `#1c1c1e` | App window background (dark mode) |
 | `surface` | `#2c2c2e` | Cards, panels, sidebars (dark mode) |
 | `surface-raised` | `#3a3a3c` | Elevated cards, selected rows (dark mode) |
@@ -92,41 +132,42 @@ Name: `Voxema` — always title case, never all caps, never all lowercase.
 | `ok-green` | `#30d158` | Success, permission granted, checkmarks |
 | `caution` | `#ffd60a` | Warning, pending permission |
 
-**Color Rules:**
-1. `vox-blue` is the only blue in the product — never mix with other blues.
-2. `rec-red` is reserved exclusively for the active recording indicator and destructive actions. Never use it decoratively.
+### Color Rules
+
+1. `vox-blue` (`#0a84ff`) is the only blue in the product — never mix with other blues.
+2. `rec-red` (`#e53e3e`) is reserved exclusively for the active recording indicator and destructive actions. Never decorative.
 3. Use semantic colors only for their defined semantic meaning.
 
 ### Text Colors (Dark Mode)
 
 | Usage | Value |
 |---|---|
-| Primary text | `#ebebf5` |
-| Secondary text | `rgba(235,235,245,0.6)` |
-| Tertiary text | `rgba(235,235,245,0.3)` |
-| Quaternary / disabled | `rgba(235,235,245,0.18)` |
+| Primary | `#ebebf5` |
+| Secondary | `rgba(235,235,245,0.6)` |
+| Tertiary | `rgba(235,235,245,0.3)` |
+| Disabled / quaternary | `rgba(235,235,245,0.18)` |
 
 ---
 
 ## Typography
 
-**Typeface:** `-apple-system, BlinkMacSystemFont, "SF Pro Text"` — always use the system font. No custom fonts.
+**Typeface:** `-apple-system, BlinkMacSystemFont, "SF Pro Text"` — always system font. No custom fonts.
 
 | Style | Size | Weight | Letter-spacing | Usage |
 |---|---|---|---|---|
-| Display | 34px | 800 | -0.5px | Page titles, large states |
-| Title 1 | 22–24px | 700 | -0.3px | Section headers |
+| Display | 34px | 800 | −0.5px | Page titles, large states |
+| Title 1 | 22–24px | 700 | −0.3px | Section headers |
 | Title 2 | 16–18px | 700 | 0 | Card headers, meeting titles |
 | Body | 13px | 400 | 0 | Main content, descriptions |
-| Label | 11px | 600 | 0.7px | Section labels (UPPERCASE) |
+| Label | 11px | 600 | +0.7px | Section labels (UPPERCASE) |
 | Caption | 11px | 400 | 0 | Metadata, timestamps |
 | Timer | 34px | 100 (ultraLight) | 0 | Recording duration counter |
-| Monospace | 11px | 400 | 0 | Timestamps, file sizes, codes |
+| Monospace | 11px | 400 | 0 | Timestamps, sizes, codes (SF Mono) |
 
 **Rules:**
-- The recording timer uses **ultra-light weight** exclusively — it gives a precise, instrumental feel.
-- All timestamps use **SF Mono** (monospace) with tabular figures.
-- Section labels are always **uppercase + letter-spacing 0.7px**.
+- Recording timer uses **ultra-light weight exclusively** — instrumental, precise feel.
+- Timestamps and technical values use **SF Mono** with tabular figures.
+- Section labels are always **UPPERCASE + letter-spacing 0.7px**.
 
 ---
 
@@ -137,15 +178,14 @@ Base unit: **4px**. All spacing is a multiple of 4.
 | Token | Value | Usage |
 |---|---|---|
 | `xs` | 4px | Icon padding, micro gaps |
-| `sm` | 8px | Button padding vertical, tight gaps |
+| `sm` | 8px | Button vertical padding, tight gaps |
 | `md` | 12px | Default component padding |
 | `base` | 16px | Standard element gap |
 | `lg` | 20–24px | Section gaps, card padding |
 | `xl` | 32px | Page section gaps |
 | `xxl` | 48px | Large section separators |
 
-**Content padding inside cards:** 14–18px  
-**Page/window margins:** 24–32px
+Card padding: 14–18px. Page/window margins: 24–32px.
 
 ---
 
@@ -159,7 +199,7 @@ Base unit: **4px**. All spacing is a multiple of 4.
 | Cards, panels | 12px |
 | Windows, modals, sheets | 14px |
 | App icon | ≈22.37% of size (superellipse) |
-| Badges, pills, chips | `100px` (fully rounded) |
+| Badges, pills, chips | 100px (fully rounded) |
 
 ---
 
@@ -169,35 +209,26 @@ Base unit: **4px**. All spacing is a multiple of 4.
 
 | Type | Style | Usage |
 |---|---|---|
-| Primary | Blue bg, white text | Main CTA per screen |
-| Record | Red bg, white text | Start/stop recording **only** |
+| Primary | Blue bg (`#0a84ff`), white text | One per screen — main CTA |
+| Record | Red bg (`#e53e3e`), white text | Start/stop recording only |
 | Secondary | Surface bg, muted border | Secondary actions |
-| Ghost | Transparent | Back navigation, tertiary actions |
-| Destructive | Surface bg, red text | Delete, irreversible actions |
+| Ghost | Transparent, stroke border | Back, tertiary actions |
+| Destructive | Transparent bg, red text + border | Delete, irreversible actions |
 
-- Only **one primary button** per screen/modal.
-- The Record button (`#e53e3e`) is used **only** for recording actions — never repurposed.
+### Cards
 
-### Cards & Surfaces
-
-- Cards use `border-radius: 12px` and a `1px` border at `rgba(255,255,255,0.08)` (dark) or `rgba(0,0,0,0.08)` (light).
-- No drop shadows on cards — use borders only.
-- Active/selected cards use `vox-blue-glow` background tint + `2px` `vox-blue` border.
-
-### Progress & Download
-
-- Progress bars: `6px` height, `border-radius: 3px`, blue fill.
-- Download bars change fill color to green on completion.
-- Always show: percentage, transferred amount, and estimated time remaining.
+- `border-radius: 12px`, `1px` border at `rgba(255,255,255,0.08)` dark / `rgba(0,0,0,0.08)` light.
+- No drop shadows — borders only.
+- Active/selected: `vox-blue-glow` background tint + `2px` `vox-blue` border.
 
 ### Status Badges
 
 ```
-● Recording      rec-red     Background: rgba(229,62,62,0.2)
-✓ Granted        ok-green    Background: rgba(48,209,88,0.2)
-Not granted      caution     Background: rgba(255,214,10,0.15)
-Waiting          muted       Background: var(--muted)
-Recommended ✦   vox-blue    Background: vox-blue-glow
+● Recording     rec-red    rgba(229,62,62,0.2)
+✓ Granted       ok-green   rgba(48,209,88,0.2)
+! Required      caution    rgba(255,214,10,0.15)
+Waiting         muted      #48484a
+✦ Recommended   vox-blue   rgba(10,132,255,0.2)
 ```
 
 ---
@@ -206,50 +237,43 @@ Recommended ✦   vox-blue    Background: vox-blue-glow
 
 ### Personality
 
-Voxema talks like a **precision tool, not a friendly assistant**. Language is:
-- **Concise** — say exactly what happened, nothing more
-- **Specific** — name the thing (model, file, permission), never vague
-- **Action-oriented** — tell the user what to do next
-- **Privacy-matter-of-fact** — state privacy properties plainly, don't market them
+Precision tool, not a friendly assistant. Language is concise, specific, action-oriented. Privacy stated as fact, never marketed.
 
-### Writing Examples
+### Examples
 
 | Context | ✓ Write | ✗ Don't write |
 |---|---|---|
-| Completion | "Meeting ready" | "🎉 Your meeting summary is ready!" |
+| Completion | "Meeting ready" | "🎉 Your summary is ready!" |
 | Technical | "whisper-medium · 769 MB" | "Downloading your AI model..." |
 | Privacy | "Audio never leaves your device." | "We take your privacy seriously." |
 | Error | "Screen Recording permission required. Open System Settings → Privacy." | "Oops! Something went wrong 😅" |
 | Destructive | "Permanently delete this meeting?" | "Are you sure? This can't be undone!" |
-| Processing | "Transcription · Speaker identification · Summary" | "Crunching the numbers for you..." |
 
 ### Rules
 
-- No emoji in functional UI (buttons, alerts, status). Emoji allowed only in onboarding illustrations.
-- No ellipsis `...` in button labels. Use `…` (Unicode ellipsis) in status text only.
-- Capitalise the first word only in sentences and labels. No Title Case for body text.
+- No emoji in functional UI (buttons, alerts, status messages).
+- No ellipsis `...` in button labels. Use `…` (Unicode) in status text only.
 - "Meeting" not "session", "recording" not "capture", "summary" not "digest".
 
 ---
 
-## Motion & Animation
+## Motion
 
-- Keep animations **short** (100–250ms) and **purposeful**.
-- Use `easeInOut` for state transitions.
-- Recording indicator: **pulse animation**, 2s cycle, scale 1.0→1.08→1.0, `ease-in-out`.
-- Channel pills: **subtle continuous pulse** during active recording.
-- No decorative animations. Animation must communicate state change, never entertain.
+- Duration: **100–250ms**. No decorative animation.
+- Recording pulse: scale 1.0→1.08→1.0, 2s cycle, `ease-in-out`.
+- State transitions: `easeInOut`.
+- Animation must communicate state change — never entertain.
 
 ---
 
 ## Iconography
 
-Use **SF Symbols** exclusively. Never use third-party icon libraries.
+**SF Symbols exclusively.** No third-party icon libraries.
 
 | Concept | SF Symbol |
 |---|---|
 | Microphone | `mic`, `mic.fill` |
-| System audio / broadcast | `waveform`, `speaker.wave.2` |
+| System audio | `waveform`, `speaker.wave.2` |
 | Meeting / document | `doc.text` |
 | Recording active | `stop.fill`, `record.circle` |
 | Processing | `clock`, `hourglass` |
@@ -261,9 +285,8 @@ Use **SF Symbols** exclusively. Never use third-party icon libraries.
 | Rename | `pencil` |
 | Delete | `trash` |
 | Permissions | `lock.shield`, `checkmark.circle` |
-| Calendar | `calendar` |
 | Timer | `timer` |
-| Speaker | `person.2` |
+| Speaker identification | `person.2` |
 
 ---
 
@@ -273,10 +296,11 @@ Use **SF Symbols** exclusively. Never use third-party icon libraries.
 |---|---|
 | Use `#0a84ff` as the single blue | Mix Voxema Blue with other blues |
 | Reserve `#e53e3e` for recording + destructive | Use red decoratively |
-| Use SF Pro system font | Import custom typefaces |
-| Use SF Symbols for icons | Use third-party icon sets |
+| Use system SF Pro font | Import custom typefaces |
+| Use SF Symbols exclusively | Use third-party icon sets |
 | One primary CTA per screen | Stack multiple primary buttons |
 | State privacy as fact | Market privacy as a feature |
 | Keep animations under 250ms | Add decorative motion |
 | Use 4px-multiple spacing | Use arbitrary spacing values |
 | Wordmark: "Voxema" | "VOXEMA", "voxema" |
+| `stroke-linecap: round` on all mark paths | Square or butt stroke caps on the mark |

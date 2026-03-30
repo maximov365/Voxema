@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Voxema — Brand Identity Guide</title>
+<title>Voxema — Brand Identity Guide v1.1</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    /* Brand colors */
     --ink:         #0a0e14;
     --ink-soft:    #0f1923;
     --night:       #1c1c1e;
@@ -18,15 +17,12 @@
     --subtle:      rgba(235,235,245,0.3);
     --secondary:   rgba(235,235,245,0.6);
     --primary-txt: #ebebf5;
-
     --vox-blue:    #0a84ff;
     --vox-blue-lt: #40a0ff;
     --vox-glow:    rgba(10,132,255,0.18);
     --rec-red:     #e53e3e;
     --ok-green:    #30d158;
-    --warn-yellow: #ffd60a;
-
-    --accent:      var(--vox-blue);
+    --warn:        #ffd60a;
   }
 
   body {
@@ -36,348 +32,435 @@
     line-height: 1.5;
   }
 
-  /* ─── Layout ─── */
-  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px 80px; }
+  .page { max-width: 1000px; margin: 0 auto; padding: 56px 32px 96px; }
 
-  h1 { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; }
-  h2 { font-size: 22px; font-weight: 700; color: var(--primary-txt); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--stroke); }
-  h3 { font-size: 14px; font-weight: 600; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+  /* ── Headings ── */
+  h2 {
+    font-size: 20px; font-weight: 700; color: var(--primary-txt);
+    margin-bottom: 22px; padding-bottom: 11px;
+    border-bottom: 1px solid var(--stroke);
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .num {
+    font-size: 11px; font-weight: 600; color: var(--vox-blue);
+    background: var(--vox-glow); border: 1px solid rgba(10,132,255,0.3);
+    padding: 2px 8px; border-radius: 10px; letter-spacing: 0.4px;
+  }
+  h3 {
+    font-size: 11px; font-weight: 600; color: var(--subtle);
+    text-transform: uppercase; letter-spacing: 0.9px; margin-bottom: 14px;
+  }
 
-  .section { margin-bottom: 64px; }
+  .section { margin-bottom: 72px; }
+  .divider { height: 1px; background: var(--stroke); margin: 56px 0; }
 
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 
-  /* ─── Brand Hero ─── */
+  /* ── Brand Hero ── */
   .brand-hero {
-    display: flex; align-items: center; gap: 24px;
-    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 20px;
+    padding: 32px 36px; border-radius: 16px;
+    background: linear-gradient(135deg, #0f1923 0%, #0a0e14 100%);
+    border: 1px solid var(--stroke);
+    margin-bottom: 56px;
   }
-  .brand-hero .tagline {
-    font-size: 14px; color: var(--secondary); margin-top: 6px;
+  .brand-hero .wordmark-name {
+    font-size: 38px; font-weight: 800; letter-spacing: -1px;
+    color: #fff; line-height: 1;
   }
-  .brand-hero .version-tag {
+  .brand-hero .tagline { font-size: 13px; color: var(--secondary); margin-top: 5px; }
+  .brand-hero .ver {
     display: inline-block; font-size: 10px; font-weight: 600;
-    padding: 3px 9px; border-radius: 10px;
+    padding: 2px 9px; border-radius: 10px; margin-top: 9px;
     background: var(--vox-glow); color: var(--vox-blue);
-    border: 1px solid rgba(10,132,255,0.3); margin-top: 8px;
+    border: 1px solid rgba(10,132,255,0.3);
   }
 
-  /* ─── Icon Showcase ─── */
-  .icon-row { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
-  .icon-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  .icon-item span { font-size: 11px; color: var(--secondary); }
+  /* ── SVG Mark ── */
+  /* The Voxema Mark: circle + 3 arcs (right side) */
+  /* Built as inline SVG for pixel-perfect rendering at all sizes */
 
-  .icon-box {
-    border-radius: 22.37%; overflow: hidden;
-    background: var(--ink);
+  .vox-icon-bg {
+    border-radius: 22.37%;
+    background: var(--ink-soft);
     display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  /* ── Icon size row ── */
+  .size-row { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+  .size-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .size-item span { font-size: 10px; color: var(--subtle); font-family: "SF Mono", monospace; }
+
+  /* ── Color Swatches ── */
+  .swatch-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .swatch { border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.07); flex: 1; min-width: 90px; }
+  .swatch-color { height: 68px; }
+  .swatch-info { padding: 10px 12px; background: var(--surface); }
+  .swatch-name { font-size: 12px; font-weight: 600; }
+  .swatch-hex  { font-size: 10px; color: var(--secondary); font-family: "SF Mono", monospace; margin-top: 2px; }
+  .swatch-role { font-size: 10px; color: var(--subtle); margin-top: 3px; line-height: 1.4; }
+
+  /* ── Logo variants grid ── */
+  .logo-variant {
+    border-radius: 12px; padding: 28px 20px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px;
+    border: 1px solid var(--stroke); min-height: 140px;
     position: relative;
   }
-  .icon-box img { width: 100%; height: 100%; object-fit: cover; }
-
-  /* SVG icon mark */
-  .vox-mark { display: block; }
-
-  /* ─── Color Swatches ─── */
-  .swatch-row { display: flex; flex-wrap: wrap; gap: 10px; }
-  .swatch {
-    border-radius: 12px; overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.08);
-    flex: 1; min-width: 100px;
-  }
-  .swatch-color { height: 72px; }
-  .swatch-info { padding: 10px 12px; background: var(--surface); }
-  .swatch-name { font-size: 12px; font-weight: 600; color: var(--primary-txt); }
-  .swatch-hex  { font-size: 11px; color: var(--secondary); font-family: "SF Mono", monospace; margin-top: 2px; }
-  .swatch-role { font-size: 10px; color: var(--subtle); margin-top: 2px; }
-
-  /* ─── Typography ─── */
-  .type-sample { background: var(--surface); border-radius: 12px; padding: 24px; margin-bottom: 12px; }
-  .type-label { font-size: 10px; font-weight: 600; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
-
-  /* ─── Logo Variants ─── */
-  .logo-variant {
-    border-radius: 14px; padding: 32px;
-    display: flex; align-items: center; justify-content: center;
-    border: 1px solid var(--stroke);
-    min-height: 120px; position: relative;
-  }
   .logo-variant .var-label {
-    position: absolute; bottom: 10px; left: 14px;
+    position: absolute; bottom: 10px; left: 12px;
     font-size: 10px; color: var(--subtle);
-    text-transform: uppercase; letter-spacing: 0.7px;
+    text-transform: uppercase; letter-spacing: 0.6px;
   }
-  .logo-dark  { background: var(--ink); }
-  .logo-night { background: var(--night); }
-  .logo-light { background: #f2f2f7; }
-  .logo-white { background: #ffffff; }
+  .wordmark-horiz { display: flex; align-items: center; gap: 10px; }
+  .wm-text-white { font-size: 22px; font-weight: 800; letter-spacing: -0.6px; color: #fff; }
+  .wm-text-dark  { font-size: 22px; font-weight: 800; letter-spacing: -0.6px; color: #1c1c1e; }
+  .wm-text-blue  { font-size: 22px; font-weight: 800; letter-spacing: -0.6px; color: #fff; }
 
-  /* Wordmark */
-  .wordmark {
-    display: flex; align-items: center; gap: 10px;
-  }
-  .wordmark-text {
-    font-size: 28px; font-weight: 800;
-    letter-spacing: -0.8px;
-    line-height: 1;
-  }
-  .wm-dark  .wordmark-text { color: #fff; }
-  .wm-light .wordmark-text { color: var(--ink); }
+  /* ── Typography samples ── */
+  .type-card { background: var(--surface); border-radius: 12px; padding: 20px; border: 1px solid var(--stroke); }
+  .type-label { font-size: 10px; font-weight: 600; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
 
-  /* ─── Spacing ─── */
-  .space-row { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
-  .space-box {
-    background: rgba(10,132,255,0.12); border: 1px dashed rgba(10,132,255,0.4);
-    border-radius: 4px; display: flex; align-items: flex-end; justify-content: center;
-    padding-bottom: 4px;
-  }
-  .space-label { font-size: 10px; color: var(--vox-blue); font-family: "SF Mono", monospace; }
+  /* ── Spacing ── */
+  .space-unit { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .space-block { background: rgba(10,132,255,0.15); border: 1px dashed rgba(10,132,255,0.35); border-radius: 3px; }
+  .space-num { font-size: 10px; color: var(--vox-blue); font-family: "SF Mono", monospace; }
 
-  /* ─── UI Components ─── */
+  /* ── Radius ── */
+  .radius-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .radius-box { background: var(--vox-blue); opacity: 0.8; }
+  .radius-label { font-size: 10px; color: var(--subtle); font-family: "SF Mono", monospace; text-align: center; }
+
+  /* ── Components ── */
   .comp-card { background: var(--surface); border-radius: 12px; padding: 20px; border: 1px solid var(--stroke); }
-
-  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .btn {
-    padding: 8px 18px; border-radius: 9px; font-size: 13px; font-weight: 600;
-    border: none; cursor: pointer; white-space: nowrap;
-  }
+  .btn { padding: 8px 18px; border-radius: 9px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+  .btn-sm { padding: 5px 12px; font-size: 11px; }
   .btn-primary   { background: var(--vox-blue); color: #fff; }
-  .btn-secondary { background: var(--stroke); color: var(--secondary); border: 1px solid var(--stroke); }
+  .btn-secondary { background: var(--stroke); color: var(--secondary); }
   .btn-record    { background: var(--rec-red); color: #fff; }
-  .btn-ghost     { background: transparent; color: var(--subtle); border: 1px solid transparent; }
-  .btn-sm        { padding: 5px 12px; font-size: 11px; }
+  .btn-ghost     { background: transparent; color: var(--subtle); border: 1px solid var(--stroke); }
+  .btn-destruct  { background: transparent; color: var(--rec-red); border: 1px solid rgba(229,62,62,0.4); }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
-  .badge {
-    display: inline-block; font-size: 10px; font-weight: 600;
-    padding: 2px 8px; border-radius: 10px;
-  }
-  .badge-blue   { background: rgba(10,132,255,0.2); color: var(--vox-blue); }
-  .badge-green  { background: rgba(48,209,88,0.2); color: var(--ok-green); }
-  .badge-red    { background: rgba(229,62,62,0.2); color: var(--rec-red); }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  .badge-blue   { background: rgba(10,132,255,0.2);  color: var(--vox-blue); }
+  .badge-green  { background: rgba(48,209,88,0.2);   color: var(--ok-green); }
+  .badge-red    { background: rgba(229,62,62,0.2);   color: var(--rec-red); }
+  .badge-yellow { background: rgba(255,214,10,0.15); color: var(--warn); }
   .badge-muted  { background: var(--muted); color: var(--secondary); }
 
-  .pill-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-  .pill {
-    display: flex; align-items: center; gap: 5px;
-    padding: 5px 12px; border-radius: 100px;
-    background: var(--surface); border: 1px solid var(--stroke);
-    font-size: 12px; color: var(--secondary);
-  }
-  .pill-dot { width: 7px; height: 7px; border-radius: 50%; }
-
-  /* ─── Tone ─── */
+  /* ── Tone table ── */
   .tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .tone-card { background: var(--surface); border-radius: 10px; padding: 16px; border: 1px solid var(--stroke); }
-  .tone-card .label { font-size: 11px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.6px; }
-  .tone-card.yes .label { color: var(--ok-green); }
-  .tone-card.no  .label { color: var(--rec-red); }
-  .tone-card .example { font-size: 12px; color: var(--secondary); line-height: 1.6; }
-  .tone-card .example em { color: var(--primary-txt); font-style: normal; font-weight: 500; }
+  .tone-card .tl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+  .tone-card.yes .tl { color: var(--ok-green); }
+  .tone-card.no  .tl { color: var(--rec-red); }
+  .tone-card .ex { font-size: 12px; color: var(--secondary); line-height: 1.8; }
+  .tone-card .ex em { color: var(--primary-txt); font-style: normal; }
 
-  /* ─── Icon construction ─── */
-  .construction-box {
-    background: var(--ink); border-radius: 14px; padding: 40px;
-    display: flex; align-items: center; justify-content: center;
-    border: 1px solid var(--stroke);
+  /* ── Note ── */
+  .note { background: var(--surface); border-radius: 12px; padding: 16px 18px; border: 1px solid var(--stroke); font-size: 13px; color: var(--secondary); line-height: 1.7; }
+  .note strong { color: var(--primary-txt); }
+  code { background: var(--muted); padding: 1px 5px; border-radius: 4px; font-family: "SF Mono", monospace; font-size: 10px; }
+
+  /* ── Motion preview ── */
+  .pulse-ring {
+    animation: pulseRing 2s ease-in-out infinite;
   }
-
-  /* Section divider */
-  .divider { height: 1px; background: var(--stroke); margin: 48px 0; }
+  @keyframes pulseRing {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.6; transform: scale(1.08); }
+  }
+  .pulse-arcs {
+    animation: pulseArcs 2s ease-in-out infinite;
+  }
+  @keyframes pulseArcs {
+    0%        { opacity: 0.3; }
+    33%       { opacity: 1; }
+    66%       { opacity: 0.6; }
+    100%      { opacity: 0.3; }
+  }
 </style>
 </head>
 <body>
 <div class="page">
 
-  <!-- ─── HEADER ─── -->
-  <div class="brand-hero" style="margin-bottom:48px;">
-    <div>
-      <div class="wordmark wm-dark">
-        <svg width="36" height="36" viewBox="0 0 36 36">
-          <!-- V from waveform bars -->
-          <g opacity="0.95">
-            <!-- Left leg bars (top to bottom, left to right narrowing) -->
-            <rect x="4"  y="2"  width="7" height="3.5" rx="1.5" fill="white" opacity="1"/>
-            <rect x="5"  y="7"  width="6" height="3.5" rx="1.5" fill="#a0c8ff"/>
-            <rect x="6.5" y="12" width="5" height="3.5" rx="1.5" fill="#60aaff"/>
-            <rect x="8"  y="17" width="4" height="3.5" rx="1.5" fill="#3090ff"/>
-            <!-- Right leg bars -->
-            <rect x="25" y="2"  width="7" height="3.5" rx="1.5" fill="white" opacity="1"/>
-            <rect x="25" y="7"  width="6" height="3.5" rx="1.5" fill="#a0c8ff"/>
-            <rect x="24.5" y="12" width="5" height="3.5" rx="1.5" fill="#60aaff"/>
-            <rect x="24" y="17" width="4" height="3.5" rx="1.5" fill="#3090ff"/>
-            <!-- Bottom vertex bars -->
-            <rect x="15" y="22" width="3" height="3.5" rx="1.5" fill="#0a84ff"/>
-            <rect x="18" y="22" width="3" height="3.5" rx="1.5" fill="#0a84ff"/>
-            <rect x="16.5" y="27" width="3" height="3" rx="1.5" fill="#0060d0"/>
-          </g>
+  <!-- ─── HERO ─── -->
+  <div class="brand-hero">
+    <div style="flex-shrink:0">
+      <!-- Primary Voxema Icon: 80px rendered via SVG -->
+      <div class="vox-icon-bg" style="width:80px;height:80px;">
+        <svg width="48" height="48" viewBox="0 0 100 100" fill="none">
+          <!-- circle ring -->
+          <circle cx="38" cy="50" r="22" stroke="white" stroke-width="5"/>
+          <!-- arc 1 (inner) -->
+          <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+          <!-- arc 2 (mid) -->
+          <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          <!-- arc 3 (outer) -->
+          <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="4" stroke-linecap="round" fill="none"/>
         </svg>
-        <span class="wordmark-text">Voxema</span>
       </div>
+    </div>
+    <div>
+      <div class="wordmark-name">Voxema</div>
       <div class="tagline">Privacy-first meeting intelligence · macOS</div>
-      <span class="version-tag">Brand Identity v1.0</span>
+      <span class="ver">Brand Identity v1.1</span>
+    </div>
+    <div style="margin-left:auto;font-size:12px;color:var(--subtle);text-align:right;line-height:1.8;">
+      Mark: Circle + Arcs<br>
+      Concept: Voice broadcast<br>
+      Style: Flat SVG / SF Symbol aesthetic<br>
+      Updated: March 2026
     </div>
   </div>
 
-  <!-- ─── SECTION: LOGO MARK ─── -->
+  <!-- ─── 1. LOGO MARK ─── -->
   <div class="section">
-    <h2>Logo Mark</h2>
+    <h2><span class="num">01</span> Logo Mark</h2>
 
-    <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;margin-bottom:32px;">
+    <!-- Concept explanation -->
+    <div class="note" style="margin-bottom:28px;">
+      The Voxema mark is a <strong>circle + three concentric arcs</strong>.
+      The circle represents the meeting — a closed, bounded conversation.
+      The arcs emanate rightward like a voice source broadcasting outward,
+      evoking both audio waves and the classic "speaker" / signal metaphor.
+      Together they read as <strong>voice being captured and understood</strong>.
+      The mark is purely geometric — built from arcs and a circle — placing it
+      firmly in the SF Symbols / system icon aesthetic that macOS professionals expect.
+    </div>
 
-      <!-- Icon showcase -->
-      <div>
-        <h3>App Icon</h3>
-        <div class="icon-row">
-          <div class="icon-item">
-            <div class="icon-box" style="width:96px;height:96px;">
-              <img src="/Users/dm/.cursor/projects/Users-dm-projects-Voxema/assets/voxema-icon-v1.png" alt="Voxema icon v1">
-            </div>
-            <span>96px</span>
-          </div>
-          <div class="icon-item">
-            <div class="icon-box" style="width:64px;height:64px;">
-              <img src="/Users/dm/.cursor/projects/Users-dm-projects-Voxema/assets/voxema-icon-v1.png" alt="Voxema icon">
-            </div>
-            <span>64px</span>
-          </div>
-          <div class="icon-item">
-            <div class="icon-box" style="width:44px;height:44px;">
-              <img src="/Users/dm/.cursor/projects/Users-dm-projects-Voxema/assets/voxema-icon-v1.png" alt="Voxema icon">
-            </div>
-            <span>44px</span>
-          </div>
-          <div class="icon-item">
-            <div class="icon-box" style="width:28px;height:28px;">
-              <img src="/Users/dm/.cursor/projects/Users-dm-projects-Voxema/assets/voxema-icon-v1.png" alt="Voxema icon">
-            </div>
-            <span>28px</span>
-          </div>
-          <div class="icon-item">
-            <div class="icon-box" style="width:18px;height:18px;border-radius:4px;">
-              <img src="/Users/dm/.cursor/projects/Users-dm-projects-Voxema/assets/voxema-icon-v1.png" alt="Voxema icon">
-            </div>
-            <span>16px</span>
-          </div>
+    <!-- Sizes -->
+    <h3>Icon Sizes</h3>
+    <div class="size-row" style="margin-bottom:32px;">
+
+      <div class="size-item">
+        <div class="vox-icon-bg" style="width:128px;height:128px;">
+          <svg width="80" height="80" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="white" stroke-width="5"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="4" stroke-linecap="round" fill="none"/>
+          </svg>
         </div>
+        <span>128</span>
       </div>
 
-      <!-- Concept notes -->
-      <div>
-        <h3>Mark Concept</h3>
-        <div style="background:var(--surface);border-radius:12px;padding:18px;border:1px solid var(--stroke);">
-          <p style="font-size:13px;color:var(--secondary);line-height:1.7;margin-bottom:14px;">
-            The Voxema mark is a <strong style="color:var(--primary-txt)">V formed from audio equalizer bars</strong>. The two converging legs of the V each consist of stacked rectangular bars — recalling an audio spectrum analyzer — that graduate in color from white at the top to electric blue at the vertex.
-          </p>
-          <p style="font-size:13px;color:var(--secondary);line-height:1.7;margin-bottom:14px;">
-            This encodes two ideas simultaneously: <strong style="color:var(--primary-txt)">V for Voxema</strong> (and "Vox" — Latin for voice) and the <strong style="color:var(--primary-txt)">visual language of audio capture</strong>. The downward-pointing V also suggests convergence: two channels (system audio + microphone) meeting in a single analysis.
-          </p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <span class="badge badge-blue">Privacy-first</span>
-            <span class="badge badge-muted">Audio intelligence</span>
-            <span class="badge badge-muted">macOS native</span>
-          </div>
+      <div class="size-item">
+        <div class="vox-icon-bg" style="width:80px;height:80px;">
+          <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="white" stroke-width="5"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="4" stroke-linecap="round" fill="none"/>
+          </svg>
         </div>
-
-        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <div style="background:var(--surface);border-radius:10px;padding:14px;border:1px solid var(--stroke);">
-            <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">Alternative</div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div class="icon-box" style="width:40px;height:40px;border-radius:10px;">
-                <img src="/Users/dm/.cursor/projects/Users-dm-projects-Voxema/assets/voxema-icon-v3.png" alt="Alt icon">
-              </div>
-              <span style="font-size:11px;color:var(--secondary);">Minimal variant — circle + waves. Use for monochrome contexts.</span>
-            </div>
-          </div>
-          <div style="background:var(--surface);border-radius:10px;padding:14px;border:1px solid var(--stroke);">
-            <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">Concept B</div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div class="icon-box" style="width:40px;height:40px;border-radius:10px;">
-                <img src="/Users/dm/.cursor/projects/Users-dm-projects-Voxema/assets/voxema-icon-v2.png" alt="Alt icon 2">
-              </div>
-              <span style="font-size:11px;color:var(--secondary);">Waveform + lock. Emphasises privacy, suitable for website hero.</span>
-            </div>
-          </div>
-        </div>
+        <span>80</span>
       </div>
+
+      <div class="size-item">
+        <div class="vox-icon-bg" style="width:64px;height:64px;">
+          <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="white" stroke-width="5"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="4" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <span>64</span>
+      </div>
+
+      <div class="size-item">
+        <div class="vox-icon-bg" style="width:44px;height:44px;">
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="white" stroke-width="5.5"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <span>44</span>
+      </div>
+
+      <div class="size-item">
+        <div class="vox-icon-bg" style="width:32px;height:32px;border-radius:8px;">
+          <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="white" stroke-width="6"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="5" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <span>32</span>
+      </div>
+
+      <div class="size-item">
+        <div class="vox-icon-bg" style="width:22px;height:22px;border-radius:5px;">
+          <svg width="13" height="13" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="white" stroke-width="7"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="6" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="5" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <span>22</span>
+      </div>
+
+      <div class="size-item">
+        <div class="vox-icon-bg" style="width:16px;height:16px;border-radius:4px;">
+          <svg width="10" height="10" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="white" stroke-width="8"/>
+            <path d="M 65 30 A 28 28 0 0 1 65 70" stroke="white" stroke-width="8" stroke-linecap="round" fill="none"/>
+            <path d="M 72 20 A 38 38 0 0 1 72 80" stroke="#80b4ff" stroke-width="7" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <span>16</span>
+      </div>
+
     </div>
 
     <!-- Wordmark variants -->
     <h3>Wordmark Variants</h3>
-    <div class="grid4">
-      <div>
-        <div class="logo-variant logo-dark wm-dark">
-          <div class="wordmark" style="flex-direction:column;gap:6px;align-items:center;">
-            <div class="icon-box" style="width:48px;height:48px;">
-              <img src="/Users/dm/.cursor/projects/Users-dm-projects-Voxema/assets/voxema-icon-v1.png" alt="">
-            </div>
-            <span class="wordmark-text" style="font-size:22px;color:#fff;">Voxema</span>
-          </div>
-          <span class="var-label">Vertical — dark</span>
+    <div class="grid4" style="margin-bottom:24px;">
+
+      <!-- Dark -->
+      <div class="logo-variant" style="background:#0a0e14;">
+        <div class="wordmark-horiz">
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="white" stroke-width="6"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          </svg>
+          <span class="wm-text-white">Voxema</span>
         </div>
+        <span class="var-label">Ink bg</span>
       </div>
-      <div>
-        <div class="logo-variant logo-night wm-dark">
-          <div class="wordmark">
-            <svg width="28" height="28" viewBox="0 0 36 36">
-              <rect x="4" y="2" width="7" height="3.5" rx="1.5" fill="white"/>
-              <rect x="5" y="7" width="6" height="3.5" rx="1.5" fill="#a0c8ff"/>
-              <rect x="6.5" y="12" width="5" height="3.5" rx="1.5" fill="#60aaff"/>
-              <rect x="8" y="17" width="4" height="3.5" rx="1.5" fill="#3090ff"/>
-              <rect x="25" y="2" width="7" height="3.5" rx="1.5" fill="white"/>
-              <rect x="25" y="7" width="6" height="3.5" rx="1.5" fill="#a0c8ff"/>
-              <rect x="24.5" y="12" width="5" height="3.5" rx="1.5" fill="#60aaff"/>
-              <rect x="24" y="17" width="4" height="3.5" rx="1.5" fill="#3090ff"/>
-              <rect x="15" y="22" width="3" height="3.5" rx="1.5" fill="#0a84ff"/>
-              <rect x="18" y="22" width="3" height="3.5" rx="1.5" fill="#0a84ff"/>
-              <rect x="16.5" y="27" width="3" height="3" rx="1.5" fill="#0060d0"/>
+
+      <!-- Night -->
+      <div class="logo-variant" style="background:#1c1c1e;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div class="vox-icon-bg" style="width:44px;height:44px;">
+            <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+              <circle cx="38" cy="50" r="22" stroke="white" stroke-width="6"/>
+              <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/>
+              <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="5" stroke-linecap="round" fill="none"/>
+              <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="4.5" stroke-linecap="round" fill="none"/>
             </svg>
-            <span class="wordmark-text" style="color:#fff;">Voxema</span>
           </div>
-          <span class="var-label">Horizontal — night</span>
+          <span class="wm-text-white" style="font-size:18px;">Voxema</span>
         </div>
+        <span class="var-label">Vertical – dark</span>
       </div>
-      <div>
-        <div class="logo-variant logo-light" style="background:#f2f2f7">
-          <div class="wordmark">
-            <svg width="28" height="28" viewBox="0 0 36 36">
-              <rect x="4" y="2" width="7" height="3.5" rx="1.5" fill="#0a0e14"/>
-              <rect x="5" y="7" width="6" height="3.5" rx="1.5" fill="#1a4060"/>
-              <rect x="6.5" y="12" width="5" height="3.5" rx="1.5" fill="#0060d0"/>
-              <rect x="8" y="17" width="4" height="3.5" rx="1.5" fill="#0a84ff"/>
-              <rect x="25" y="2" width="7" height="3.5" rx="1.5" fill="#0a0e14"/>
-              <rect x="25" y="7" width="6" height="3.5" rx="1.5" fill="#1a4060"/>
-              <rect x="24.5" y="12" width="5" height="3.5" rx="1.5" fill="#0060d0"/>
-              <rect x="24" y="17" width="4" height="3.5" rx="1.5" fill="#0a84ff"/>
-              <rect x="15" y="22" width="3" height="3.5" rx="1.5" fill="#0a84ff"/>
-              <rect x="18" y="22" width="3" height="3.5" rx="1.5" fill="#0a84ff"/>
-              <rect x="16.5" y="27" width="3" height="3" rx="1.5" fill="#0060d0"/>
-            </svg>
-            <span class="wordmark-text" style="color:#1c1c1e;">Voxema</span>
-          </div>
-          <span class="var-label" style="color:#888;">Horizontal — light</span>
+
+      <!-- Light -->
+      <div class="logo-variant" style="background:#f2f2f7;">
+        <div class="wordmark-horiz">
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="#1c1c1e" stroke-width="6"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="#1c1c1e" stroke-width="6" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#007aff" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4090d0" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          </svg>
+          <span class="wm-text-dark">Voxema</span>
         </div>
+        <span class="var-label" style="color:#aaa;">Light bg</span>
       </div>
-      <div>
-        <div class="logo-variant" style="background:var(--vox-blue)">
-          <div class="wordmark">
-            <svg width="28" height="28" viewBox="0 0 36 36">
-              <rect x="4" y="2" width="7" height="3.5" rx="1.5" fill="rgba(255,255,255,1)"/>
-              <rect x="5" y="7" width="6" height="3.5" rx="1.5" fill="rgba(255,255,255,0.8)"/>
-              <rect x="6.5" y="12" width="5" height="3.5" rx="1.5" fill="rgba(255,255,255,0.6)"/>
-              <rect x="8" y="17" width="4" height="3.5" rx="1.5" fill="rgba(255,255,255,0.4)"/>
-              <rect x="25" y="2" width="7" height="3.5" rx="1.5" fill="rgba(255,255,255,1)"/>
-              <rect x="25" y="7" width="6" height="3.5" rx="1.5" fill="rgba(255,255,255,0.8)"/>
-              <rect x="24.5" y="12" width="5" height="3.5" rx="1.5" fill="rgba(255,255,255,0.6)"/>
-              <rect x="24" y="17" width="4" height="3.5" rx="1.5" fill="rgba(255,255,255,0.4)"/>
-              <rect x="15" y="22" width="3" height="3.5" rx="1.5" fill="rgba(255,255,255,0.3)"/>
-              <rect x="18" y="22" width="3" height="3.5" rx="1.5" fill="rgba(255,255,255,0.3)"/>
-              <rect x="16.5" y="27" width="3" height="3" rx="1.5" fill="rgba(255,255,255,0.2)"/>
-            </svg>
-            <span class="wordmark-text" style="color:#fff;">Voxema</span>
-          </div>
-          <span class="var-label">On brand color</span>
+
+      <!-- On blue -->
+      <div class="logo-variant" style="background:#0a84ff;">
+        <div class="wordmark-horiz">
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="white" stroke-width="6"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="rgba(255,255,255,0.65)" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="rgba(255,255,255,0.35)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          </svg>
+          <span class="wm-text-blue">Voxema</span>
+        </div>
+        <span class="var-label">On brand color</span>
+      </div>
+
+    </div>
+
+    <!-- Mark-only contexts -->
+    <h3>Mark Alone (no wordmark)</h3>
+    <div class="note">
+      Use the mark without the wordmark only when the context already establishes the brand
+      (e.g., the macOS app icon, the menu bar icon, and in-app headers after onboarding).
+      The mark must always appear on a background from the approved color system —
+      never on photographic backgrounds or gradients not in this guide.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ─── 2. MARK ANATOMY ─── -->
+  <div class="section">
+    <h2><span class="num">02</span> Mark Anatomy</h2>
+
+    <div class="grid2">
+      <!-- Annotated SVG -->
+      <div style="background:var(--ink-soft);border-radius:14px;padding:40px;border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;">
+        <svg width="240" height="180" viewBox="0 0 240 180" fill="none">
+          <!-- circle -->
+          <circle cx="88" cy="90" r="44" stroke="white" stroke-width="4"/>
+          <!-- arc 1 inner -->
+          <path d="M 134 46 A 52 52 0 0 1 134 134" stroke="white" stroke-width="4" stroke-linecap="round"/>
+          <!-- arc 2 mid -->
+          <path d="M 142 34 A 68 68 0 0 1 142 146" stroke="#80b4ff" stroke-width="3.5" stroke-linecap="round"/>
+          <!-- arc 3 outer -->
+          <path d="M 152 22 A 84 84 0 0 1 152 158" stroke="#4080c0" stroke-width="3" stroke-linecap="round"/>
+
+          <!-- annotations -->
+          <!-- circle label -->
+          <line x1="88" y1="46" x2="88" y2="12" stroke="#48484a" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="92" y="9" font-size="9" fill="#80b4ff" font-family="-apple-system,sans-serif">Circle ring — white</text>
+
+          <!-- arc labels -->
+          <line x1="134" y1="46" x2="168" y2="24" stroke="#48484a" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="170" y="22" font-size="9" fill="#80b4ff" font-family="-apple-system,sans-serif">Arc 1 — white</text>
+
+          <line x1="142" y1="34" x2="172" y2="14" stroke="#48484a" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="174" y="12" font-size="9" fill="#80b4ff" font-family="-apple-system,sans-serif">Arc 2 — #80b4ff</text>
+
+          <line x1="152" y1="22" x2="178" y2="5" stroke="#48484a" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="180" y="4" font-size="9" fill="#80b4ff" font-family="-apple-system,sans-serif">Arc 3 — #4080c0</text>
+
+          <!-- center dot -->
+          <circle cx="88" cy="90" r="3" fill="rgba(255,255,255,0.2)"/>
+
+          <!-- baseline -->
+          <text x="6" y="174" font-size="9" fill="#48484a" font-family="'SF Mono',monospace">viewBox 100×100 · stroke-linecap: round</text>
+        </svg>
+      </div>
+
+      <!-- Construction notes -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--stroke);">
+          <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Circle</div>
+          <div style="font-size:12px;color:var(--secondary);line-height:1.6;">Center <code>cx=38, cy=50, r=22</code> in 100×100 viewBox. Stroke white, no fill. Stroke-width scales with icon size (4–8px).</div>
+        </div>
+        <div style="background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--stroke);">
+          <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Arc 1 — Inner</div>
+          <div style="font-size:12px;color:var(--secondary);line-height:1.6;"><code>r=30</code>, same color as circle (white). Connects seamlessly — reads as an extension of the circle stroke.</div>
+        </div>
+        <div style="background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--stroke);">
+          <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Arc 2 — Mid</div>
+          <div style="font-size:12px;color:var(--secondary);line-height:1.6;"><code>r=40</code>, color <code>#80b4ff</code> (mid blue). Slightly thinner. Creates visual depth — mid distance transmission.</div>
+        </div>
+        <div style="background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--stroke);">
+          <div style="font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Arc 3 — Outer</div>
+          <div style="font-size:12px;color:var(--secondary);line-height:1.6;"><code>r=50</code>, color <code>#4080c0</code> (dim blue). Thinnest. Suggests distance / reaching outward. Fades into background.</div>
+        </div>
+        <div class="note" style="font-size:11px;">
+          All paths use <strong>stroke-linecap: round</strong>. The mark is stroke-only —
+          no fills, no gradients. This ensures it works as a monochrome template image
+          (macOS menu bar) by simply changing stroke color.
         </div>
       </div>
     </div>
@@ -385,38 +468,38 @@
 
   <div class="divider"></div>
 
-  <!-- ─── SECTION: COLOR PALETTE ─── -->
+  <!-- ─── 3. COLOR SYSTEM ─── -->
   <div class="section">
-    <h2>Color System</h2>
+    <h2><span class="num">03</span> Color System</h2>
 
     <h3>Primary Palette</h3>
     <div class="swatch-row" style="margin-bottom:24px;">
-      <div class="swatch" style="flex:1.5">
+      <div class="swatch" style="flex:1.8">
         <div class="swatch-color" style="background:#0a84ff;"></div>
         <div class="swatch-info">
           <div class="swatch-name">Voxema Blue</div>
           <div class="swatch-hex">#0a84ff</div>
-          <div class="swatch-role">Primary accent · CTAs · Active states</div>
+          <div class="swatch-role">Accent · CTAs · Active states · Links</div>
         </div>
       </div>
       <div class="swatch">
-        <div class="swatch-color" style="background:#0a0e14;"></div>
+        <div class="swatch-color" style="background:#0a0e14;border-bottom:1px solid var(--stroke)"></div>
         <div class="swatch-info">
           <div class="swatch-name">Ink</div>
           <div class="swatch-hex">#0a0e14</div>
-          <div class="swatch-role">Deepest bg · Icon bg</div>
+          <div class="swatch-role">Icon bg, deepest bg</div>
         </div>
       </div>
       <div class="swatch">
-        <div class="swatch-color" style="background:#1c1c1e;"></div>
+        <div class="swatch-color" style="background:#1c1c1e;border-bottom:1px solid var(--stroke)"></div>
         <div class="swatch-info">
           <div class="swatch-name">Night</div>
           <div class="swatch-hex">#1c1c1e</div>
-          <div class="swatch-role">App window bg (dark)</div>
+          <div class="swatch-role">Window bg (dark)</div>
         </div>
       </div>
       <div class="swatch">
-        <div class="swatch-color" style="background:#2c2c2e;"></div>
+        <div class="swatch-color" style="background:#2c2c2e;border-bottom:1px solid var(--stroke)"></div>
         <div class="swatch-info">
           <div class="swatch-name">Surface</div>
           <div class="swatch-hex">#2c2c2e</div>
@@ -428,19 +511,19 @@
         <div class="swatch-info">
           <div class="swatch-name">Cloud</div>
           <div class="swatch-hex">#f2f2f7</div>
-          <div class="swatch-role">App window bg (light)</div>
+          <div class="swatch-role">Window bg (light)</div>
         </div>
       </div>
     </div>
 
     <h3>Semantic Colors</h3>
-    <div class="swatch-row">
+    <div class="swatch-row" style="margin-bottom:24px;">
       <div class="swatch">
         <div class="swatch-color" style="background:#e53e3e;"></div>
         <div class="swatch-info">
           <div class="swatch-name">Record Red</div>
           <div class="swatch-hex">#e53e3e</div>
-          <div class="swatch-role">Recording state · Destructive</div>
+          <div class="swatch-role">Recording state + destructive only</div>
         </div>
       </div>
       <div class="swatch">
@@ -456,7 +539,7 @@
         <div class="swatch-info">
           <div class="swatch-name">Caution</div>
           <div class="swatch-hex">#ffd60a</div>
-          <div class="swatch-role">Warning · Pending state</div>
+          <div class="swatch-role">Warning · Pending</div>
         </div>
       </div>
       <div class="swatch">
@@ -464,205 +547,224 @@
         <div class="swatch-info">
           <div class="swatch-name">Blue Light</div>
           <div class="swatch-hex">#40a0ff</div>
-          <div class="swatch-role">Hover / focus ring</div>
-        </div>
-      </div>
-      <div class="swatch">
-        <div class="swatch-color" style="background:rgba(10,132,255,0.18);"></div>
-        <div class="swatch-info">
-          <div class="swatch-name">Blue Glow</div>
-          <div class="swatch-hex">rgba(10,132,255,.18)</div>
-          <div class="swatch-role">Active bg tint</div>
+          <div class="swatch-role">Focus ring · Hover</div>
         </div>
       </div>
     </div>
 
-    <div style="margin-top:24px;background:var(--surface);border-radius:12px;padding:18px;border:1px solid var(--stroke);">
-      <h3 style="margin-bottom:12px">Color Rule</h3>
-      <p style="font-size:13px;color:var(--secondary);line-height:1.7;">
-        Voxema Blue (<code style="background:var(--muted);padding:1px 5px;border-radius:4px;font-size:11px;">#0a84ff</code>) is the <strong style="color:var(--primary-txt)">only blue</strong> used in the product.
-        Never mix it with other blue tones. All interactive elements use Voxema Blue as their accent.
-        The Recording Red (<code style="background:var(--muted);padding:1px 5px;border-radius:4px;font-size:11px;">#e53e3e</code>) is reserved exclusively for
-        the active recording state and destructive actions — never decorative.
-      </p>
+    <!-- Mark state colors -->
+    <h3>Mark Color States</h3>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div class="vox-icon-bg" style="width:64px;height:64px;margin-bottom:8px;">
+          <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="white" stroke-width="5"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="4" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <div style="font-size:11px;color:var(--secondary);">Idle</div>
+        <div style="font-size:10px;color:var(--subtle);">white + blue arcs</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="vox-icon-bg" style="width:64px;height:64px;margin-bottom:8px;">
+          <svg width="40" height="40" viewBox="0 0 100 100" fill="none" class="pulse-ring">
+            <circle cx="38" cy="50" r="22" stroke="#e53e3e" stroke-width="5"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="#e53e3e" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#ff6060" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#c02020" stroke-width="4" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <div style="font-size:11px;color:var(--secondary);">Recording</div>
+        <div style="font-size:10px;color:var(--subtle);">red + pulse</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="vox-icon-bg" style="width:64px;height:64px;margin-bottom:8px;">
+          <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="rgba(235,235,245,0.3)" stroke-width="5"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="rgba(235,235,245,0.3)" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="rgba(235,235,245,0.2)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="rgba(235,235,245,0.1)" stroke-width="4" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <div style="font-size:11px;color:var(--secondary);">Monochrome</div>
+        <div style="font-size:10px;color:var(--subtle);">menu bar / template</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="width:64px;height:64px;background:#f2f2f7;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
+          <svg width="40" height="40" viewBox="0 0 100 100" fill="none">
+            <circle cx="38" cy="50" r="22" stroke="#1c1c1e" stroke-width="5"/>
+            <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="#1c1c1e" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#007aff" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+            <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4090d0" stroke-width="4" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <div style="font-size:11px;color:var(--secondary);">Light mode</div>
+        <div style="font-size:10px;color:var(--subtle);">dark ring + blue arcs</div>
+      </div>
     </div>
   </div>
 
   <div class="divider"></div>
 
-  <!-- ─── SECTION: TYPOGRAPHY ─── -->
+  <!-- ─── 4. TYPOGRAPHY ─── -->
   <div class="section">
-    <h2>Typography</h2>
+    <h2><span class="num">04</span> Typography</h2>
 
-    <div class="grid2" style="margin-bottom:24px;">
-      <div class="type-sample">
-        <div class="type-label">Display — 34px / 800 / -0.5px</div>
+    <div class="grid2" style="margin-bottom:14px;">
+      <div class="type-card">
+        <div class="type-label">Display — 34px / 800 / −0.5px</div>
         <div style="font-size:34px;font-weight:800;letter-spacing:-0.5px;line-height:1.15;">Meeting ready</div>
       </div>
-      <div class="type-sample">
-        <div class="type-label">Title 1 — 22px / 700 / -0.3px</div>
+      <div class="type-card">
+        <div class="type-label">Title 1 — 22px / 700 / −0.3px</div>
         <div style="font-size:22px;font-weight:700;letter-spacing:-0.3px;line-height:1.3;">Processing your meeting</div>
       </div>
     </div>
-
-    <div class="grid2" style="margin-bottom:24px;">
-      <div class="type-sample">
+    <div class="grid2" style="margin-bottom:14px;">
+      <div class="type-card">
         <div class="type-label">Title 2 — 16px / 700</div>
         <div style="font-size:16px;font-weight:700;line-height:1.4;">Q4 Strategy Review</div>
       </div>
-      <div class="type-sample">
-        <div class="type-label">Body — 13px / 400 / line-height 1.6</div>
-        <div style="font-size:13px;font-weight:400;line-height:1.6;color:var(--secondary);">The meeting covered three key decisions on the roadmap, identified two blockers, and assigned four action items to the engineering team.</div>
+      <div class="type-card">
+        <div class="type-label">Body — 13px / 400 / 1.6 lh</div>
+        <div style="font-size:13px;color:var(--secondary);line-height:1.6;">Three key decisions, two blockers, four action items assigned to the engineering team.</div>
       </div>
     </div>
-
     <div class="grid4">
-      <div class="type-sample" style="padding:14px">
-        <div class="type-label">Label — 11px / 600</div>
+      <div class="type-card" style="padding:14px">
+        <div class="type-label">Label</div>
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.7px;color:var(--secondary);">Action Items</div>
       </div>
-      <div class="type-sample" style="padding:14px">
-        <div class="type-label">Caption — 11px / 400</div>
+      <div class="type-card" style="padding:14px">
+        <div class="type-label">Caption</div>
         <div style="font-size:11px;color:var(--secondary);">Today · 24 min · 3 speakers</div>
       </div>
-      <div class="type-sample" style="padding:14px">
-        <div class="type-label">Mono — 11px / SF Mono</div>
+      <div class="type-card" style="padding:14px">
+        <div class="type-label">Monospace</div>
         <div style="font-size:11px;font-family:'SF Mono',monospace;color:var(--secondary);">00:42:17</div>
       </div>
-      <div class="type-sample" style="padding:14px">
-        <div class="type-label">Timer — 34px / ultraLight</div>
-        <div style="font-size:28px;font-weight:100;font-variant-numeric:tabular-nums;color:var(--primary-txt);">24:17</div>
+      <div class="type-card" style="padding:14px">
+        <div class="type-label">Timer — ultraLight</div>
+        <div style="font-size:26px;font-weight:100;font-variant-numeric:tabular-nums;">24:17</div>
       </div>
-    </div>
-
-    <div style="margin-top:16px;background:var(--surface);border-radius:12px;padding:18px;border:1px solid var(--stroke);">
-      <h3 style="margin-bottom:8px">Typeface Rule</h3>
-      <p style="font-size:13px;color:var(--secondary);line-height:1.7;">
-        Always use <strong style="color:var(--primary-txt)">-apple-system / SF Pro</strong> — no custom fonts.
-        This keeps the app native, fast, and accessible. The only exception is the recording timer
-        which uses <strong style="color:var(--primary-txt)">ultra-light weight</strong> (100) with tabular digits for a precise, instrumental feel.
-        Monospace (SF Mono) is used for timestamps and technical values only.
-      </p>
     </div>
   </div>
 
   <div class="divider"></div>
 
-  <!-- ─── SECTION: UI COMPONENTS ─── -->
+  <!-- ─── 5. SPACING + RADII ─── -->
   <div class="section">
-    <h2>UI Components</h2>
+    <h2><span class="num">05</span> Spacing & Corner Radii</h2>
+    <div class="grid2">
+      <div>
+        <h3>Spacing Scale (base 4px)</h3>
+        <div class="comp-card">
+          <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+            <div class="space-unit"><div class="space-block" style="width:4px;height:16px;"></div><span class="space-num">4</span></div>
+            <div class="space-unit"><div class="space-block" style="width:8px;height:20px;"></div><span class="space-num">8</span></div>
+            <div class="space-unit"><div class="space-block" style="width:12px;height:24px;"></div><span class="space-num">12</span></div>
+            <div class="space-unit"><div class="space-block" style="width:16px;height:28px;"></div><span class="space-num">16</span></div>
+            <div class="space-unit"><div class="space-block" style="width:20px;height:32px;"></div><span class="space-num">20</span></div>
+            <div class="space-unit"><div class="space-block" style="width:24px;height:36px;"></div><span class="space-num">24</span></div>
+            <div class="space-unit"><div class="space-block" style="width:32px;height:44px;"></div><span class="space-num">32</span></div>
+            <div class="space-unit"><div class="space-block" style="width:48px;height:52px;"></div><span class="space-num">48</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3>Corner Radii</h3>
+        <div class="comp-card">
+          <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+            <div class="radius-item"><div class="radius-box" style="width:32px;height:32px;border-radius:4px;"></div><span class="radius-label">4px<br>tags</span></div>
+            <div class="radius-item"><div class="radius-box" style="width:36px;height:36px;border-radius:8px;"></div><span class="radius-label">8px<br>small</span></div>
+            <div class="radius-item"><div class="radius-box" style="width:40px;height:40px;border-radius:10px;"></div><span class="radius-label">10px<br>rows</span></div>
+            <div class="radius-item"><div class="radius-box" style="width:44px;height:44px;border-radius:12px;"></div><span class="radius-label">12px<br>cards</span></div>
+            <div class="radius-item"><div class="radius-box" style="width:48px;height:48px;border-radius:14px;"></div><span class="radius-label">14px<br>windows</span></div>
+            <div class="radius-item"><div class="radius-box" style="width:56px;height:56px;border-radius:22.37%;"></div><span class="radius-label">≈18px<br>icon</span></div>
+            <div class="radius-item"><div class="radius-box" style="width:36px;height:24px;border-radius:100px;"></div><span class="radius-label">pill<br>badges</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <div class="divider"></div>
+
+  <!-- ─── 6. COMPONENTS ─── -->
+  <div class="section">
+    <h2><span class="num">06</span> Components</h2>
     <div class="grid2" style="margin-bottom:16px;">
       <div>
         <h3>Buttons</h3>
         <div class="comp-card">
-          <div class="btn-row" style="margin-bottom:12px;">
+          <div class="btn-row" style="margin-bottom:10px;">
             <button class="btn btn-primary">Continue →</button>
             <button class="btn btn-secondary">Cancel</button>
             <button class="btn btn-ghost">Skip</button>
           </div>
-          <div class="btn-row" style="margin-bottom:12px;">
-            <button class="btn btn-record">🎙 Start Recording</button>
-            <button class="btn btn-secondary" style="border-color:#e53e3e;color:#e53e3e;">Delete</button>
+          <div class="btn-row" style="margin-bottom:10px;">
+            <button class="btn btn-record">⏺ Start Recording</button>
           </div>
           <div class="btn-row">
-            <button class="btn btn-primary btn-sm">MD</button>
-            <button class="btn btn-primary btn-sm">JSON</button>
-            <button class="btn btn-secondary btn-sm">Open Library</button>
+            <button class="btn btn-destruct btn-sm">Delete meeting</button>
+            <button class="btn btn-primary btn-sm">Export MD</button>
+            <button class="btn btn-secondary btn-sm">JSON</button>
           </div>
         </div>
       </div>
-
       <div>
         <h3>Badges & Status</h3>
         <div class="comp-card">
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
             <span class="badge badge-blue">✦ Recommended</span>
             <span class="badge badge-green">✓ Granted</span>
             <span class="badge badge-red">● Recording</span>
+            <span class="badge badge-yellow">! Required</span>
             <span class="badge badge-muted">Waiting</span>
-            <span class="badge" style="background:rgba(255,214,10,0.15);color:#ffd60a;">Not granted</span>
           </div>
-          <div class="pill-row">
-            <div class="pill"><div class="pill-dot" style="background:#30d158;"></div>Microphone</div>
-            <div class="pill"><div class="pill-dot" style="background:#0a84ff;"></div>System audio</div>
-            <div class="pill"><div class="pill-dot" style="background:#e53e3e;"></div>Recording</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:100px;background:var(--surface);border:1px solid var(--stroke);font-size:12px;color:var(--secondary);">
+              <div style="width:7px;height:7px;border-radius:50%;background:#30d158;"></div>Microphone
+            </div>
+            <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:100px;background:var(--surface);border:1px solid var(--stroke);font-size:12px;color:var(--secondary);">
+              <div style="width:7px;height:7px;border-radius:50%;background:#0a84ff;"></div>System audio
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <h3>Spacing Scale</h3>
+    <!-- Menu bar preview -->
+    <h3>Menu Bar State</h3>
     <div class="comp-card">
-      <div class="space-row">
-        <div class="icon-item">
-          <div class="space-box" style="width:4px;height:20px;"><span></span></div>
-          <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">4</span>
-        </div>
-        <div class="icon-item">
-          <div class="space-box" style="width:8px;height:24px;"></div>
-          <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">8</span>
-        </div>
-        <div class="icon-item">
-          <div class="space-box" style="width:12px;height:28px;"></div>
-          <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">12</span>
-        </div>
-        <div class="icon-item">
-          <div class="space-box" style="width:16px;height:32px;"></div>
-          <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">16</span>
-        </div>
-        <div class="icon-item">
-          <div class="space-box" style="width:20px;height:36px;"></div>
-          <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">20</span>
-        </div>
-        <div class="icon-item">
-          <div class="space-box" style="width:24px;height:40px;"></div>
-          <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">24</span>
-        </div>
-        <div class="icon-item">
-          <div class="space-box" style="width:32px;height:48px;"></div>
-          <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">32</span>
-        </div>
-        <div class="icon-item">
-          <div class="space-box" style="width:48px;height:56px;"></div>
-          <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">48</span>
-        </div>
-      </div>
-      <p style="font-size:11px;color:var(--subtle);margin-top:12px;">Base unit: 4px. All spacing is a multiple of 4. Content padding: 14–18px inside cards, 24–32px for page margins.</p>
-    </div>
-
-    <div style="margin-top:16px;">
-      <h3>Corner Radii</h3>
-      <div class="comp-card">
-        <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;">
-          <div class="icon-item">
-            <div style="width:40px;height:40px;border-radius:4px;background:var(--vox-blue);opacity:0.7;"></div>
-            <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">4px — tags</span>
+      <div style="display:flex;gap:28px;align-items:center;flex-wrap:wrap;">
+        <div>
+          <div style="background:#1a1a1a;border-radius:7px;padding:8px 16px;display:inline-flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <span style="font-size:10px;color:#888;">Finder · File · Edit ···</span>
+            <svg width="13" height="13" viewBox="0 0 100 100" fill="none">
+              <circle cx="38" cy="50" r="22" stroke="white" stroke-width="8"/>
+              <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="white" stroke-width="8" stroke-linecap="round" fill="none"/>
+              <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#80b4ff" stroke-width="7" stroke-linecap="round" fill="none"/>
+              <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#4080c0" stroke-width="6" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span style="font-size:10px;color:#888;">14:37</span>
           </div>
-          <div class="icon-item">
-            <div style="width:40px;height:40px;border-radius:8px;background:var(--vox-blue);opacity:0.8;"></div>
-            <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">8px — small</span>
+          <div style="font-size:11px;color:var(--secondary);">Idle — white/blue</div>
+        </div>
+        <div>
+          <div style="background:#1a1a1a;border-radius:7px;padding:8px 16px;display:inline-flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <span style="font-size:10px;color:#888;">Finder · File ···</span>
+            <svg width="13" height="13" viewBox="0 0 100 100" fill="none" class="pulse-ring">
+              <circle cx="38" cy="50" r="22" stroke="#e53e3e" stroke-width="8"/>
+              <path d="M 63 28 A 30 30 0 0 1 63 72" stroke="#e53e3e" stroke-width="8" stroke-linecap="round" fill="none"/>
+              <path d="M 68 20 A 40 40 0 0 1 68 80" stroke="#ff5555" stroke-width="7" stroke-linecap="round" fill="none"/>
+              <path d="M 74 13 A 50 50 0 0 1 74 87" stroke="#c02020" stroke-width="6" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span style="font-size:10px;color:#888;">14:37</span>
           </div>
-          <div class="icon-item">
-            <div style="width:50px;height:50px;border-radius:10px;background:var(--vox-blue);opacity:0.85;"></div>
-            <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">10px — rows</span>
-          </div>
-          <div class="icon-item">
-            <div style="width:60px;height:60px;border-radius:12px;background:var(--vox-blue);opacity:0.9;"></div>
-            <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">12px — cards</span>
-          </div>
-          <div class="icon-item">
-            <div style="width:72px;height:72px;border-radius:14px;background:var(--vox-blue);"></div>
-            <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">14px — windows</span>
-          </div>
-          <div class="icon-item">
-            <div style="width:80px;height:80px;border-radius:22.37%;background:var(--vox-blue);"></div>
-            <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">≈18px — app icon</span>
-          </div>
-          <div class="icon-item">
-            <div style="width:40px;height:40px;border-radius:100px;background:var(--vox-blue);opacity:0.7;"></div>
-            <span style="font-size:10px;color:var(--subtle);font-family:'SF Mono',monospace;">pill — badges</span>
-          </div>
+          <div style="font-size:11px;color:var(--secondary);">Recording — all strokes red + pulse</div>
         </div>
       </div>
     </div>
@@ -670,50 +772,32 @@
 
   <div class="divider"></div>
 
-  <!-- ─── SECTION: VOICE & TONE ─── -->
+  <!-- ─── 7. VOICE & TONE ─── -->
   <div class="section">
-    <h2>Voice & Tone</h2>
-    <div style="margin-bottom:20px;background:var(--surface);border-radius:12px;padding:18px 22px;border:1px solid var(--stroke);">
-      <p style="font-size:14px;color:var(--secondary);line-height:1.8;">
-        Voxema talks like a <strong style="color:var(--primary-txt)">precision tool</strong>, not a friendly assistant.
-        It doesn't try to be charming — it gets out of the way.
-        Language is <strong style="color:var(--primary-txt)">concise, specific, and action-oriented</strong>.
-        Privacy is stated plainly, not marketed.
-      </p>
+    <h2><span class="num">07</span> Voice & Tone</h2>
+    <div class="note" style="margin-bottom:20px;">
+      Voxema speaks like a <strong>precision instrument</strong>. Concise, specific, and factual.
+      Privacy is stated plainly — never marketed. No emoji in functional UI. No ellipsis in button labels.
     </div>
     <div class="tone-grid">
       <div class="tone-card yes">
-        <div class="label">✓ We write like this</div>
-        <div class="example">
+        <div class="tl">✓ Write like this</div>
+        <div class="ex">
           <em>"Meeting ready"</em><br>
-          <em>"Transcription model — whisper-medium"</em><br>
-          <em>"36 speakers identified"</em><br>
+          <em>"whisper-medium · 769 MB"</em><br>
+          <em>"Audio never leaves your device."</em><br>
           <em>"Permanently delete this meeting?"</em><br>
-          <em>"Audio never leaves your device."</em>
+          <em>"Screen Recording permission required. Open System Settings → Privacy."</em>
         </div>
       </div>
       <div class="tone-card no">
-        <div class="label">✗ We don't write like this</div>
-        <div class="example">
-          <em>"🎉 Awesome! Your meeting summary is ready!"</em><br>
-          <em>"We're crunching the numbers for you..."</em><br>
-          <em>"Whoops! Something went wrong 😅"</em><br>
-          <em>"Are you sure you want to delete this? This cannot be undone!"</em><br>
-          <em>"We take your privacy seriously."</em>
-        </div>
-      </div>
-      <div class="tone-card yes">
-        <div class="label">✓ Error messages</div>
-        <div class="example">
-          <em>"Screen Recording permission required. Open System Settings → Privacy."</em><br>
-          <em>"Model download failed. Check your connection and try again."</em>
-        </div>
-      </div>
-      <div class="tone-card no">
-        <div class="label">✗ Not like this</div>
-        <div class="example">
-          <em>"Oops! We couldn't record your meeting. Please try again later!"</em><br>
-          <em>"It seems your internet connection might be having issues..."</em>
+        <div class="tl">✗ Not like this</div>
+        <div class="ex">
+          <em>"🎉 Your summary is ready!"</em><br>
+          <em>"We're crunching the numbers..."</em><br>
+          <em>"We take your privacy seriously."</em><br>
+          <em>"Are you sure? This can't be undone!"</em><br>
+          <em>"Oops! Something went wrong 😅"</em>
         </div>
       </div>
     </div>
@@ -721,57 +805,35 @@
 
   <div class="divider"></div>
 
-  <!-- ─── SECTION: MENU BAR ICON ─── -->
+  <!-- ─── 8. SVG SOURCE ─── -->
   <div class="section">
-    <h2>Menu Bar Icon</h2>
-    <div class="comp-card" style="display:flex;align-items:center;gap:32px;flex-wrap:wrap;">
-      <div style="text-align:center;">
-        <div style="background:#1e1e1e;border-radius:8px;padding:10px 18px;display:inline-flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="font-size:10px;color:#aaa;">Finder</span>
-          <span style="font-size:10px;color:#aaa;">File</span>
-          <span style="font-size:10px;color:#aaa;">Edit</span>
-          <span style="font-size:10px;color:#888;">···</span>
-          <svg width="14" height="14" viewBox="0 0 36 36" style="opacity:0.9;">
-            <rect x="4" y="2" width="7" height="3.5" rx="1.5" fill="white"/>
-            <rect x="5" y="7" width="6" height="3.5" rx="1.5" fill="#c0d8ff"/>
-            <rect x="6.5" y="12" width="5" height="3.5" rx="1.5" fill="#80b4ff"/>
-            <rect x="8" y="17" width="4" height="3.5" rx="1.5" fill="#4090ff"/>
-            <rect x="25" y="2" width="7" height="3.5" rx="1.5" fill="white"/>
-            <rect x="25" y="7" width="6" height="3.5" rx="1.5" fill="#c0d8ff"/>
-            <rect x="24.5" y="12" width="5" height="3.5" rx="1.5" fill="#80b4ff"/>
-            <rect x="24" y="17" width="4" height="3.5" rx="1.5" fill="#4090ff"/>
-            <rect x="15" y="22" width="3" height="3.5" rx="1.5" fill="#0a84ff"/>
-            <rect x="18" y="22" width="3" height="3.5" rx="1.5" fill="#0a84ff"/>
-            <rect x="16.5" y="27" width="3" height="3" rx="1.5" fill="#0060d0"/>
-          </svg>
-          <span style="font-size:10px;color:#aaa;">14:37</span>
-        </div>
-        <div style="font-size:11px;color:var(--secondary);">Idle state</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="background:#1e1e1e;border-radius:8px;padding:10px 18px;display:inline-flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="font-size:10px;color:#aaa;">Finder</span>
-          <span style="font-size:10px;color:#aaa;">···</span>
-          <svg width="14" height="14" viewBox="0 0 36 36">
-            <rect x="4" y="2" width="7" height="3.5" rx="1.5" fill="#ff6b6b"/>
-            <rect x="5" y="7" width="6" height="3.5" rx="1.5" fill="#ff4444"/>
-            <rect x="6.5" y="12" width="5" height="3.5" rx="1.5" fill="#e53e3e"/>
-            <rect x="8" y="17" width="4" height="3.5" rx="1.5" fill="#c02020"/>
-            <rect x="25" y="2" width="7" height="3.5" rx="1.5" fill="#ff6b6b"/>
-            <rect x="25" y="7" width="6" height="3.5" rx="1.5" fill="#ff4444"/>
-            <rect x="24.5" y="12" width="5" height="3.5" rx="1.5" fill="#e53e3e"/>
-            <rect x="24" y="17" width="4" height="3.5" rx="1.5" fill="#c02020"/>
-            <rect x="15" y="22" width="3" height="3.5" rx="1.5" fill="#e53e3e"/>
-            <rect x="18" y="22" width="3" height="3.5" rx="1.5" fill="#e53e3e"/>
-            <rect x="16.5" y="27" width="3" height="3" rx="1.5" fill="#a01010"/>
-          </svg>
-          <span style="font-size:10px;color:#aaa;">14:37</span>
-        </div>
-        <div style="font-size:11px;color:var(--secondary);">Recording — icon turns red</div>
-      </div>
-      <div style="font-size:12px;color:var(--secondary);max-width:260px;line-height:1.7;">
-        The menu bar icon is the same V-waveform mark in template image format (<code style="background:var(--muted);padding:1px 5px;border-radius:4px;font-size:10px;">.pdf</code> or <code style="background:var(--muted);padding:1px 5px;border-radius:4px;font-size:10px;">@2x .png</code>). During active recording, the icon's bars switch from <strong style="color:#fff;">white/blue</strong> to <strong style="color:#e53e3e;">red</strong>. Use SF Symbol <code style="background:var(--muted);padding:1px 5px;border-radius:4px;font-size:10px;">mic.fill</code> as fallback if the custom template is unavailable.
-      </div>
+    <h2><span class="num">08</span> Canonical SVG Mark</h2>
+    <div class="note" style="margin-bottom:16px;">
+      Copy this SVG directly into Xcode as a PDF asset or use it as the base for the AppIcon asset catalog.
+      Scale <code>stroke-width</code> proportionally when resizing.
+    </div>
+    <div style="background:#0a0e14;border-radius:12px;padding:20px;border:1px solid var(--stroke);font-family:'SF Mono',monospace;font-size:11px;color:#80b4ff;line-height:1.8;overflow-x:auto;">
+<span style="color:#48484a">&lt;!-- Voxema Mark — viewBox 100×100 — stroke-only, no fills --&gt;</span><br>
+<span style="color:#e06c75">&lt;svg</span> <span style="color:#e5c07b">xmlns</span>=<span style="color:#98c379">"http://www.w3.org/2000/svg"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#e5c07b">viewBox</span>=<span style="color:#98c379">"0 0 100 100"</span> <span style="color:#e5c07b">fill</span>=<span style="color:#98c379">"none"</span><span style="color:#e06c75">&gt;</span><br>
+&nbsp;<br>
+&nbsp;&nbsp;<span style="color:#48484a">&lt;!-- Circle ring --&gt;</span><br>
+&nbsp;&nbsp;<span style="color:#e06c75">&lt;circle</span> <span style="color:#e5c07b">cx</span>=<span style="color:#98c379">"38"</span> <span style="color:#e5c07b">cy</span>=<span style="color:#98c379">"50"</span> <span style="color:#e5c07b">r</span>=<span style="color:#98c379">"22"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#e5c07b">stroke</span>=<span style="color:#98c379">"white"</span> <span style="color:#e5c07b">stroke-width</span>=<span style="color:#98c379">"5"</span><span style="color:#e06c75">/&gt;</span><br>
+&nbsp;<br>
+&nbsp;&nbsp;<span style="color:#48484a">&lt;!-- Arc 1 — inner, white --&gt;</span><br>
+&nbsp;&nbsp;<span style="color:#e06c75">&lt;path</span> <span style="color:#e5c07b">d</span>=<span style="color:#98c379">"M 63 28 A 30 30 0 0 1 63 72"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#e5c07b">stroke</span>=<span style="color:#98c379">"white"</span> <span style="color:#e5c07b">stroke-width</span>=<span style="color:#98c379">"5"</span> <span style="color:#e5c07b">stroke-linecap</span>=<span style="color:#98c379">"round"</span><span style="color:#e06c75">/&gt;</span><br>
+&nbsp;<br>
+&nbsp;&nbsp;<span style="color:#48484a">&lt;!-- Arc 2 — mid, #80b4ff --&gt;</span><br>
+&nbsp;&nbsp;<span style="color:#e06c75">&lt;path</span> <span style="color:#e5c07b">d</span>=<span style="color:#98c379">"M 68 20 A 40 40 0 0 1 68 80"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#e5c07b">stroke</span>=<span style="color:#98c379">"#80b4ff"</span> <span style="color:#e5c07b">stroke-width</span>=<span style="color:#98c379">"4.5"</span> <span style="color:#e5c07b">stroke-linecap</span>=<span style="color:#98c379">"round"</span><span style="color:#e06c75">/&gt;</span><br>
+&nbsp;<br>
+&nbsp;&nbsp;<span style="color:#48484a">&lt;!-- Arc 3 — outer, #4080c0 --&gt;</span><br>
+&nbsp;&nbsp;<span style="color:#e06c75">&lt;path</span> <span style="color:#e5c07b">d</span>=<span style="color:#98c379">"M 74 13 A 50 50 0 0 1 74 87"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#e5c07b">stroke</span>=<span style="color:#98c379">"#4080c0"</span> <span style="color:#e5c07b">stroke-width</span>=<span style="color:#98c379">"4"</span> <span style="color:#e5c07b">stroke-linecap</span>=<span style="color:#98c379">"round"</span><span style="color:#e06c75">/&gt;</span><br>
+&nbsp;<br>
+<span style="color:#e06c75">&lt;/svg&gt;</span>
     </div>
   </div>
 
