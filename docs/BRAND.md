@@ -1,6 +1,6 @@
 # Voxema — Brand Identity Guide
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Status:** Approved  
 **Owner:** Iteration Manager  
 **Visual reference:** `docs/designs/BRAND-guide.html`
@@ -20,43 +20,45 @@
 
 ### Concept
 
-The Voxema mark is a **circle + three concentric arcs**.
+The Voxema mark is a **white circle ring with three concentric arcs** wrapping almost fully around it.
 
-- The **circle** represents the meeting — a closed, bounded conversation.
-- The **three arcs** emanate rightward like a voice source broadcasting outward, evoking both audio waves and the "speaker / signal" metaphor.
-- Together they read as **voice being captured and understood**.
+- The **circle** represents the meeting — a bounded conversation.
+- The **three concentric arcs** are audio ripples propagating outward — voice being captured and understood.
+- The progressive colour fade (white → mid blue → dim blue) reads as distance and depth.
+- All arcs share a ~40° opening in the upper-right quadrant, giving the mark direction without breaking its circular unity.
 
-The mark is purely geometric — arcs and a circle — placing it firmly in the SF Symbols / system icon aesthetic that macOS professionals expect.
+The mark is stroke-only: no fills, no gradients — built for pixel-perfect scalability and single-colour rendering as a macOS menu bar template image.
 
 ### Canonical SVG
 
 ```xml
-<!-- Voxema Mark — viewBox 100×100 — stroke-only, no fills -->
+<!-- Voxema Mark — viewBox 0 0 100 100 — stroke-only, no fills -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
 
-  <!-- Circle ring -->
-  <circle cx="38" cy="50" r="22"
+  <!-- Circle ring — center anchor -->
+  <circle cx="50" cy="50" r="14"
           stroke="white" stroke-width="5"/>
 
-  <!-- Arc 1 — inner, white -->
-  <path d="M 63 28 A 30 30 0 0 1 63 72"
-        stroke="white" stroke-width="5" stroke-linecap="round"/>
+  <!-- Arc 1 — r=23, 320° CW (gap 15°→55°) — white -->
+  <path d="M 63.2 68.8 A 23 23 0 1 1 72.2 56.0"
+        stroke="white" stroke-width="4.5" stroke-linecap="round"/>
 
-  <!-- Arc 2 — mid, #80b4ff -->
-  <path d="M 68 20 A 40 40 0 0 1 68 80"
-        stroke="#80b4ff" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Arc 2 — r=32, 320° CW — #80b4ff -->
+  <path d="M 68.4 76.2 A 32 32 0 1 1 80.9 58.3"
+        stroke="#80b4ff" stroke-width="4" stroke-linecap="round"/>
 
-  <!-- Arc 3 — outer, #4080c0 -->
-  <path d="M 74 13 A 50 50 0 0 1 74 87"
-        stroke="#4080c0" stroke-width="4" stroke-linecap="round"/>
+  <!-- Arc 3 — r=41, 320° CW — #4080c0 -->
+  <path d="M 73.5 83.6 A 41 41 0 1 1 89.6 60.6"
+        stroke="#4080c0" stroke-width="3.5" stroke-linecap="round"/>
 
 </svg>
 ```
 
-**Rules:**
-- The mark is **stroke-only** — no fills, no gradients on the paths themselves.
-- `stroke-linecap: round` on all arcs. Always.
-- Scale `stroke-width` proportionally when resizing.
+**Mark construction:**
+- Center: `cx=50 cy=50` — all elements share this origin.
+- All arcs: 320° clockwise, gap spanning ~15°→55° (upper-right quadrant).
+- `stroke-linecap: round` on all paths. Always.
+- Scale `stroke-width` up proportionally at small sizes (≤32px rendered).
 - Background color must always come from the approved color system.
 
 ### Color States
