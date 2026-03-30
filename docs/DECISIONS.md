@@ -270,3 +270,26 @@ Zero changes to `WhisperEngine.swift` are required.
 4. No Swift code changes required
 
 **Status:** Stable. Real ORT implementation deferred until ECAPA-TDNN model is bundled.
+
+---
+
+## DEC-6 — LLM integration: domain-specific C bridge (stub pattern)
+
+**Decision:** Implement llama.cpp local LLM inference via a Voxema-specific C bridge (`CLlama`) with a no-op stub, following the same pattern as `CWhisper` (DEC-4) and `COnnxRuntime` (DEC-5).
+
+**Context:** llama.cpp has a complex C++ API. Exposing it fully to Swift would require bridging C++ headers. A thin domain-specific C wrapper (`voxema_llm.h`) hides llama.cpp internals.
+
+**`voxema_llm.h` API:**
+- `voxema_llm_init(model_path, n_ctx)` → opaque context
+- `voxema_llm_free(ctx)`
+- `voxema_llm_generate(ctx, prompt, output_buf, max_bytes, max_new_tokens)` → UTF-8 completion
+
+**Stub behavior:** `voxema_llm_stub.c` returns hard-coded JSON `{"summary":"[Stub]",...}` — parseable by `SummaryOutputParser`.
+
+**Mechanical replacement path:**
+1. Remove `voxema_llm_stub.c`
+2. Add `voxema_llm_gguf.c` wrapping llama.cpp C API
+3. Link `llama.xcframework` (or build from source) in `project.pbxproj`
+4. No Swift code changes required
+
+**Status:** Stable. Real llama.cpp implementation deferred until GGUF model is bundled.

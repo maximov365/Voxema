@@ -519,3 +519,28 @@ Use one block per closed workflow. Keep it factual and short.
 ### Patterns confirmed
 - Same xcodeproj wiring for C bridges: `PBXBuildFile` + `PBXFileReference` + `PBXSourcesBuildPhase` + `SWIFT_INCLUDE_PATHS` + `HEADER_SEARCH_PATHS` + `OTHER_SWIFT_FLAGS`. Apply for any future C bridge.
 - `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` required for both `swift test` and `xcodebuild`.
+
+---
+
+## TASK-10 — Summarize module: CLlama C bridge + SummaryProvider + PromptBuilder + SummarizeStage
+
+**Date:** 2026-03-30
+**Outcome:** Completed — 171 tests pass, xcodebuild SUCCEEDED
+
+### What went well
+- **Consistent stub pattern:** `CLlama` followed `CWhisper`/`COnnxRuntime` exactly. Zero friction in Swift code — `import CLlama` + `OpaquePointer`.
+- **Domain-specific C API design:** `voxema_llm.h` with a single `generate` function hides all llama.cpp complexity. Works for the stub AND the real implementation without any Swift changes.
+- **`SummaryOutputParser` robustness:** `extractJSON` scans for the first `{...}` block character-by-character, correctly ignoring preamble text that some LLMs emit before the JSON.
+- **Retry architecture:** Non-retryable errors (consent, model RAM) throw immediately; transient errors get exponential back-off. Clean and testable.
+- **Fallback template:** `PromptBuilder.defaultTemplate()` falls back to an inline template when Bundle is unavailable (test environment). This prevents test crashes without the app bundle.
+
+### Bug encountered and fixed
+- **Missing `PBXBuildFile` declarations:** The Python xcodeproj script reused an anchor pattern that targeted the wrong UUID (file ref vs. build file). Two entries were added to `PBXSourcesBuildPhase` but lacked their `PBXBuildFile` declarations, causing `xcodebuild` to fail with "cannot find type in scope" errors despite correct `swift test` behavior. Fixed by adding declarations using the unambiguous `voxema_ecapa_stub.c` PBXBuildFile anchor.
+
+### Pattern documented
+**xcodeproj PBXBuildFile anchor rule:** Always use an existing PBXBuildFile declaration (containing `isa = PBXBuildFile`) as the anchor for new entries. Do NOT use PBXFileReference or PBXSourcesBuildPhase lines as anchors for PBXBuildFile insertion.
+
+### Known limitations
+- `voxema_llm_stub.c` returns a static JSON string. Real inference requires replacing the stub with a llama.cpp C wrapper and linking a GGUF model (DEC-6).
+- `CloudProvider.makeFromKeychain` uses `try?` on failure — cloud is silently downgraded to `LocalProvider` stub. Production code should surface this error through the Settings UI.
+- `httpBody` uses `try?` for JSON serialization (silent failure → nil body → API error → retry). Acceptable for MVP but should be made explicit in production.

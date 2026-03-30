@@ -27,6 +27,13 @@ let package = Package(
             path: "Voxema/Bridge/COnnxRuntime",
             publicHeadersPath: "include"
         ),
+        // Thin C bridge for llama.cpp local LLM inference (stub pattern — see DEC-6).
+        // voxema_llm_stub.c returns hard-coded JSON; replace with real llama.cpp implementation.
+        .target(
+            name: "CLlama",
+            path: "Voxema/Bridge/CLlama",
+            publicHeadersPath: "include"
+        ),
         .executableTarget(
             name: "Voxema",
             dependencies: [
@@ -34,6 +41,7 @@ let package = Package(
                 .product(name: "Sparkle", package: "Sparkle"),
                 "CWhisper",
                 "COnnxRuntime",
+                "CLlama",
             ],
             path: "Voxema",
             exclude: [

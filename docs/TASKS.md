@@ -21,3 +21,4 @@
 | TASK-7  | Capture module: SystemAudioCapture (ScreenCaptureKit) + MicrophoneCapture (AVAudioEngine) | completed | high | large |
 | TASK-8  | Transcription module: WhisperEngine (C bridge) + TranscribeStage (AudioSampleDecoder, no-speech gate) | completed | high | large |
 | TASK-9  | Diarize module: EmbeddingEngine (COnnxRuntime C bridge) + SpeakerMatcher + VoiceProfileStore + DiarizeStage | completed | high | large |
+| TASK-10 | Summarize module: CLlama C bridge + SummaryProvider (LocalProvider + CloudProvider) + PromptBuilder + SummarizeStage | completed | high | large |
