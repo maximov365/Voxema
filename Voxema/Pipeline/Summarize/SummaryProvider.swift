@@ -173,6 +173,11 @@ public final class CloudProvider: SummaryProviderProtocol {
 
     public enum APITarget { case anthropic, openAI }
 
+    private enum KeychainKey {
+        static let service = "com.voxema.app"
+        static let account = "api-key"
+    }
+
     private let target: APITarget
     private let modelName: String
     private let consentGranted: Bool
@@ -209,7 +214,7 @@ public final class CloudProvider: SummaryProviderProtocol {
 
         let apiKey: String
         do {
-            apiKey = try KeychainManager.retrieveString(service: "com.voxema.app", account: "api-key")
+            apiKey = try KeychainManager.retrieveString(service: KeychainKey.service, account: KeychainKey.account)
         } catch {
             throw PipelineError.summarizeCloudConsentNotGranted
         }

@@ -17,6 +17,7 @@ xcuserdata/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 DerivedData/
+.xcode-derived/
 build/
 *.pbxuser
 *.mode1v3
