@@ -20,12 +20,16 @@ final class SystemAudioCapture: NSObject, AudioCapturer {
     func startCapture(to url: URL) async throws {
         outputURL = url
 
-        // Obtain available content — this triggers the Screen Recording permission prompt
+        // Obtain available content — requires Screen Recording permission (TCC).
+        // excludingDesktopWindows is the macOS 12.3+ API and consistent across OS versions.
+        // .current (macOS 14+) has the same permission requirement but less broad compatibility.
         let content: SCShareableContent
         do {
-            content = try await SCShareableContent.current
+            content = try await SCShareableContent.excludingDesktopWindows(
+                false, onScreenWindowsOnly: false
+            )
         } catch {
-            log.error("SCShareableContent.current failed — permission denied or unavailable")
+            log.error("SCShareableContent failed — screen recording permission denied or unavailable")
             throw PipelineError.captureScreenRecordingPermissionDenied
         }
 

@@ -139,14 +139,17 @@ public final class AppState: ObservableObject {
     }
 
     /// Relaunches Voxema so a newly-granted Screen Recording permission takes effect.
-    /// Uses Process + asyncAfter to ensure the new instance starts before terminating.
+    /// Uses exit(0) — more reliable than NSApp.terminate which can be intercepted or delayed.
     public func restartApp() {
+        let bundlePath = Bundle.main.bundlePath
+        log.info("restartApp", bundlePath)
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        task.arguments = ["-n", Bundle.main.bundlePath]
+        task.arguments = ["-n", bundlePath]
         try? task.run()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            NSApp.terminate(nil)
+        // 1 second gives the new process time to start before we exit.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            exit(0)
         }
     }
 
@@ -224,7 +227,17 @@ public final class AppState: ObservableObject {
                     self?.sendProcessingCompleteNotification(meetingId: id)
                 case .failed(let err):
                     self?.stopTimer()
-                    self?.pipelineError = err
+                    // Permission errors are routed to permissionRequired (targeted recovery UI).
+                    // They must NOT also set pipelineError — that would show the generic
+                    // "Recording Error" alert first and swallow the permission alert.
+                    switch err {
+                    case .captureScreenRecordingPermissionDenied:
+                        self?.permissionRequired = .screenRecording
+                    case .captureMicrophonePermissionDenied:
+                        self?.permissionRequired = .microphone
+                    default:
+                        self?.pipelineError = err
+                    }
                 default:
                     break
                 }
