@@ -28,10 +28,8 @@ final class OnboardingViewModel: ObservableObject {
     @Published private(set) var step: OnboardingStep = .welcome
 
     // Permissions
-    @Published private(set) var screenRecordingGranted  = false
-    @Published private(set) var microphoneGranted       = false
-    /// True after the user tapped "Request Access" — subsequent SCShareableContent calls are silent
-    @Published private(set) var screenRecordingRequested = false
+    @Published private(set) var screenRecordingGranted = false
+    @Published private(set) var microphoneGranted      = false
 
     // Configure step
     @Published var selectedMicID: String? = nil
@@ -95,32 +93,21 @@ final class OnboardingViewModel: ObservableObject {
         // from the Screen Recording step, never on general init.
     }
 
-    /// Called when user taps "Request Access". Shows the macOS permission dialog
-    /// the first time; silent on subsequent calls (user already decided).
-    func requestScreenRecordingAccess() async {
-        screenRecordingRequested = true
-        do {
-            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-            screenRecordingGranted = true
-        } catch {
-            screenRecordingGranted = false
+    /// Button tap handler: registers the app in the Screen Recording list (shows macOS
+    /// dialog once if needed), then opens System Settings so user can enable the toggle.
+    func openScreenRecordingSettings() {
+        Task {
+            // Registers Voxema in System Settings → Screen Recording (one-time macOS dialog).
+            // On subsequent calls this is silent — user already decided.
+            _ = try? await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+                NSWorkspace.shared.open(url)
+            }
         }
     }
 
-    /// Silent re-check — only call AFTER user has already interacted with
-    /// the macOS permission dialog (screenRecordingRequested == true).
-    func recheckScreenRecordingPermission() async {
-        guard screenRecordingRequested else { return }
-        do {
-            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-            screenRecordingGranted = true
-        } catch {
-            screenRecordingGranted = false
-        }
-    }
-
-    /// Start observing app-foreground events to refresh permission state
-    /// automatically when the user returns from System Settings.
+    /// Start observing app-foreground events so the button updates automatically
+    /// when the user returns from System Settings.
     func startPermissionPolling() {
         NotificationCenter.default.addObserver(
             forName: NSApplication.didBecomeActiveNotification,
@@ -130,8 +117,6 @@ final class OnboardingViewModel: ObservableObject {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
-                // Silent re-check: only runs if user already tapped "Request Access"
-                // AND we're on that step — no dialog will appear
                 if self.step == .screenRecording {
                     await self.recheckScreenRecordingPermission()
                 }
@@ -139,9 +124,14 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
-    func openScreenRecordingSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
-            NSWorkspace.shared.open(url)
+    /// Check screen recording by actually trying SCShareableContent.
+    /// Called only when returning to foreground on this step — silent after first registration.
+    func recheckScreenRecordingPermission() async {
+        do {
+            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
+            screenRecordingGranted = true
+        } catch {
+            screenRecordingGranted = false
         }
     }
 
@@ -266,14 +256,6 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: Helpers
-
-    private var screenRecordingButtonLabel: String {
-        if vm.screenRecordingGranted      { return String(localized: "Continue →") }
-        if vm.screenRecordingRequested    { return String(localized: "Open System Settings") }
-        return String(localized: "Request Access")
-    }
-
     // MARK: Navigation Buttons
 
     @ViewBuilder
@@ -283,16 +265,13 @@ struct OnboardingView: View {
             primaryButton(label: String(localized: "Get Started")) { vm.advance() }
 
         case .screenRecording:
-            primaryButton(label: screenRecordingButtonLabel) {
-                if vm.screenRecordingGranted {
-                    vm.advance()
-                } else if vm.screenRecordingRequested {
-                    // Already showed the dialog — send to Settings to toggle manually
-                    vm.openScreenRecordingSettings()
-                } else {
-                    // First tap: show macOS permission dialog
-                    Task { await vm.requestScreenRecordingAccess() }
-                }
+            primaryButton(
+                label: vm.screenRecordingGranted
+                    ? String(localized: "Continue →")
+                    : String(localized: "Open System Settings")
+            ) {
+                if vm.screenRecordingGranted { vm.advance() }
+                else { vm.openScreenRecordingSettings() }
             }
 
         case .microphone:
@@ -400,7 +379,7 @@ private struct ScreenRecordingStep: View {
             permissionIcon(systemName: "record.circle", granted: vm.screenRecordingGranted)
             stepHeading(
                 title: String(localized: "Screen Recording"),
-                subtitle: String(localized: "Required to capture system audio from remote participants.\n\nOpen System Settings → Privacy & Security → Screen Recording, then enable Voxema.")
+                subtitle: String(localized: "Required to capture system audio from remote participants.\n\nTap the button below — Voxema will open System Settings where you can enable access.")
             )
             if vm.screenRecordingGranted {
                 statusBadge(granted: true, label: String(localized: "Granted"))
