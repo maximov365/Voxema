@@ -672,3 +672,25 @@ The `.xcstrings` file is processed by Xcode and placed in `Contents/Resources/`.
 - ALWAYS add `import Combine` when declaring `ObservableObject` or using `@Published`.
 - Use `.builtInMicrophone` (not `.microphone`) for macOS 13 targets in `AVCaptureDevice.DiscoverySession`.
 - `NSWorkspace.shared.open(URL("x-apple.systempreferences:..."))` is the correct macOS deep-link to System Settings privacy sections.
+
+---
+
+## TASK-19 — Permission flow refactor (advisory onboarding)
+
+**Date:** 2026-03-29
+**Outcome:** Completed — BUILD SUCCEEDED
+
+### What went wrong
+- The original TASK-17 design tried to both verify and gate on Screen Recording during onboarding. On macOS 15, the running process that was denied cannot get access without a restart — making the onboarding uncompletable without a restart mid-flow. This is an architectural UX mistake, not a fixable bug.
+- `NSWorkspace.openApplication(at:configuration:completionHandler:)` + immediate `NSApp.terminate(nil)` has a race condition: the app terminates before the new instance starts. The restart button appeared non-functional.
+
+### What worked
+- Advisory permission steps: show status badge + "Skip for now →" link. Never block progression on a system permission. Onboarding informs, the recording flow enforces.
+- Permission enforcement at point of use (`AppState.startRecording`): check before starting the pipeline, surface a targeted alert with context-appropriate actions ("Open Settings" / "Restart Voxema").
+- `Process(executableURL: /usr/bin/open, arguments: ["-n", bundlePath])` + `DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { NSApp.terminate(nil) }` is the reliable restart pattern. The 0.5s delay gives the new instance time to start before termination.
+- `CGPreflightScreenCaptureAccess()` for permission status badge in onboarding: no dialog, no caching, works on macOS 12.3+.
+
+### Patterns confirmed
+- **Do not gate onboarding completion on system permissions.** Inform + offer setup path; enforce at point of use.
+- **Restart pattern:** `Process("/usr/bin/open", ["-n", bundlePath]).run()` + `asyncAfter(0.5) { NSApp.terminate }`. Never use `NSWorkspace.openApplication` + immediate `NSApp.terminate`.
+- **Apple HIG:** request permissions at point of first use, not upfront during setup.
