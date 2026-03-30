@@ -718,3 +718,21 @@ The `.xcstrings` file is processed by Xcode and placed in `Contents/Resources/`.
 - **Always register for screen capture at app startup** via a `.task {}` SCK call. This ensures the app appears in System Settings before the user's first recording attempt.
 - **`exit(0)` is the correct process termination for restart.** `NSApp.terminate(nil)` is too high-level and can be blocked by the delegate.
 - **`CGPreflightScreenCaptureAccess()` is unreliable on macOS 15** — checks `kTCCServiceScreenCapture`, not `kTCCServiceScreenCaptureWithAudio`. Do not use it as a gate for SCK permission decisions.
+
+## TASK-18 — Cloud API key persistence in Keychain
+
+**Date:** 2026-03-29
+**Outcome:** Completed — BUILD OK (lint clean)
+
+### What went wrong
+`OnboardingViewModel.cloudAPIKey` was a plain `@Published` property never written to Keychain. `CloudProvider.makeFromKeychain()` always found nothing on next launch.
+
+### What worked
+- Placed `storeAPIKey / loadAPIKey / deleteAPIKey` static helpers directly on `CloudProvider` so keychain coordinates stay in one place.
+- `OnboardingViewModel.init()` calls `CloudProvider.loadAPIKey()` to pre-fill the field on re-entry.
+- `OnboardingViewModel.complete()` saves trimmed key only when cloud tier is selected and field is non-empty.
+- Routed `advance()` last-step path through `complete()` to avoid bypass.
+
+### Pattern confirmed
+- **All persistence for user credentials must happen in `complete()`, not `onAppear` or field onChange.** Users may navigate back and change their selection; save only at commit time.
+- **Keychain coordinates must live in exactly one type** (`CloudProvider`). Callers use public static helpers, never duplicate the service/account strings.
