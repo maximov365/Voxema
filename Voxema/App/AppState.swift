@@ -5,6 +5,7 @@ import GRDB
 import CoreGraphics
 import AVFoundation
 import AppKit
+import ScreenCaptureKit
 
 // MARK: - Permission alert kind
 
@@ -96,12 +97,16 @@ public final class AppState: ObservableObject {
 
     /// Starts audio capture. No-op if already recording.
     ///
-    /// Performs a permission pre-flight before starting the pipeline.
-    /// On macOS 15, screen recording permission requires a relaunch if the process
-    /// was denied at launch — this is surfaced via `permissionRequired` for the UI
-    /// to handle with an appropriate alert.
+    /// Uses SCShareableContent as the screen recording permission check.
+    /// CGPreflightScreenCaptureAccess() checks the old kTCCServiceScreenCapture key
+    /// which is NOT the same as macOS 15's kTCCServiceScreenCaptureWithAudio
+    /// ("Screen & System Audio Recording"). After the app is registered in System
+    /// Settings (via the onboarding step), SCShareableContent calls are silent —
+    /// they succeed with permission or throw without showing any dialog.
     public func startRecording() async {
-        guard CGPreflightScreenCaptureAccess() else {
+        do {
+            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
+        } catch {
             permissionRequired = .screenRecording
             return
         }
