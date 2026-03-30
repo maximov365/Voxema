@@ -30,3 +30,4 @@
 | TASK-16 | Brand assets: AppIcon.appiconset + menu bar template image + UI token alignment | completed | high | small |
 | TASK-17 | Onboarding wizard: 7-step first-launch flow (permissions, model, summarization, ready) | completed | high | large |
 | TASK-18 | Store cloud API key in KeychainManager (follow-up from TASK-17 security review) | planned | medium | small |
+| FIX-2   | Screen recording permission flow: observeCoordinator routing bug + startup SCK registration + exit(0) restart | completed | high | small |

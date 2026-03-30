@@ -694,3 +694,27 @@ The `.xcstrings` file is processed by Xcode and placed in `Contents/Resources/`.
 - **Do not gate onboarding completion on system permissions.** Inform + offer setup path; enforce at point of use.
 - **Restart pattern:** `Process("/usr/bin/open", ["-n", bundlePath]).run()` + `asyncAfter(0.5) { NSApp.terminate }`. Never use `NSWorkspace.openApplication` + immediate `NSApp.terminate`.
 - **Apple HIG:** request permissions at point of first use, not upfront during setup.
+
+---
+
+## FIX-2 — Screen recording permission flow (three root causes)
+
+**Date:** 2026-03-29
+**Outcome:** Completed — BUILD SUCCEEDED
+
+### What went wrong
+- **observeCoordinator() bug (critical):** `.failed` state sink set `pipelineError = captureScreenRecordingPermissionDenied`, which caused the generic "Recording Error" alert to win over the targeted "Screen Recording Required" alert. SwiftUI renders the first `.alert` in the chain when both bindings are true. The permission-specific alert was never seen by the user.
+- **No SCK registration at startup:** App only called `SCShareableContent` inside `SystemAudioCapture.startCapture()`, i.e. only after the user pressed Start Recording. This meant the app might not appear in System Settings → Screen & System Audio Recording before the user's first attempt.
+- **`NSApp.terminate(nil)` unreliable for restart:** Can be intercepted by `applicationShouldTerminate:`. With Xcode debugger attached this was especially flaky. Restart button appeared to do nothing.
+
+### What worked
+- **Permission error routing:** In `observeCoordinator()`, route `captureScreenRecordingPermissionDenied` → `permissionRequired = .screenRecording` and `captureMicrophonePermissionDenied` → `permissionRequired = .microphone` instead of `pipelineError`. This ensures the permission alert (with "Open System Settings" + "Restart Voxema") shows, not the generic error.
+- **Eager SCK registration:** `.task {}` in `VoxemaApp.WindowGroup` calls `SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)` on first window appearance. App is registered in TCC immediately at launch.
+- **`exit(0)` with 1.0s delay** for restart is reliable. Longer delay (0.5s → 1.0s) ensures new instance has time to start.
+- **`SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)`** replaces `.current` (macOS 14+) in `SystemAudioCapture` — compatible with macOS 12.3+ deployment target.
+
+### Patterns confirmed
+- **Never set `pipelineError` in Combine observers for permission errors.** If `startRecording()` catch AND a Combine observer both react to the same error, and both set different published vars, the first `.alert` in the SwiftUI chain wins regardless of which var is set later.
+- **Always register for screen capture at app startup** via a `.task {}` SCK call. This ensures the app appears in System Settings before the user's first recording attempt.
+- **`exit(0)` is the correct process termination for restart.** `NSApp.terminate(nil)` is too high-level and can be blocked by the delegate.
+- **`CGPreflightScreenCaptureAccess()` is unreliable on macOS 15** — checks `kTCCServiceScreenCapture`, not `kTCCServiceScreenCaptureWithAudio`. Do not use it as a gate for SCK permission decisions.
