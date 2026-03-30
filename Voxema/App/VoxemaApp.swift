@@ -23,15 +23,10 @@ struct VoxemaApp: App {
             }
         }
 
-        MenuBarExtra("Voxema", systemImage: isRecording ? "mic.fill" : "mic") {
+        MenuBarExtra("Voxema", image: "VoxemaMenuBarIcon") {
             MenuBarView()
                 .environmentObject(appState)
         }
         .menuBarExtraStyle(.window)
-    }
-
-    private var isRecording: Bool {
-        if case .recording = appState.pipelineState { return true }
-        return false
     }
 }

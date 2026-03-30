@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voxema — UI Mockup v2</title>
+<style>
+  :root {
+    --bg: #1c1c1e;
+    --bg2: #2c2c2e;
+    --bg3: #3a3a3c;
+    --bg4: #48484a;
+    --border: #3a3a3c;
+    --text: #ebebf5;
+    --text2: rgba(235,235,245,0.6);
+    --text3: rgba(235,235,245,0.3);
+    --accent: #0a84ff;
+    --red: #e53e3e;
+    --green: #28ca41;
+    --teal: #30d158;
+  }
+  [data-theme="light"] {
+    --bg: #f2f2f7;
+    --bg2: #ffffff;
+    --bg3: #e5e5ea;
+    --bg4: #d1d1d6;
+    --border: #d1d1d6;
+    --text: #1c1c1e;
+    --text2: rgba(60,60,67,0.6);
+    --text3: rgba(60,60,67,0.3);
+    --accent: #007aff;
+    --red: #d70015;
+    --green: #34c759;
+    --teal: #30b557;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    background: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 24px 48px;
+    min-height: 100vh;
+    gap: 20px;
+  }
+  body[data-theme="light"] { background: #e0e0e5; }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .nav {
+    display: flex;
+    gap: 4px;
+    background: #222;
+    border-radius: 10px;
+    padding: 4px;
+  }
+  body[data-theme="light"] .nav { background: #ccc; }
+  .nav button {
+    background: none;
+    border: none;
+    color: #ffffffaa;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  body[data-theme="light"] .nav button { color: #333; }
+  .nav button.active { background: #444; color: #fff; }
+  body[data-theme="light"] .nav button.active { background: #fff; color: #000; }
+
+  .theme-toggle {
+    display: flex;
+    gap: 4px;
+    background: #222;
+    border-radius: 10px;
+    padding: 4px;
+  }
+  body[data-theme="light"] .theme-toggle { background: #ccc; }
+  .theme-toggle button {
+    background: none;
+    border: none;
+    color: #ffffffaa;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  body[data-theme="light"] .theme-toggle button { color: #444; }
+  .theme-toggle button.active { background: #444; color: #fff; }
+  body[data-theme="light"] .theme-toggle button.active { background: #fff; color: #000; }
+
+  /* ── Window ── */
+  .window {
+    width: 840px;
+    height: 560px;
+    background: var(--bg);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    display: none;
+    flex-direction: row;
+    position: relative;
+  }
+  .window.active { display: flex; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 224px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .sidebar-header {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .dot.r { background: #ff5f57; }
+  .dot.y { background: #ffbd2e; }
+  .dot.g { background: #28ca41; }
+
+  .record-btn {
+    width: calc(100% - 20px);
+    margin: 10px;
+    height: 34px;
+    border-radius: 8px;
+    border: none;
+    background: var(--red);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .record-btn.pulse { animation: pulse 1.4s infinite; }
+  .record-btn.disabled { opacity: 0.35; pointer-events: none; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.72} }
+  .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+
+  .sidebar-section {
+    padding: 8px 14px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .meeting-row {
+    padding: 7px 10px;
+    cursor: pointer;
+    border-radius: 7px;
+    margin: 0 6px;
+    transition: background 0.1s;
+    flex-shrink: 0;
+  }
+  .meeting-row:hover { background: var(--bg3); }
+  .meeting-row.selected { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+  .meeting-row .title { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meeting-row .meta { font-size: 11px; color: var(--text2); margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+  .proc-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    color: var(--accent);
+    font-size: 10px; font-weight: 600;
+    padding: 1px 6px; border-radius: 4px;
+  }
+  .proc-badge .spin { display: inline-block; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Main ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+  .main-toolbar {
+    height: 44px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 14px; gap: 8px; flex-shrink: 0;
+  }
+  .search-field {
+    flex: 1; height: 26px; background: var(--bg3); border-radius: 6px;
+    border: none; color: var(--text); font-size: 12px; padding: 0 10px; outline: none; max-width: 220px;
+  }
+  .search-field::placeholder { color: var(--text3); }
+  .spacer { flex: 1; }
+  .toolbar-btn {
+    width: 28px; height: 28px; background: var(--bg3); border: none; border-radius: 6px;
+    color: var(--text2); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .toolbar-btn:hover { background: var(--bg4); color: var(--text); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text2);
+  }
+  .empty-icon { font-size: 44px; opacity: 0.35; }
+  .empty-title { font-size: 16px; font-weight: 600; color: var(--text); opacity: 0.7; }
+  .empty-sub { font-size: 13px; text-align: center; max-width: 240px; line-height: 1.55; }
+  .empty-cta {
+    margin-top: 6px; padding: 8px 20px; background: var(--red);
+    border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+
+  /* ── Recording state ── */
+  .recording-overlay {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  }
+  .rec-ring {
+    width: 92px; height: 92px; border-radius: 50%;
+    background: color-mix(in srgb, var(--red) 10%, transparent);
+    border: 2px solid color-mix(in srgb, var(--red) 35%, transparent);
+    display: flex; align-items: center; justify-content: center;
+    animation: ring-pulse 1.8s infinite;
+  }
+  @keyframes ring-pulse { 0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 30%,transparent)} 50%{box-shadow:0 0 0 14px transparent} }
+  .rec-dot-lg { width: 38px; height: 38px; border-radius: 50%; background: var(--red); }
+  .rec-timer { font-size: 34px; font-weight: 200; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+  .rec-label { font-size: 12px; font-weight: 500; color: var(--text2); letter-spacing: 0.04em; }
+  .rec-channels { display: flex; gap: 16px; }
+  .channel-pill {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 20px;
+    padding: 5px 12px; display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2);
+  }
+  .ch-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .ch-dot.g { background: var(--green); animation: blink 1s infinite; }
+  .ch-dot.b { background: var(--accent); animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  .stop-btn {
+    padding: 9px 24px; background: var(--bg3); border: none; border-radius: 8px;
+    color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .stop-sq { width: 10px; height: 10px; border-radius: 2px; background: var(--text); }
+
+  /* ── Processing state ── */
+  .processing-view {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+  }
+  .proc-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .proc-sub { font-size: 12px; color: var(--text2); margin-top: -14px; }
+  .pipeline-steps { display: flex; flex-direction: column; gap: 8px; width: 310px; }
+  .step {
+    display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+    background: var(--bg2); border-radius: 8px; border: 1px solid var(--border);
+  }
+  .step-icon {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;
+  }
+  .step-icon.done { background: color-mix(in srgb,var(--green) 18%,transparent); color: var(--green); }
+  .step-icon.active { background: color-mix(in srgb,var(--accent) 18%,transparent); color: var(--accent); animation: spin 1.2s linear infinite; }
+  .step-icon.wait { background: var(--bg3); color: var(--text3); }
+  .step-text { font-size: 13px; color: var(--text); flex: 1; }
+  .step-tag { font-size: 11px; font-weight: 500; }
+  .step-tag.done { color: var(--green); }
+  .step-tag.active { color: var(--accent); }
+  .step-tag.wait { color: var(--text3); }
+
+  /* ── Detail ── */
+  .detail-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .detail-header { padding: 14px 18px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .detail-title-row { display: flex; align-items: center; gap: 6px; }
+  .detail-title {
+    font-size: 16px; font-weight: 700; color: var(--text);
+    border: none; background: transparent; outline: none;
+    border-bottom: 1.5px dashed transparent; padding: 1px 2px; border-radius: 3px;
+    cursor: text; min-width: 100px; max-width: 400px;
+  }
+  .detail-title:hover { border-bottom-color: var(--text3); }
+  .detail-title:focus { border-bottom-color: var(--accent); background: color-mix(in srgb,var(--accent) 8%,transparent); }
+  .edit-hint { font-size: 11px; color: var(--text3); }
+  .detail-meta { font-size: 12px; color: var(--text2); margin-top: 4px; display: flex; gap: 12px; }
+  .detail-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .detail-tab {
+    padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text2);
+    border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .detail-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .detail-body { flex: 1; overflow-y: auto; padding: 14px 18px; }
+
+  .summary-section { margin-bottom: 18px; }
+  .summary-section h3 { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 7px; }
+  .summary-text { font-size: 13px; color: var(--text2); line-height: 1.6; background: var(--bg2); border-radius: 8px; padding: 11px 13px; }
+  .action-item { display: flex; align-items: flex-start; gap: 9px; padding: 7px 0; border-bottom: 1px solid color-mix(in srgb,var(--border) 50%,transparent); }
+  .action-cb { width: 15px; height: 15px; border: 1.5px solid var(--text3); border-radius: 4px; margin-top: 1px; flex-shrink: 0; }
+  .action-text { font-size: 13px; color: var(--text2); flex: 1; line-height: 1.4; }
+  .action-owner { font-size: 11px; color: var(--accent); margin-top: 2px; }
+  .action-dl { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .decision-item { padding: 6px 0; border-bottom: 1px solid color-mix(in srgb,var(--border) 40%,transparent); font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+  .segment { display: flex; gap: 10px; padding: 5px 0; }
+  .seg-time { font-size: 11px; color: var(--text3); font-variant-numeric: tabular-nums; margin-top: 2px; min-width: 38px; flex-shrink: 0; }
+  .seg-body { flex: 1; }
+  .seg-speaker { font-size: 11px; font-weight: 600; margin-bottom: 2px; }
+  .seg-speaker.user { color: var(--accent); }
+  .seg-speaker.remote { color: var(--teal); }
+  .seg-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+  .export-bar { padding: 9px 18px; border-top: 1px solid var(--border); display: flex; gap: 7px; align-items: center; flex-shrink: 0; }
+  .export-btn {
+    padding: 5px 12px; background: var(--bg3); border: none; border-radius: 6px;
+    color: var(--text2); font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px;
+  }
+  .export-btn:hover { background: var(--bg4); color: var(--text); }
+  .delete-btn {
+    margin-left: auto; padding: 5px 12px; background: none;
+    border: 1px solid color-mix(in srgb,var(--red) 40%,transparent);
+    border-radius: 6px; color: var(--red); font-size: 12px; font-weight: 500; cursor: pointer;
+  }
+
+  /* ── Menu bar popover ── */
+  .menubar-scene {
+    width: 840px;
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+  }
+  .menubar-scene.active { display: flex; }
+  .fake-menubar {
+    width: 100%;
+    height: 26px;
+    background: #2c2c2e;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 12px;
+    gap: 14px;
+    font-size: 11px;
+    color: #ebebf599;
+    border: 1px solid var(--border);
+    border-bottom: none;
+  }
+  body[data-theme="light"] .fake-menubar { background: #d0d0d8; color: #333; }
+  .menubar-icon {
+    display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600;
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    padding: 1px 8px; border-radius: 5px;
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .popover {
+    width: 260px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    overflow: hidden;
+    margin-right: 40px;
+  }
+  .popover-header {
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .popover-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .popover-meta { font-size: 11px; color: var(--text2); }
+  .popover-record {
+    margin: 10px 12px;
+    height: 38px;
+    border-radius: 9px;
+    border: none;
+    background: var(--red);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: calc(100% - 24px);
+  }
+  .popover-divider { height: 1px; background: var(--border); margin: 4px 0; }
+  .popover-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .popover-item:hover { background: var(--bg3); }
+  .popover-item .pop-icon { font-size: 15px; width: 20px; text-align: center; color: var(--text2); }
+  .popover-item .pop-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+  .popover-footer {
+    padding: 8px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .popover-footer-btn { font-size: 12px; color: var(--text2); background: none; border: none; cursor: pointer; }
+  .popover-footer-btn:hover { color: var(--text); }
+
+  /* ── Notification ── */
+  .notif-scene {
+    width: 840px;
+    height: 360px;
+    background: var(--bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: none;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .notif-scene.active { display: flex; }
+  .notif-scene-bg {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0.15;
+    font-size: 80px;
+  }
+  .notif {
+    width: 320px;
+    background: color-mix(in srgb, var(--bg2) 95%, transparent);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1;
+  }
+  .notif-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .notif-body { flex: 1; }
+  .notif-app { font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 2px; }
+  .notif-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .notif-sub { font-size: 12px; color: var(--text2); line-height: 1.4; }
+  .notif-time { font-size: 11px; color: var(--text3); align-self: flex-start; }
+  .notif-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .notif-btn {
+    flex: 1; padding: 5px 0; background: var(--bg3); border: none; border-radius: 6px;
+    font-size: 12px; font-weight: 500; color: var(--text); cursor: pointer;
+  }
+  .notif-btn.primary { background: var(--accent); color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="nav">
+    <button class="active" onclick="show('empty')">① Empty</button>
+    <button onclick="show('recording')">② Recording</button>
+    <button onclick="show('processing')">③ Processing</button>
+    <button onclick="show('library')">④ Library</button>
+    <button onclick="show('detail-summary')">⑤ Summary</button>
+    <button onclick="show('detail-transcript')">⑥ Transcript</button>
+    <button onclick="show('menubar')">⑦ Menu Bar</button>
+    <button onclick="show('notification')">⑧ Notification</button>
+  </div>
+  <div class="theme-toggle">
+    <button onclick="setTheme('dark')" class="active" id="th-dark">🌙 Dark</button>
+    <button onclick="setTheme('light')" id="th-light">☀️ Light</button>
+  </div>
+</div>
+
+<!-- ① EMPTY -->
+<div class="window active" id="empty">
+  <div class="sidebar">
+    <div class="sidebar-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <button class="record-btn"><div class="rec-dot"></div> New Recording</button>
+    <div class="sidebar-section">Meetings</div>
+  </div>
+  <div class="main">
+    <div class="main-toolbar">
+      <input class="search-field" placeholder="🔍  Search meetings…" disabled>
+      <div class="spacer"></div>
+      <button class="toolbar-btn">⚙</button>
+    </div>
+    <div class="empty-state">
+      <div class="empty-icon">🎙</div>
+      <div class="empty-title">No meetings yet</div>
+      <div class="empty-sub">Start a recording to capture and transcribe your next meeting.</div>
+      <button class="empty-cta">● Start Recording</button>
+    </div>
+  </div>
+</div>
+
+<!-- ② RECORDING -->
+<div class="window" id="recording">
+  <div class="sidebar">
+    <div class="sidebar-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <button class="record-btn pulse"><div class="rec-dot"></div> Recording…</button>
+    <div class="sidebar-section">Meetings</div>
+  </div>
+  <div class="main">
+    <div class="main-toolbar">
+      <span style="font-size:12px;color:var(--red);font-weight:600;animation:pulse 1.4s infinite">● LIVE</span>
+      <div class="spacer"></div>
+      <button class="toolbar-btn">⚙</button>
+    </div>
+    <div class="recording-overlay">
+      <div class="rec-ring"><div class="rec-dot-lg"></div></div>
+      <div class="rec-timer">12:47</div>
+      <div class="rec-label">Recording in progress</div>
+      <div class="rec-channels">
+        <div class="channel-pill"><div class="ch-dot g"></div>Microphone</div>
+        <div class="channel-pill"><div class="ch-dot b"></div>System audio</div>
+      </div>
+      <button class="stop-btn"><div class="stop-sq"></div>Stop Recording</button>
+    </div>
+  </div>
+</div>
+
+<!-- ③ PROCESSING -->
+<div class="window" id="processing">
+  <div class="sidebar">
+    <div class="sidebar-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <button class="record-btn disabled"><div class="rec-dot"></div> New Recording</button>
+    <div class="sidebar-section">Now</div>
+    <div class="meeting-row">
+      <div class="title" style="color:var(--text2)">Q1 Planning Sync</div>
+      <div class="meta">12m 47s · <span class="proc-badge"><span class="spin">⟳</span> Processing</span></div>
+    </div>
+    <div class="sidebar-section" style="margin-top:4px">Earlier</div>
+    <div class="meeting-row">
+      <div class="title">Investor Update Call</div>
+      <div class="meta">Yesterday · 32m</div>
+    </div>
+    <div class="meeting-row">
+      <div class="title">Design Review — iOS</div>
+      <div class="meta">Mar 28 · 1h 14m</div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="main-toolbar">
+      <input class="search-field" placeholder="🔍  Search meetings…">
+      <div class="spacer"></div>
+      <button class="toolbar-btn">⚙</button>
+    </div>
+    <div class="processing-view">
+      <div class="proc-title">Processing your meeting</div>
+      <div class="proc-sub">12 min 47 sec · estimated 1–2 min remaining</div>
+      <div class="pipeline-steps">
+        <div class="step">
+          <div class="step-icon done">✓</div>
+          <div class="step-text">Transcription</div>
+          <div class="step-tag done">Done</div>
+        </div>
+        <div class="step">
+          <div class="step-icon active">⟳</div>
+          <div class="step-text">Speaker identification</div>
+          <div class="step-tag active">Running…</div>
+        </div>
+        <div class="step">
+          <div class="step-icon wait">◦</div>
+          <div class="step-text">Summary</div>
+          <div class="step-tag wait">Waiting</div>
+        </div>
+        <div class="step">
+          <div class="step-icon wait">◦</div>
+          <div class="step-text">Saving</div>
+          <div class="step-tag wait">Waiting</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ④ LIBRARY -->
+<div class="window" id="library">
+  <div class="sidebar">
+    <div class="sidebar-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <button class="record-btn"><div class="rec-dot"></div> New Recording</button>
+    <div class="sidebar-section">Meetings</div>
+    <div class="meeting-row selected"><div class="title">Q1 Planning Sync</div><div class="meta">Today · 47m</div></div>
+    <div class="meeting-row"><div class="title">Investor Update Call</div><div class="meta">Yesterday · 32m</div></div>
+    <div class="meeting-row"><div class="title">Design Review — iOS</div><div class="meta">Mar 28 · 1h 14m</div></div>
+    <div class="meeting-row"><div class="title">1:1 with Alex</div><div class="meta">Mar 27 · 23m</div></div>
+    <div class="meeting-row"><div class="title">Onboarding — New hire</div><div class="meta">Mar 26 · 55m</div></div>
+  </div>
+  <div class="main">
+    <div class="main-toolbar">
+      <input class="search-field" placeholder="🔍  Search meetings…">
+      <div class="spacer"></div>
+      <button class="toolbar-btn">⚙</button>
+    </div>
+    <div class="empty-state">
+      <div class="empty-icon" style="font-size:34px">📋</div>
+      <div class="empty-title" style="font-size:14px">Select a meeting</div>
+      <div class="empty-sub">Choose from the list to view transcript and summary.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ⑤ DETAIL — SUMMARY -->
+<div class="window" id="detail-summary">
+  <div class="sidebar">
+    <div class="sidebar-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <button class="record-btn"><div class="rec-dot"></div> New Recording</button>
+    <div class="sidebar-section">Meetings</div>
+    <div class="meeting-row selected"><div class="title">Q1 Planning Sync</div><div class="meta">Today · 47m</div></div>
+    <div class="meeting-row"><div class="title">Investor Update Call</div><div class="meta">Yesterday · 32m</div></div>
+    <div class="meeting-row"><div class="title">Design Review — iOS</div><div class="meta">Mar 28 · 1h 14m</div></div>
+  </div>
+  <div class="main">
+    <div class="main-toolbar">
+      <input class="search-field" placeholder="🔍  Search meetings…">
+      <div class="spacer"></div>
+      <button class="toolbar-btn">⚙</button>
+    </div>
+    <div class="detail-view">
+      <div class="detail-header">
+        <div class="detail-title-row">
+          <input class="detail-title" value="Q1 Planning Sync" title="Click to rename">
+          <span class="edit-hint">✎</span>
+        </div>
+        <div class="detail-meta">
+          <span>📅 Today, 10:00 AM</span>
+          <span>⏱ 47 min</span>
+          <span>👥 3 speakers</span>
+        </div>
+      </div>
+      <div class="detail-tabs">
+        <button class="detail-tab active">Summary</button>
+        <button class="detail-tab">Transcript</button>
+      </div>
+      <div class="detail-body">
+        <div class="summary-section">
+          <h3>Overview</h3>
+          <div class="summary-text">The team aligned on Q1 OKRs and prioritized the onboarding improvement initiative. Budget for external contractors was approved at $12k. Main open question is timeline for the mobile release, pending design sign-off.</div>
+        </div>
+        <div class="summary-section">
+          <h3>Action Items</h3>
+          <div class="action-item"><div class="action-cb"></div><div><div class="action-text">Finalize onboarding copy and share with design team</div><div class="action-owner">→ Alex</div><div class="action-dl">Due: Apr 5</div></div></div>
+          <div class="action-item"><div class="action-cb"></div><div><div class="action-text">Send contractor NDA and project brief to Maria</div><div class="action-owner">→ You</div><div class="action-dl">Due: Apr 2</div></div></div>
+          <div class="action-item"><div class="action-cb"></div><div><div class="action-text">Confirm mobile release timeline with iOS team</div><div class="action-owner">→ Sam</div></div></div>
+        </div>
+        <div class="summary-section">
+          <h3>Key Decisions</h3>
+          <div class="decision-item">• Approved $12k budget for external contractors in Q1</div>
+          <div class="decision-item">• Onboarding improvement is top priority over performance work</div>
+          <div class="decision-item">• Next sync scheduled for April 8</div>
+        </div>
+      </div>
+      <div class="export-bar">
+        <button class="export-btn">📄 MD</button>
+        <button class="export-btn">{ } JSON</button>
+        <button class="delete-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ⑥ DETAIL — TRANSCRIPT -->
+<div class="window" id="detail-transcript">
+  <div class="sidebar">
+    <div class="sidebar-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <button class="record-btn"><div class="rec-dot"></div> New Recording</button>
+    <div class="sidebar-section">Meetings</div>
+    <div class="meeting-row selected"><div class="title">Q1 Planning Sync</div><div class="meta">Today · 47m</div></div>
+    <div class="meeting-row"><div class="title">Investor Update Call</div><div class="meta">Yesterday · 32m</div></div>
+    <div class="meeting-row"><div class="title">Design Review — iOS</div><div class="meta">Mar 28 · 1h 14m</div></div>
+  </div>
+  <div class="main">
+    <div class="main-toolbar">
+      <input class="search-field" placeholder="🔍  Search meetings…">
+      <div class="spacer"></div>
+      <button class="toolbar-btn">⚙</button>
+    </div>
+    <div class="detail-view">
+      <div class="detail-header">
+        <div class="detail-title-row">
+          <input class="detail-title" value="Q1 Planning Sync" title="Click to rename">
+          <span class="edit-hint">✎</span>
+        </div>
+        <div class="detail-meta">
+          <span>📅 Today, 10:00 AM</span><span>⏱ 47 min</span><span>👥 3 speakers</span>
+        </div>
+      </div>
+      <div class="detail-tabs">
+        <button class="detail-tab">Summary</button>
+        <button class="detail-tab active">Transcript</button>
+      </div>
+      <div class="detail-body">
+        <div class="segment"><div class="seg-time">00:12</div><div class="seg-body"><div class="seg-speaker user">You</div><div class="seg-text">Let's get started. So the main goal today is to align on Q1 priorities. I've shared the doc beforehand, hopefully everyone had a chance to look.</div></div></div>
+        <div class="segment"><div class="seg-time">00:28</div><div class="seg-body"><div class="seg-speaker remote">Alex</div><div class="seg-text">Yeah, I went through it. I think the onboarding section makes sense as the top priority. The drop-off data is pretty clear.</div></div></div>
+        <div class="segment"><div class="seg-time">00:41</div><div class="seg-body"><div class="seg-speaker remote">Sam</div><div class="seg-text">Agreed. I'd also add that mobile is a blocker for the new cohort starting in April. We need to nail down that timeline.</div></div></div>
+        <div class="segment"><div class="seg-time">01:02</div><div class="seg-body"><div class="seg-speaker user">You</div><div class="seg-text">Right. Let me pull up the budget sheet — I think we have some room for external help on the contractor side this quarter.</div></div></div>
+        <div class="segment"><div class="seg-time">01:18</div><div class="seg-body"><div class="seg-speaker remote">Alex</div><div class="seg-text">How much are we looking at? I think the design work alone is maybe 8k, and there's some backend stuff on top of that.</div></div></div>
+        <div class="segment"><div class="seg-time">01:34</div><div class="seg-body"><div class="seg-speaker user">You</div><div class="seg-text">I can approve up to 12k. Let's go with that. Alex, can you get the brief over to Maria by Thursday?</div></div></div>
+      </div>
+      <div class="export-bar">
+        <button class="export-btn">📄 MD</button>
+        <button class="export-btn">{ } JSON</button>
+        <button class="delete-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ⑦ MENU BAR -->
+<div class="menubar-scene" id="menubar">
+  <div class="fake-menubar">
+    <span>Mon 11:42</span>
+    <span>🔋 87%</span>
+    <span>📶</span>
+    <div class="menubar-icon">🎙 Voxema</div>
+  </div>
+  <div class="popover">
+    <div class="popover-header">
+      <div>
+        <div class="popover-title">Voxema</div>
+        <div class="popover-meta">Ready to record</div>
+      </div>
+    </div>
+    <button class="popover-record"><div class="rec-dot"></div> Start Recording</button>
+    <div class="popover-divider"></div>
+    <div class="popover-item">
+      <span class="pop-icon">📋</span>
+      <div>
+        <div>Open Meeting Library</div>
+        <div class="pop-sub">5 meetings</div>
+      </div>
+    </div>
+    <div class="popover-item">
+      <span class="pop-icon">📄</span>
+      <div>
+        <div>Q1 Planning Sync</div>
+        <div class="pop-sub">Today · 47 min</div>
+      </div>
+    </div>
+    <div class="popover-item">
+      <span class="pop-icon">📄</span>
+      <div>
+        <div>Investor Update Call</div>
+        <div class="pop-sub">Yesterday · 32 min</div>
+      </div>
+    </div>
+    <div class="popover-footer">
+      <button class="popover-footer-btn">⚙ Settings</button>
+      <button class="popover-footer-btn">Quit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ⑧ NOTIFICATION -->
+<div class="notif-scene" id="notification">
+  <div class="notif-scene-bg">📋</div>
+  <div class="notif">
+    <div class="notif-icon">🎙</div>
+    <div class="notif-body">
+      <div class="notif-app">VOXEMA</div>
+      <div class="notif-title">Meeting ready</div>
+      <div class="notif-sub">Q1 Planning Sync · 47 min · 3 speakers · 5 action items</div>
+      <div class="notif-actions">
+        <button class="notif-btn primary">Open</button>
+        <button class="notif-btn">Dismiss</button>
+      </div>
+    </div>
+    <div class="notif-time">now</div>
+  </div>
+</div>
+
+<script>
+  function show(id) {
+    document.querySelectorAll('.window, .menubar-scene, .notif-scene').forEach(w => w.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+  }
+  function setTheme(t) {
+    document.body.setAttribute('data-theme', t);
+    document.getElementById('th-dark').classList.toggle('active', t === 'dark');
+    document.getElementById('th-light').classList.toggle('active', t === 'light');
+  }
+</script>
+</body>
+</html>

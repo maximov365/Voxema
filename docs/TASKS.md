@@ -27,3 +27,5 @@
 | TASK-13 | Export error feedback: surface write failures in MeetingDetailView export actions | planned | low | small |
 | TASK-14 | Decouple GRDB from AppState: move failing-store factory into Storage module | planned | low | small |
 | TASK-15 | UI Localization: Localizable.xcstrings + EN/RU/SR translations | completed | medium | medium |
+| TASK-16 | Brand assets: AppIcon.appiconset + menu bar template image + UI token alignment | in_progress | high | small |
+| TASK-17 | Onboarding wizard: 7-step first-launch flow (permissions, model, summarization, ready) | planned | high | large |
