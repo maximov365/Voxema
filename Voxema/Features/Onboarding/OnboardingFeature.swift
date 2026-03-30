@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 import AVFoundation
 import CoreGraphics
+import ScreenCaptureKit
 
 // MARK: - Step enum
 
@@ -87,6 +88,18 @@ final class OnboardingViewModel: ObservableObject {
     func refreshPermissions() {
         screenRecordingGranted = CGPreflightScreenCaptureAccess()
         microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
+    }
+
+    /// Attempt a ScreenCaptureKit call so macOS registers Voxema in
+    /// System Settings → Privacy & Security → Screen Recording.
+    /// The app won't appear in that list until it has tried to use screen capture APIs.
+    func triggerScreenRecordingRegistration() {
+        Task {
+            _ = try? await SCShareableContent.excludingDesktopWindows(
+                false, onScreenWindowsOnly: false
+            )
+            refreshPermissions()
+        }
     }
 
     func openScreenRecordingSettings() {
@@ -357,7 +370,11 @@ private struct ScreenRecordingStep: View {
             }
             Spacer()
         }
-        .onAppear { vm.refreshPermissions() }
+        .onAppear {
+            vm.refreshPermissions()
+            // First call to SCShareableContent registers app in Screen Recording privacy list
+            vm.triggerScreenRecordingRegistration()
+        }
     }
 }
 
