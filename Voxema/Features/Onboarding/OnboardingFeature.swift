@@ -28,8 +28,10 @@ final class OnboardingViewModel: ObservableObject {
     @Published private(set) var step: OnboardingStep = .welcome
 
     // Permissions
-    @Published private(set) var screenRecordingGranted = false
-    @Published private(set) var microphoneGranted      = false
+    @Published private(set) var screenRecordingGranted  = false
+    @Published private(set) var microphoneGranted       = false
+    /// True after the user tapped "Request Access" — subsequent SCShareableContent calls are silent
+    @Published private(set) var screenRecordingRequested = false
 
     // Configure step
     @Published var selectedMicID: String? = nil
@@ -93,10 +95,22 @@ final class OnboardingViewModel: ObservableObject {
         // from the Screen Recording step, never on general init.
     }
 
-    /// The only reliable cross-version check: attempt SCShareableContent and
-    /// treat success as granted. CGPreflightScreenCaptureAccess() is macOS 14.2+
-    /// and returns wrong values in debug/unsigned builds on earlier versions.
-    func refreshScreenRecordingPermission() async {
+    /// Called when user taps "Request Access". Shows the macOS permission dialog
+    /// the first time; silent on subsequent calls (user already decided).
+    func requestScreenRecordingAccess() async {
+        screenRecordingRequested = true
+        do {
+            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
+            screenRecordingGranted = true
+        } catch {
+            screenRecordingGranted = false
+        }
+    }
+
+    /// Silent re-check — only call AFTER user has already interacted with
+    /// the macOS permission dialog (screenRecordingRequested == true).
+    func recheckScreenRecordingPermission() async {
+        guard screenRecordingRequested else { return }
         do {
             _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
             screenRecordingGranted = true
@@ -116,9 +130,10 @@ final class OnboardingViewModel: ObservableObject {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
-                // Only re-check screen recording when on that step (avoids triggering dialog elsewhere)
+                // Silent re-check: only runs if user already tapped "Request Access"
+                // AND we're on that step — no dialog will appear
                 if self.step == .screenRecording {
-                    await self.refreshScreenRecordingPermission()
+                    await self.recheckScreenRecordingPermission()
                 }
             }
         }
@@ -251,6 +266,14 @@ struct OnboardingView: View {
         }
     }
 
+    // MARK: Helpers
+
+    private var screenRecordingButtonLabel: String {
+        if vm.screenRecordingGranted      { return String(localized: "Continue →") }
+        if vm.screenRecordingRequested    { return String(localized: "Open System Settings") }
+        return String(localized: "Request Access")
+    }
+
     // MARK: Navigation Buttons
 
     @ViewBuilder
@@ -260,13 +283,16 @@ struct OnboardingView: View {
             primaryButton(label: String(localized: "Get Started")) { vm.advance() }
 
         case .screenRecording:
-            primaryButton(
-                label: vm.screenRecordingGranted
-                    ? String(localized: "Continue →")
-                    : String(localized: "Open System Settings")
-            ) {
-                if vm.screenRecordingGranted { vm.advance() }
-                else { vm.openScreenRecordingSettings() }
+            primaryButton(label: screenRecordingButtonLabel) {
+                if vm.screenRecordingGranted {
+                    vm.advance()
+                } else if vm.screenRecordingRequested {
+                    // Already showed the dialog — send to Settings to toggle manually
+                    vm.openScreenRecordingSettings()
+                } else {
+                    // First tap: show macOS permission dialog
+                    Task { await vm.requestScreenRecordingAccess() }
+                }
             }
 
         case .microphone:
@@ -384,8 +410,8 @@ private struct ScreenRecordingStep: View {
             Spacer()
         }
         .onAppear {
-            // SCShareableContent call registers app in Screen Recording list AND checks status
-            Task { await vm.refreshScreenRecordingPermission() }
+            // No SCShareableContent call here — the system dialog must only
+            // appear when the user explicitly taps the button below.
         }
     }
 }
