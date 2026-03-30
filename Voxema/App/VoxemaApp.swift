@@ -6,6 +6,14 @@ struct VoxemaApp: App {
     @StateObject private var appState = AppState.production()
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
+    init() {
+        #if DEBUG
+        // Always show onboarding in debug builds so the flow can be tested on each run.
+        // Remove this block before shipping to production.
+        UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+        #endif
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

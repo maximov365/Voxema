@@ -107,6 +107,7 @@ public final class AppState: ObservableObject {
         do {
             _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
         } catch {
+            log.error("SCShareableContent denied: \(error.localizedDescription) | code: \((error as NSError).code) | domain: \((error as NSError).domain)")
             permissionRequired = .screenRecording
             return
         }
