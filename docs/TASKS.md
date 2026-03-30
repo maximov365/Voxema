@@ -31,3 +31,5 @@
 | TASK-17 | Onboarding wizard: 7-step first-launch flow (permissions, model, summarization, ready) | completed | high | large |
 | TASK-18 | Store cloud API key in KeychainManager (follow-up from TASK-17 security review) | completed | medium | small |
 | FIX-2   | Screen recording permission flow: observeCoordinator routing bug + startup SCK registration + exit(0) restart | completed | high | small |
+
+| TASK-19 | Settings screen: microphone, transcription model, summarization provider + fix empty model URL in pipeline | completed | high | medium |
