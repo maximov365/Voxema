@@ -7,33 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		78282898C2224E8CAC72DC8C /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */; };
-		4898AD0F422A479ABCCFE3B5 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59005DF71F247CA9A047490 /* AppState.swift */; };
-		971CC19C76E7467CABD26579 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 5A68113763614767A3E5CFF5 /* GRDB */; };
-		EB01E5579F7A4BA6AB64A22E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6E66AA4FE9344087A9996939 /* Sparkle */; };
+		A27B4219CEE1433381449F00 /* models-manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 6AC8C9D953764CD2B350BB0A /* models-manifest.json */; };
 		02BD4BA095355D76BF93A537 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BF42BE8D185A762C01B2F5 /* Storage.swift */; };
 		11974B20BD9E895CCA83509C /* OnboardingFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1E446B894ABD98541008CE /* OnboardingFeature.swift */; };
 		15AF4E9995E9017153B20B7A /* AudioFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72974C2385E06A6471151AA0 /* AudioFileWriter.swift */; };
 		29E249C1B4CDC2112974CC83 /* TranscribeStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89D44BAAAC38680265D3642B /* TranscribeStage.swift */; };
+		2AB14C76A9964B2CAA3A51F4 /* SummaryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E9F3DDF4FC4C4D8596C849 /* SummaryProvider.swift */; };
 		35234FA9803548B8DD008B36 /* MeetingLibraryFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0056483CBD12B4E426183543 /* MeetingLibraryFeature.swift */; };
+		4898AD0F422A479ABCCFE3B5 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59005DF71F247CA9A047490 /* AppState.swift */; };
 		54334387A79712FC1DC146B4 /* PipelineStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A734FCCA2F8A69A1ED1820F /* PipelineStage.swift */; };
 		55BE449D82B1785E09BBFDAC /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F446369FAFBB68D1DA4F16 /* NetworkManager.swift */; };
 		59804FB2B452B5A4BFE53412 /* SummarizeStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A046239045A9DF698277F7 /* SummarizeStage.swift */; };
 		59D94B45A5755F1E746510BE /* ExportStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001F42E79B4AF6153DFE7562 /* ExportStage.swift */; };
 		6F074E94A96846B02A0A7F91 /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366C41A391399F212715812E /* SettingsFeature.swift */; };
+		72E51A6B34E549B588FD8E4D /* voxema_llm_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */; };
 		765144BEA197E8C16647A484 /* WhisperEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9C408EA17B70F29A5D2B42 /* WhisperEngine.swift */; };
 		774E4F86BC957ECF30F4EF40 /* RecordingFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA14A23BAA040BBED193165 /* RecordingFeature.swift */; };
+		78282898C2224E8CAC72DC8C /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */; };
 		799D4441A8AF7B351609577D /* MicrophoneCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */; };
+		88FC1D362F924271B46B8081 /* voxema_ecapa_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = 906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */; };
 		8B7A4D2A9387714EA94F34FF /* Security.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE244398BB7B0EB11B366116 /* Security.swift */; };
 		8CE04B8D9D693252E04018BF /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22E49F9BB542993C30ED696 /* Logger.swift */; };
 		96D84AF4BE3E6178BD9B08BF /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45042E2906A245B1FA47D8B /* UpdateManager.swift */; };
+		971CC19C76E7467CABD26579 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 5A68113763614767A3E5CFF5 /* GRDB */; };
 		9AC94458970E16560A2D4AE6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786D40B188704EF95C45E824 /* ContentView.swift */; };
 		A9FE4458BE2AD9F3B472BD29 /* CaptureStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D544B3B00BE2B45C33D8B7 /* CaptureStage.swift */; };
 		AC974F178490BC72174F2154 /* VoxemaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 870E41CE835DFCBC4B9BB89B /* VoxemaApp.swift */; };
 		B21C41BE842974668EA10D39 /* ONNXRuntimePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AA4531B96F4FB4B5EB49EF /* ONNXRuntimePlaceholder.swift */; };
-		72E51A6B34E549B588FD8E4D /* voxema_llm_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */; };
-		2AB14C76A9964B2CAA3A51F4 /* SummaryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E9F3DDF4FC4C4D8596C849 /* SummaryProvider.swift */; };
-		88FC1D362F924271B46B8081 /* voxema_ecapa_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = 906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */; };
 		BBF747489A4ECBF50B35F5D3 /* whisper_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = 11B14214BB197C5F1E65C6C6 /* whisper_stub.c */; };
 		BE8242588E4BE25E7C924905 /* SystemAudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECF49B58438DDF0A5B40B27 /* SystemAudioCapture.swift */; };
 		D0674C669E0CF6CA2D978DDB /* MeetingDetailFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C1C49C29FFCFBC4C9F9A1B2 /* MeetingDetailFeature.swift */; };
@@ -41,24 +41,22 @@
 		DDF841BE8CFC5782A53CF9B0 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0875409299C88494CAC62720 /* Models.swift */; };
 		E0724AD49F16A7D7DF24F28B /* LicenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A264553A0B3FEE14CBBA5AC /* LicenseManager.swift */; };
 		E2354F3DBF284C988B0E5F1A /* ModelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C5D4CB4A5A7091867F5F33B /* ModelManager.swift */; };
+		EB01E5579F7A4BA6AB64A22E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6E66AA4FE9344087A9996939 /* Sparkle */; };
 		FEA64BF9A609ED462F592AF3 /* PipelineCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB348A3B7CAD8F19BA24F27 /* PipelineCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = Voxema/App/MenuBarView.swift; sourceTree = SOURCE_ROOT; };
-		B59005DF71F247CA9A047490 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = Voxema/App/AppState.swift; sourceTree = SOURCE_ROOT; };
+		6AC8C9D953764CD2B350BB0A /* models-manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "models-manifest.json"; path = Voxema/Resources/Models/models-manifest.json; sourceTree = SOURCE_ROOT; };
 		001F42E79B4AF6153DFE7562 /* ExportStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ExportStage.swift; path = Voxema/Pipeline/Export/ExportStage.swift; sourceTree = SOURCE_ROOT; };
 		0056483CBD12B4E426183543 /* MeetingLibraryFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeetingLibraryFeature.swift; path = Voxema/Features/MeetingLibrary/MeetingLibraryFeature.swift; sourceTree = SOURCE_ROOT; };
 		04C44BB795AEA58A037EE5A2 /* DiarizeStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DiarizeStage.swift; path = Voxema/Pipeline/Diarize/DiarizeStage.swift; sourceTree = SOURCE_ROOT; };
 		05F446369FAFBB68D1DA4F16 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NetworkManager.swift; path = Voxema/Core/Networking/NetworkManager.swift; sourceTree = SOURCE_ROOT; };
 		0875409299C88494CAC62720 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Models.swift; path = Voxema/Core/Models/Models.swift; sourceTree = SOURCE_ROOT; };
 		0ECF49B58438DDF0A5B40B27 /* SystemAudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SystemAudioCapture.swift; path = Voxema/Pipeline/Capture/SystemAudioCapture.swift; sourceTree = SOURCE_ROOT; };
-		18E9F3DDF4FC4C4D8596C849 /* SummaryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SummaryProvider.swift; path = Voxema/Pipeline/Summarize/SummaryProvider.swift; sourceTree = SOURCE_ROOT; };
-		BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = voxema_llm_stub.c; path = Voxema/Bridge/CLlama/voxema_llm_stub.c; sourceTree = SOURCE_ROOT; };
-		906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = voxema_ecapa_stub.c; path = Voxema/Bridge/COnnxRuntime/voxema_ecapa_stub.c; sourceTree = SOURCE_ROOT; };
 		11B14214BB197C5F1E65C6C6 /* whisper_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = whisper_stub.c; path = Voxema/Bridge/CWhisper/whisper_stub.c; sourceTree = SOURCE_ROOT; };
 		16D544B3B00BE2B45C33D8B7 /* CaptureStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CaptureStage.swift; path = Voxema/Pipeline/Capture/CaptureStage.swift; sourceTree = SOURCE_ROOT; };
 		18A046239045A9DF698277F7 /* SummarizeStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SummarizeStage.swift; path = Voxema/Pipeline/Summarize/SummarizeStage.swift; sourceTree = SOURCE_ROOT; };
+		18E9F3DDF4FC4C4D8596C849 /* SummaryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SummaryProvider.swift; path = Voxema/Pipeline/Summarize/SummaryProvider.swift; sourceTree = SOURCE_ROOT; };
 		366C41A391399F212715812E /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsFeature.swift; path = Voxema/Features/Settings/SettingsFeature.swift; sourceTree = SOURCE_ROOT; };
 		39AA4531B96F4FB4B5EB49EF /* ONNXRuntimePlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ONNXRuntimePlaceholder.swift; path = Voxema/Core/ModelManager/ONNXRuntimePlaceholder.swift; sourceTree = SOURCE_ROOT; };
 		4A264553A0B3FEE14CBBA5AC /* LicenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LicenseManager.swift; path = Voxema/Core/LicenseManager/LicenseManager.swift; sourceTree = SOURCE_ROOT; };
@@ -72,11 +70,15 @@
 		870E41CE835DFCBC4B9BB89B /* VoxemaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VoxemaApp.swift; path = Voxema/App/VoxemaApp.swift; sourceTree = SOURCE_ROOT; };
 		89D44BAAAC38680265D3642B /* TranscribeStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscribeStage.swift; path = Voxema/Pipeline/Transcribe/TranscribeStage.swift; sourceTree = SOURCE_ROOT; };
 		8B9C408EA17B70F29A5D2B42 /* WhisperEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WhisperEngine.swift; path = Voxema/Pipeline/Transcribe/WhisperEngine.swift; sourceTree = SOURCE_ROOT; };
+		906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = voxema_ecapa_stub.c; path = Voxema/Bridge/COnnxRuntime/voxema_ecapa_stub.c; sourceTree = SOURCE_ROOT; };
 		9C5D4CB4A5A7091867F5F33B /* ModelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ModelManager.swift; path = Voxema/Core/ModelManager/ModelManager.swift; sourceTree = SOURCE_ROOT; };
+		9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = Voxema/App/MenuBarView.swift; sourceTree = SOURCE_ROOT; };
 		B22E49F9BB542993C30ED696 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Voxema/Core/Logging/Logger.swift; sourceTree = SOURCE_ROOT; };
 		B45042E2906A245B1FA47D8B /* UpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UpdateManager.swift; path = Voxema/Core/UpdateManager/UpdateManager.swift; sourceTree = SOURCE_ROOT; };
+		B59005DF71F247CA9A047490 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = Voxema/App/AppState.swift; sourceTree = SOURCE_ROOT; };
 		BE244398BB7B0EB11B366116 /* Security.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Security.swift; path = Voxema/Core/Security/Security.swift; sourceTree = SOURCE_ROOT; };
 		BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MicrophoneCapture.swift; path = Voxema/Pipeline/Capture/MicrophoneCapture.swift; sourceTree = SOURCE_ROOT; };
+		BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = voxema_llm_stub.c; path = Voxema/Bridge/CLlama/voxema_llm_stub.c; sourceTree = SOURCE_ROOT; };
 		CC1E446B894ABD98541008CE /* OnboardingFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingFeature.swift; path = Voxema/Features/Onboarding/OnboardingFeature.swift; sourceTree = SOURCE_ROOT; };
 		D4BF42BE8D185A762C01B2F5 /* Storage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Storage.swift; path = Voxema/Core/Storage/Storage.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -115,6 +117,7 @@
 				B22E49F9BB542993C30ED696 /* Logger.swift */,
 				B45042E2906A245B1FA47D8B /* UpdateManager.swift */,
 				786D40B188704EF95C45E824 /* ContentView.swift */,
+				6AC8C9D953764CD2B350BB0A /* models-manifest.json */,
 				9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */,
 				B59005DF71F247CA9A047490 /* AppState.swift */,
 				870E41CE835DFCBC4B9BB89B /* VoxemaApp.swift */,
@@ -157,8 +160,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-			);
 			name = Voxema;
 			packageProductDependencies = (
 				5A68113763614767A3E5CFF5 /* GRDB */,
@@ -173,10 +174,6 @@
 /* Begin PBXProject section */
 		824EA6B72F7956E4009B7E04 /* Project object */ = {
 			isa = PBXProject;
-			packageReferences = (
-				CF79C73C418B490F971CE1A9 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
-				C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */,
-			);
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2640;
@@ -196,6 +193,10 @@
 			);
 			mainGroup = 824EA6B62F7956E4009B7E04;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CF79C73C418B490F971CE1A9 /* XCRemoteSwiftPackageReference "GRDB" */,
+				C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 824EA6C02F7956E4009B7E04 /* Products */;
 			projectDirPath = "";
@@ -204,38 +205,6 @@
 				824EA6BE2F7956E4009B7E04 /* Voxema */,
 			);
 		};
-
-/* Begin XCRemoteSwiftPackageReference section */
-		CF79C73C418B490F971CE1A9 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/groue/GRDB.swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = "6.0.0";
-			};
-		};
-		C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparkle-project/Sparkle";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = "2.0.0";
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		5A68113763614767A3E5CFF5 /* GRDB */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CF79C73C418B490F971CE1A9 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
-			productName = GRDB;
-		};
-		6E66AA4FE9344087A9996939 /* Sparkle */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */;
-			productName = Sparkle;
-		};
-/* End XCSwiftPackageProductDependency section */
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -243,6 +212,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A27B4219CEE1433381449F00 /* models-manifest.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,16 +248,6 @@
 				D0674C669E0CF6CA2D978DDB /* MeetingDetailFeature.swift in Sources */,
 				35234FA9803548B8DD008B36 /* MeetingLibraryFeature.swift in Sources */,
 				11974B20BD9E895CCA83509C /* OnboardingFeature.swift in Sources */,
-				5AE446FEBEAFD1C0B5A41864,
-				6D2442A6AE348EE8FA81575F,
-				EC3A495D8227C8E4703FB9AA,
-				6DB74D559C79AFEAB1C4258D,
-				406349FAB6114B39FB8F4C46,
-				BE80471DBD744857CCF166E9,
-				080D42BE8DF805162C392FDD,
-				ED874AFEA08E0DCDAF8759B9,
-				FFDA4F2FB507C0CCB6E185D8,
-				61F44F00B07CF9610B3A8474,
 				54334387A79712FC1DC146B4 /* PipelineStage.swift in Sources */,
 				15AF4E9995E9017153B20B7A /* AudioFileWriter.swift in Sources */,
 				BE8242588E4BE25E7C924905 /* SystemAudioCapture.swift in Sources */,
@@ -336,6 +296,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -358,6 +319,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -397,6 +359,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -412,6 +375,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -424,12 +388,17 @@
 				CODE_SIGN_ENTITLEMENTS = Voxema/Voxema.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = NO;
-				HEADER_SEARCH_PATHS = ("$(SRCROOT)/Voxema/Bridge/CWhisper/include", "$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include", "$(SRCROOT)/Voxema/Bridge/CLlama/include");
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/Voxema/Bridge/CWhisper/include",
+					"$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include",
+					"$(SRCROOT)/Voxema/Bridge/CLlama/include",
+				);
 				INFOPLIST_FILE = Voxema/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -468,7 +437,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
-				OTHER_SWIFT_FLAGS = ("-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include", "-Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include", "-Xcc -I$(SRCROOT)/Voxema/Bridge/CLlama/include");
+				OTHER_SWIFT_FLAGS = "-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include -Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include -Xcc -I$(SRCROOT)/Voxema/Bridge/CLlama/include";
 				PRODUCT_BUNDLE_IDENTIFIER = com.voxema.Voxema;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -478,7 +447,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INCLUDE_PATHS = ("$(SRCROOT)/Voxema/Bridge/CWhisper/include", "$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include", "$(SRCROOT)/Voxema/Bridge/CLlama/include");
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Voxema/Bridge/CWhisper/include $(SRCROOT)/Voxema/Bridge/COnnxRuntime/include $(SRCROOT)/Voxema/Bridge/CLlama/include";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
@@ -494,12 +463,17 @@
 				CODE_SIGN_ENTITLEMENTS = Voxema/Voxema.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = NO;
-				HEADER_SEARCH_PATHS = ("$(SRCROOT)/Voxema/Bridge/CWhisper/include", "$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include", "$(SRCROOT)/Voxema/Bridge/CLlama/include");
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/Voxema/Bridge/CWhisper/include",
+					"$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include",
+					"$(SRCROOT)/Voxema/Bridge/CLlama/include",
+				);
 				INFOPLIST_FILE = Voxema/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -538,7 +512,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
-				OTHER_SWIFT_FLAGS = ("-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include", "-Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include", "-Xcc -I$(SRCROOT)/Voxema/Bridge/CLlama/include");
+				OTHER_SWIFT_FLAGS = "-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include -Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include -Xcc -I$(SRCROOT)/Voxema/Bridge/CLlama/include";
 				PRODUCT_BUNDLE_IDENTIFIER = com.voxema.Voxema;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -548,7 +522,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INCLUDE_PATHS = ("$(SRCROOT)/Voxema/Bridge/CWhisper/include", "$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include", "$(SRCROOT)/Voxema/Bridge/CLlama/include");
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Voxema/Bridge/CWhisper/include $(SRCROOT)/Voxema/Bridge/COnnxRuntime/include $(SRCROOT)/Voxema/Bridge/CLlama/include";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
@@ -578,6 +552,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+		CF79C73C418B490F971CE1A9 /* XCRemoteSwiftPackageReference "GRDB" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5A68113763614767A3E5CFF5 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CF79C73C418B490F971CE1A9 /* XCRemoteSwiftPackageReference "GRDB" */;
+			productName = GRDB;
+		};
+		6E66AA4FE9344087A9996939 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 824EA6B72F7956E4009B7E04 /* Project object */;
 }
