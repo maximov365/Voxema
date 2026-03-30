@@ -11,6 +11,7 @@ struct MeetingDetailView: View {
     @State private var editingTitle: String = ""
     @State private var isEditingTitle = false
     @State private var showDeleteConfirmation = false
+    @State private var exportError: String? = nil
 
     enum DetailTab: String, CaseIterable {
         case summary = "Summary"
@@ -37,6 +38,18 @@ struct MeetingDetailView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This action is permanent and cannot be undone.")
+        }
+        .alert(
+            String(localized: "Export Failed"),
+            isPresented: Binding(
+                get: { exportError != nil },
+                set: { if !$0 { exportError = nil } }
+            ),
+            presenting: exportError
+        ) { _ in
+            Button(String(localized: "OK"), role: .cancel) { exportError = nil }
+        } message: { message in
+            Text(message)
         }
     }
 
@@ -185,7 +198,11 @@ struct MeetingDetailView: View {
         panel.nameFieldStringValue = "\(meeting.title).md"
         panel.directoryURL = config.exportsDirectory
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        try? MarkdownExporter.render(meeting).write(to: url, atomically: true, encoding: .utf8)
+        do {
+            try MarkdownExporter.render(meeting).write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+            exportError = error.localizedDescription
+        }
     }
 
     private func exportJSON() {
@@ -195,7 +212,11 @@ struct MeetingDetailView: View {
         panel.nameFieldStringValue = "\(meeting.title).json"
         panel.directoryURL = config.exportsDirectory
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        try? JSONExporter.render(meeting).write(to: url, options: .atomic)
+        do {
+            try JSONExporter.render(meeting).write(to: url, options: .atomic)
+        } catch {
+            exportError = error.localizedDescription
+        }
     }
 
     // MARK: - Helpers

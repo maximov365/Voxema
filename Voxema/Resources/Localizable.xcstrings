@@ -561,6 +561,14 @@
         "sr" : { "stringUnit" : { "state" : "translated", "value" : "Поново покрени одмах" } }
       }
     },
+    "Export Failed" : {
+      "comment" : "Alert title — shown when Markdown or JSON file write fails",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export Failed" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ошибка экспорта" } },
+        "sr" : { "stringUnit" : { "state" : "translated", "value" : "Извоз није успео" } }
+      }
+    },
     "Later" : {
       "comment" : "Alert button — dismiss restart prompt, handle it later",
       "localizations" : {
