@@ -1,4 +1,4 @@
-# Feature Map — Voxema
+Ghj# Feature Map — Voxema
 
 This document defines capability blocks, their dependencies, and the canonical Capability Index used for `capability_id` references in tasks and features.
 
