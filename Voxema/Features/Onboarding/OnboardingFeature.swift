@@ -96,7 +96,7 @@ final class OnboardingViewModel: ObservableObject {
         // Persist pipeline preferences so AppState.production() picks them up on next launch
         let prefs = AppPreferences.shared
         prefs.microphoneDeviceUID   = selectedMicID ?? ""
-        prefs.whisperModelId        = selectedWhisperModel
+        prefs.whisperModelId        = selectedWhisperModel ?? ""
         prefs.summarizationProvider = selectedSummarizationTier == 2 ? "cloud" : "local"
         // Map summarization tier → LLM model ID from manifest
         if selectedSummarizationTier != 2 {
