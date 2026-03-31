@@ -97,29 +97,27 @@ jobs:
 
       - name: Export archive
         run: |
-          if [ -n "$CERT_P12" ]; then
-            METHOD="developer-id"
-          else
-            METHOD="mac-application"
-          fi
+          mkdir -p "$RUNNER_TEMP/export"
 
-          python3 -c "
+          if [ -n "$CERT_P12" ]; then
+            # Developer ID: use proper exportArchive
+            python3 -c "
           import plistlib, os
-          plist = {'method': '$METHOD', 'signingStyle': 'manual'}
+          plist = {'method': 'developer-id', 'signingStyle': 'manual'}
           with open(os.environ['RUNNER_TEMP'] + '/ExportOptions.plist', 'wb') as f:
               plistlib.dump(plist, f)
-          "
-
-          xcodebuild -exportArchive \
-            -archivePath "$RUNNER_TEMP/Voxema.xcarchive" \
-            -exportPath "$RUNNER_TEMP/export" \
-            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
-            2>&1 | tee /tmp/xcodebuild_export.log
-          STATUS=${PIPESTATUS[0]}
-          if [ $STATUS -ne 0 ]; then
-            echo "=== Last 30 lines ==="
-            tail -30 /tmp/xcodebuild_export.log
-            exit $STATUS
+            "
+            xcodebuild -exportArchive \
+              -archivePath "$RUNNER_TEMP/Voxema.xcarchive" \
+              -exportPath "$RUNNER_TEMP/export" \
+              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+              > /tmp/xcodebuild_export.log 2>&1 \
+              || (echo "=== Last 30 lines ==="; tail -30 /tmp/xcodebuild_export.log; exit 1)
+          else
+            # Ad-hoc: copy .app directly from archive (no export machinery needed)
+            cp -R "$RUNNER_TEMP/Voxema.xcarchive/Products/Applications/Voxema.app" \
+              "$RUNNER_TEMP/export/Voxema.app"
+            echo "Ad-hoc: copied Voxema.app from archive"
           fi
 
       # ── Notarization ──────────────────────────────────────────────────────
