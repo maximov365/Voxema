@@ -1,4 +1,5 @@
 import SwiftUI
+import Security
 
 @main
 struct VoxemaApp: App {
@@ -11,6 +12,17 @@ struct VoxemaApp: App {
         // Skip onboarding in debug builds so the main UI is reached immediately.
         // Use Debug menu → Reset Onboarding (⇧⌘O) to test the flow manually.
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+
+        // Delete stale encryption keychain items created by previous builds.
+        // Without a stable Team ID, each rebuild has a different code signature.
+        // macOS then prompts "allow this app to access com.voxema.app.encryption"
+        // on every new build. Deleting at launch forces a fresh item to be created
+        // silently. Safe in debug: no persistent encrypted data survives across builds.
+        let staleQuery: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: "com.voxema.app.encryption",
+        ]
+        SecItemDelete(staleQuery as CFDictionary)
         #endif
     }
 
@@ -44,7 +56,7 @@ struct VoxemaApp: App {
                 }
                 .keyboardShortcut("o", modifiers: [.command, .shift])
 
-                Button("Check SCK Permission") {
+                Button("Check Audio Permission") {
                     Task { await appState.refreshSCKDiagnostics() }
                 }
                 .keyboardShortcut("k", modifiers: [.command, .shift])
