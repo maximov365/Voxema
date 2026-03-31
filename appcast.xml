@@ -1,11 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0"
-  xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
-  xmlns:dc="http://purl.org/dc/elements/1.1/">
+<?xml version='1.0' encoding='utf-8'?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
   <channel>
     <title>Voxema Updates</title>
     <link>https://maximov365.github.io/Voxema/appcast.xml</link>
     <description>Voxema release notes</description>
     <language>en</language>
+    <item>
+      <title>Voxema 0.1.0</title>
+      <pubDate>Tue, 31 Mar 2026 09:28:05 +0000</pubDate>
+      <sparkle:version>10</sparkle:version>
+      <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+      <enclosure url="https://github.com/maximov365/Voxema/releases/download/v0.1.0/Voxema-0.1.0.dmg" length="0" type="application/octet-stream" />
+    </item>
   </channel>
 </rss>
