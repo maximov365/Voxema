@@ -36,3 +36,4 @@
 | FIX-3   | ModelManager: verify file existence for bundled models — fixes .bundled status without actual file on disk | completed | high | small |
 | TASK-20 | Migrate system audio capture from ScreenCaptureKit to Core Audio tap API; raise minimum macOS to 14.2 (DEC-7) | completed | high | medium |
 | TASK-21 | Sparkle auto-update integration + DMG release pipeline (GitHub Actions + GitHub Pages appcast) | completed | high | medium |
+| TASK-22 | Replace CWhisper stub with real whisper.cpp via SPM; update WhisperEngine API for production inference | completed | high | medium |

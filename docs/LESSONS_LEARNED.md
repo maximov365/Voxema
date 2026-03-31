@@ -759,3 +759,17 @@ The `.xcstrings` file is processed by Xcode and placed in `Contents/Resources/`.
 ### Deployment target
 - Minimum macOS changed from 13.0 → 14.2 (December 2023). This drops Ventura and early Sonoma but is acceptable because all Apple Silicon Macs can run macOS 14.2, and the privacy and UX improvement is material.
 - The original 13.0 minimum was SCK-imposed; with Core Audio tap there is no architectural reason to support 13.x.
+
+---
+
+## 2026-03-31 — TASK-21: GitHub Actions CI/CD debugging lessons
+
+**Workflow outcome:** completed after 10 iterations
+
+### GitHub Actions pitfalls
+- `secrets` context is NOT available in `if:` conditions. Fix: map secrets to job-level `env:` vars, then use `if: env.VAR != ''`.
+- `set -o pipefail` (GitHub Actions default) causes `cmd | tee file` to exit before `PIPESTATUS` is evaluated. Fix: use `cmd > file 2>&1 || (tail -N file; exit 1)`.
+- Heredoc (`<< EOF`) at column 0 inside YAML `run:` blocks can cause YAML parse errors when content starts with `<`. Fix: use `python3 -c` or `printf` instead.
+- `mac-application` export method was removed in Xcode 16. For ad-hoc builds without Developer ID, copy `.app` directly from `.xcarchive/Products/Applications/` — skip `xcodebuild -exportArchive`.
+- Sparkle `sign_update --ed-key-file` expects a plain base64 text file (not binary). Do NOT `base64 --decode` the key before writing to disk.
+- Implicit `import Combine` works in Xcode 26 beta but fails in Xcode 16 on CI. Always add explicit `import Combine` when using `@Published` or `.assign(to:)`.

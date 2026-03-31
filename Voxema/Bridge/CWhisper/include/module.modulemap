@@ -1,4 +1,2 @@
-module CWhisper {
-    header "whisper.h"
-    export *
-}
+// CWhisper stub module removed — whisper.cpp integrated via SPM (import whisper).
+// This file intentionally left empty to avoid conflicts with the SPM whisper module.

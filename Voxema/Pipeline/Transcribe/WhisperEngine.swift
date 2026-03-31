@@ -1,5 +1,5 @@
 import Foundation
-import CWhisper
+import whisper
 
 // MARK: - WhisperSegment
 
@@ -66,47 +66,52 @@ public final class WhisperEngine: WhisperEngineProtocol {
         }
         guard !samples.isEmpty else { return [] }
 
-        var params = whisper_full_default_params()
+        var params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY)
+        params.n_threads        = Int32(min(ProcessInfo.processInfo.processorCount, 8))
+        params.print_progress   = false
+        params.print_realtime   = false
+        params.print_timestamps = false
+        params.no_context       = true
+        params.no_speech_thold  = 0.6
 
-        if let lang = language {
-            withUnsafeMutableBytes(of: &params.language) { buf in
-                let langBytes = Array(lang.utf8.prefix(buf.count - 1))
-                for (i, byte) in langBytes.enumerated() { buf[i] = byte }
-                if langBytes.count < buf.count { buf[langBytes.count] = 0 }
+        // language is `const char *` in real whisper.cpp — must remain valid
+        // for the entire duration of whisper_full. Keep langStr alive in scope.
+        let langStr = language ?? "auto"
+        return try langStr.withCString { langPtr in
+            params.language = langPtr
+
+            let result = samples.withUnsafeBufferPointer { buf in
+                whisper_full(ctx, params, buf.baseAddress, Int32(buf.count))
             }
-        }
-
-        let result = samples.withUnsafeBufferPointer { buf in
-            whisper_full(ctx, params, buf.baseAddress, Int32(buf.count))
-        }
-        guard result == 0 else {
-            log.error("whisper_full returned non-zero")
-            return []
-        }
-
-        let n = Int(whisper_full_n_segments(ctx))
-        var segments: [WhisperSegment] = []
-        segments.reserveCapacity(n)
-
-        for i in 0 ..< n {
-            let text: String
-            if let rawText = whisper_full_get_segment_text(ctx, Int32(i)) {
-                text = String(cString: rawText).trimmingCharacters(in: .whitespaces)
-            } else {
-                text = ""
+            guard result == 0 else {
+                log.error("whisper_full returned \(result)")
+                return []
             }
-            let t0  = whisper_full_get_segment_t0(ctx, Int32(i))
-            let t1  = whisper_full_get_segment_t1(ctx, Int32(i))
-            let nsp = whisper_full_get_segment_no_speech_prob(ctx, Int32(i))
 
-            segments.append(WhisperSegment(
-                startMs: t0 * 10,  // whisper returns centiseconds; convert to ms
-                endMs:   t1 * 10,
-                text:    text,
-                noSpeechProb: nsp
-            ))
+            let n = Int(whisper_full_n_segments(ctx))
+            var segments: [WhisperSegment] = []
+            segments.reserveCapacity(n)
+
+            for i in 0 ..< n {
+                let text: String
+                if let rawText = whisper_full_get_segment_text(ctx, Int32(i)) {
+                    text = String(cString: rawText).trimmingCharacters(in: .whitespaces)
+                } else {
+                    text = ""
+                }
+                let t0  = whisper_full_get_segment_t0(ctx, Int32(i))
+                let t1  = whisper_full_get_segment_t1(ctx, Int32(i))
+                let nsp = whisper_full_get_segment_no_speech_prob(ctx, Int32(i))
+
+                segments.append(WhisperSegment(
+                    startMs: t0 * 10,   // whisper returns centiseconds → ms
+                    endMs:   t1 * 10,
+                    text:    text,
+                    noSpeechProb: nsp
+                ))
+            }
+            return segments
         }
-        return segments
     }
 
     public func unloadModel() {
