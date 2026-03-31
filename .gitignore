@@ -65,3 +65,22 @@ Voxema/Resources/Models/*
 # IDE
 .idea/
 *.swp
+
+
+# >>> agent-system framework (managed by sync.py) >>>
+/agents/
+/AGENTS.md
+/CLAUDE.md
+/.cursor/rules.md
+/docs/AGENT_HANDOFF_CONTRACT.md
+/docs/AGENT_EXECUTION_MODEL.md
+/docs/TASK_BACKLOG_AUTOMATION.md
+/docs/ARCHITECTURE_GUARDRAILS.md
+/docs/ARCHITECTURE_CHECKLIST.md
+/docs/TASK_TEMPLATE.md
+/docs/ONBOARDING.md
+/setup.py
+/requirements-framework.txt
+/.agent-system-version
+/.templates/
+# <<< agent-system framework <<<
