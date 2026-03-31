@@ -28,6 +28,7 @@
 		78282898C2224E8CAC72DC8C /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */; };
 		799D4441A8AF7B351609577D /* MicrophoneCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */; };
 		88FC1D362F924271B46B8081 /* voxema_ecapa_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = 906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */; };
+		29932BB200CF4AAE8A529C3E /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2779CB164B174A7C9D6A80B1 /* AppPreferences.swift */; };
 		8B7A4D2A9387714EA94F34FF /* Security.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE244398BB7B0EB11B366116 /* Security.swift */; };
 		8CE04B8D9D693252E04018BF /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22E49F9BB542993C30ED696 /* Logger.swift */; };
 		96D84AF4BE3E6178BD9B08BF /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45042E2906A245B1FA47D8B /* UpdateManager.swift */; };
@@ -80,6 +81,7 @@
 		B22E49F9BB542993C30ED696 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Voxema/Core/Logging/Logger.swift; sourceTree = SOURCE_ROOT; };
 		B45042E2906A245B1FA47D8B /* UpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UpdateManager.swift; path = Voxema/Core/UpdateManager/UpdateManager.swift; sourceTree = SOURCE_ROOT; };
 		B59005DF71F247CA9A047490 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = Voxema/App/AppState.swift; sourceTree = SOURCE_ROOT; };
+		2779CB164B174A7C9D6A80B1 /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppPreferences.swift; path = Voxema/Core/Preferences/AppPreferences.swift; sourceTree = SOURCE_ROOT; };
 		BE244398BB7B0EB11B366116 /* Security.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Security.swift; path = Voxema/Core/Security/Security.swift; sourceTree = SOURCE_ROOT; };
 		BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MicrophoneCapture.swift; path = Voxema/Pipeline/Capture/MicrophoneCapture.swift; sourceTree = SOURCE_ROOT; };
 		BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = voxema_llm_stub.c; path = Voxema/Bridge/CLlama/voxema_llm_stub.c; sourceTree = SOURCE_ROOT; };
@@ -112,6 +114,7 @@
 				04C44BB795AEA58A037EE5A2 /* DiarizeStage.swift */,
 				89D44BAAAC38680265D3642B /* TranscribeStage.swift */,
 				4A264553A0B3FEE14CBBA5AC /* LicenseManager.swift */,
+				2779CB164B174A7C9D6A80B1 /* AppPreferences.swift */,
 				BE244398BB7B0EB11B366116 /* Security.swift */,
 				05F446369FAFBB68D1DA4F16 /* NetworkManager.swift */,
 				9C5D4CB4A5A7091867F5F33B /* ModelManager.swift */,
@@ -238,6 +241,7 @@
 				D3DA44EAA4AA7507FC00904C /* DiarizeStage.swift in Sources */,
 				29E249C1B4CDC2112974CC83 /* TranscribeStage.swift in Sources */,
 				E0724AD49F16A7D7DF24F28B /* LicenseManager.swift in Sources */,
+				29932BB200CF4AAE8A529C3E /* AppPreferences.swift in Sources */,
 				8B7A4D2A9387714EA94F34FF /* Security.swift in Sources */,
 				55BE449D82B1785E09BBFDAC /* NetworkManager.swift in Sources */,
 				E2354F3DBF284C988B0E5F1A /* ModelManager.swift in Sources */,
