@@ -7,8 +7,16 @@ struct VoxemaApp: App {
 
     @StateObject private var appState = AppState.production()
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    // Sparkle requires proper code signing (Developer ID) to start its XPC service.
+    // In debug/ad-hoc builds the updater is initialised but not started.
     private let updaterController = SPUStandardUpdaterController(
-        startingUpdater: true,
+        startingUpdater: {
+            #if DEBUG
+            return false
+            #else
+            return true
+            #endif
+        }(),
         updaterDelegate: nil,
         userDriverDelegate: nil
     )
