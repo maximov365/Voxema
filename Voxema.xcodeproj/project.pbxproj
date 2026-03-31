@@ -46,7 +46,6 @@
 		E8F9A0B1C2D3E4F506071829 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D7E8A9B0C1D2E3F405060718 /* Assets.xcassets */; };
 		EB01E5579F7A4BA6AB64A22E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6E66AA4FE9344087A9996939 /* Sparkle */; };
 		FEA64BF9A609ED462F592AF3 /* PipelineCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB348A3B7CAD8F19BA24F27 /* PipelineCoordinator.swift */; };
-		AA33BB44CC55DD66EE77FF03 /* whisper in Frameworks */ = {isa = PBXBuildFile; productRef = AA33BB44CC55DD66EE77FF02 /* whisper */; };
 		/* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -97,8 +96,7 @@
 			files = (
 				971CC19C76E7467CABD26579 /* GRDB in Frameworks */,
 				EB01E5579F7A4BA6AB64A22E /* Sparkle in Frameworks */,
-				AA33BB44CC55DD66EE77FF03 /* whisper in Frameworks */,
-			);
+					);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -183,7 +181,6 @@
 			packageProductDependencies = (
 				5A68113763614767A3E5CFF5 /* GRDB */,
 				6E66AA4FE9344087A9996939 /* Sparkle */,
-					AA33BB44CC55DD66EE77FF02 /* whisper */,
 			);
 			productName = Voxema;
 			productReference = 824EA6BF2F7956E4009B7E04 /* Voxema.app */;
@@ -216,7 +213,6 @@
 			packageReferences = (
 				CF79C73C418B490F971CE1A9 /* XCRemoteSwiftPackageReference "GRDB" */,
 				C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */,
-					AA33BB44CC55DD66EE77FF01 /* XCRemoteSwiftPackageReference "whisper.cpp" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 824EA6C02F7956E4009B7E04 /* Products */;
@@ -263,6 +259,7 @@
 				02BD4BA095355D76BF93A537 /* Storage.swift in Sources */,
 				8CE04B8D9D693252E04018BF /* Logger.swift in Sources */,
 				96D84AF4BE3E6178BD9B08BF /* UpdateManager.swift in Sources */,
+				BBF747489A4ECBF50B35F5D3 /* whisper_stub.c in Sources */,
 				9AC94458970E16560A2D4AE6 /* ContentView.swift in Sources */,
 				78282898C2224E8CAC72DC8C /* MenuBarView.swift in Sources */,
 				4898AD0F422A479ABCCFE3B5 /* AppState.swift in Sources */,
@@ -595,14 +592,6 @@
 				minimumVersion = 6.0.0;
 			};
 		};
-		AA33BB44CC55DD66EE77FF01 /* XCRemoteSwiftPackageReference "whisper.cpp" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ggerganov/whisper.cpp";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.7.4;
-			};
-		};
 		/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -615,11 +604,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C0B84D91506A4E068E2FE73A /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
-		};
-		AA33BB44CC55DD66EE77FF02 /* whisper */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AA33BB44CC55DD66EE77FF01 /* XCRemoteSwiftPackageReference "whisper.cpp" */;
-			productName = whisper;
 		};
 		/* End XCSwiftPackageProductDependency section */
 	};
