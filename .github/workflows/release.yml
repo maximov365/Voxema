@@ -16,7 +16,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────
   build:
     name: Build & Archive
-    runs-on: macos-14
+    runs-on: macos-15
     outputs:
       version: ${{ steps.version.outputs.version }}
       build_number: ${{ steps.version.outputs.build_number }}
@@ -67,6 +67,9 @@ jobs:
           security set-key-partition-list -S "apple-tool:,apple:" \
             -s -k "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
 
+      - name: Show Xcode version
+        run: xcodebuild -version
+
       - name: Resolve Swift packages
         run: xcodebuild -resolvePackageDependencies -scheme Voxema -project Voxema.xcodeproj
 
@@ -74,12 +77,8 @@ jobs:
         run: |
           if [ -n "$CERT_P12" ]; then
             SIGN_IDENTITY="Developer ID Application"
-            SIGN_STYLE="Manual"
-            SIGN_TEAM=""
           else
             SIGN_IDENTITY="-"
-            SIGN_STYLE="Manual"
-            SIGN_TEAM=""
           fi
 
           xcodebuild archive \
@@ -88,18 +87,13 @@ jobs:
             -archivePath "$RUNNER_TEMP/Voxema.xcarchive" \
             -configuration Release \
             "CODE_SIGN_IDENTITY=$SIGN_IDENTITY" \
-            "CODE_SIGN_STYLE=$SIGN_STYLE" \
-            "DEVELOPMENT_TEAM=$SIGN_TEAM" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM= \
             CODE_SIGNING_REQUIRED=YES \
             CODE_SIGNING_ALLOWED=YES \
             SKIP_INSTALL=NO \
-            2>&1 | tee /tmp/xcodebuild_archive.log
-          STATUS=${PIPESTATUS[0]}
-          if [ $STATUS -ne 0 ]; then
-            echo "=== Last 60 lines ==="
-            tail -60 /tmp/xcodebuild_archive.log
-            exit $STATUS
-          fi
+            > /tmp/xcodebuild_archive.log 2>&1 \
+            || (echo "=== xcodebuild failed, last 80 lines ==="; tail -80 /tmp/xcodebuild_archive.log; exit 1)
 
       - name: Export archive
         run: |
