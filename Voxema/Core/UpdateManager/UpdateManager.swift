@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import Sparkle
 
 /// Observable wrapper that exposes the Sparkle updater's `canCheckForUpdates`
