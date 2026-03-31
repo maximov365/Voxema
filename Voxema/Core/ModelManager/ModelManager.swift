@@ -209,10 +209,20 @@ public final class ModelManager: ObservableObject {
         self.deviceRAMBytes = deviceRAMBytes
         self.modelsDirectory = modelsDirectory ?? Self.defaultModelsDirectory()
 
-        // Set initial status from manifest metadata (file-system check deferred to refreshAllStatuses)
+        // Initial status requires a file-system check for all models.
+        // Bundled models are only marked .bundled when the file actually exists on disk;
+        // otherwise they appear as .missing so the Settings UI can offer a download.
+        let dir = modelsDirectory ?? Self.defaultModelsDirectory()
         var initial: [String: ModelStatus] = [:]
         for model in manifest.models {
-            initial[model.id] = model.isBundled ? .bundled : .missing
+            let url = dir
+                .appendingPathComponent(model.family.rawValue, isDirectory: true)
+                .appendingPathComponent(model.id)
+            if FileManager.default.fileExists(atPath: url.path) {
+                initial[model.id] = model.isBundled ? .bundled : .available
+            } else {
+                initial[model.id] = .missing
+            }
         }
         self.statuses = initial
     }
@@ -247,12 +257,14 @@ public final class ModelManager: ObservableObject {
     /// Does not verify the SHA-256 checksum (use `verify(_:)` for that).
     public func refreshStatus(for modelId: String) {
         guard let model = manifest.models.first(where: { $0.id == modelId }) else { return }
-        guard !model.isBundled else {
-            statuses[modelId] = .bundled
+        let url = localURL(for: model)
+        let exists = FileManager.default.fileExists(atPath: url.path)
+        if !exists {
+            statuses[modelId] = .missing
             return
         }
-        let url = localURL(for: model)
-        statuses[modelId] = FileManager.default.fileExists(atPath: url.path) ? .available : .missing
+        // File present: bundled models get .bundled status, downloaded models get .available.
+        statuses[modelId] = model.isBundled ? .bundled : .available
     }
 
     /// Refreshes the on-disk status for every model in the manifest.
