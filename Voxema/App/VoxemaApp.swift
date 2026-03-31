@@ -1,5 +1,4 @@
 import SwiftUI
-import ScreenCaptureKit
 
 @main
 struct VoxemaApp: App {
@@ -26,14 +25,6 @@ struct VoxemaApp: App {
                     }
                     .frame(width: 480, height: 560)
                     .interactiveDismissDisabled()
-                }
-                .task {
-                    // Register the app in TCC at launch so it appears in
-                    // System Settings → Privacy → Screen & System Audio Recording
-                    // before the user's first recording attempt.
-                    _ = try? await SCShareableContent.excludingDesktopWindows(
-                        false, onScreenWindowsOnly: false
-                    )
                 }
         }
         .windowStyle(.titleBar)

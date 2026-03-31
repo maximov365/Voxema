@@ -346,7 +346,7 @@ public struct Meeting: Codable, Equatable, Hashable, Sendable, Identifiable {
 public enum PipelineError: Error, LocalizedError, Equatable, Sendable {
 
     // MARK: Capture
-    case captureScreenRecordingPermissionDenied
+    case captureSystemAudioPermissionDenied
     case captureMicrophonePermissionDenied
     case captureDeviceDisconnected(deviceName: String)
     case captureDiskSpaceInsufficient
@@ -378,8 +378,8 @@ public enum PipelineError: Error, LocalizedError, Equatable, Sendable {
 
     public var errorDescription: String? {
         switch self {
-        case .captureScreenRecordingPermissionDenied:
-            return "[capture] Screen Recording permission required. Grant it in System Settings → Privacy & Security → Screen Recording."
+        case .captureSystemAudioPermissionDenied:
+            return "[capture] System Audio Recording permission required. Grant it in System Settings → Privacy & Security → Screen & System Audio Recording."
         case .captureMicrophonePermissionDenied:
             return "[capture] Microphone permission required. Grant it in System Settings → Privacy & Security → Microphone."
         case .captureDeviceDisconnected(let deviceName):

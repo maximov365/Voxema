@@ -23,10 +23,10 @@ struct ContentView: View {
         } message: {
             Text(appState.pipelineError?.errorDescription ?? "An unknown error occurred.")
         }
-        // Alert 1: permission missing — send user to Settings.
+        // Alert: permission missing — send user to Settings.
         .alert(
-            appState.permissionRequired == .screenRecording
-                ? String(localized: "Screen Recording Required")
+            appState.permissionRequired == .systemAudioRecording
+                ? String(localized: "System Audio Recording Required")
                 : String(localized: "Microphone Access Required"),
             isPresented: Binding(
                 get: { appState.permissionRequired != nil },
@@ -43,28 +43,11 @@ struct ContentView: View {
             }
         } message: { kind in
             switch kind {
-            case .screenRecording:
-                Text(String(localized: "Screen Recording is required to capture system audio from remote meeting participants.\n\nEnable it in System Settings, then return to Voxema."))
+            case .systemAudioRecording:
+                Text(String(localized: "System Audio Recording access is required to capture audio from remote meeting participants.\n\nEnable it in System Settings → Privacy & Security, then return to Voxema and try again."))
             case .microphone:
                 Text(String(localized: "Microphone access is required to record your side of the conversation.\n\nEnable it in System Settings, then return to Voxema."))
             }
-        }
-        // Alert 2: user returned from Settings — restart required to activate.
-        .alert(
-            String(localized: "Restart to Activate Screen Recording"),
-            isPresented: Binding(
-                get: { appState.awaitingScreenCaptureRestart },
-                set: { if !$0 { appState.awaitingScreenCaptureRestart = false } }
-            )
-        ) {
-            Button(String(localized: "Restart Now")) {
-                appState.restartApp()
-            }
-            Button(String(localized: "Later"), role: .cancel) {
-                appState.awaitingScreenCaptureRestart = false
-            }
-        } message: {
-            Text(String(localized: "You enabled Screen Recording in System Settings. Voxema needs to restart for this to take effect."))
         }
     }
 
@@ -123,7 +106,7 @@ struct ContentView: View {
     private func SCKDiagnosticsView() -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("SCK Diagnostics")
+                Text("Audio Permission Diagnostics")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
                 Spacer()

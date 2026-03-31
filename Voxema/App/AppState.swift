@@ -2,16 +2,13 @@ import Foundation
 import Combine
 import UserNotifications
 import GRDB
-import CoreGraphics
 import AVFoundation
 import AppKit
-import ScreenCaptureKit
-
 // MARK: - Permission alert kind
 
 /// Identifies which permission is missing when the user tries to start recording.
 public enum PermissionRequired: Equatable {
-    case screenRecording
+    case systemAudioRecording
     case microphone
 }
 
@@ -46,12 +43,7 @@ public final class AppState: ObservableObject {
     @Published public private(set) var notificationsAuthorized = false
     /// Set before recording starts when a required permission is missing.
     @Published public var permissionRequired: PermissionRequired? = nil
-    /// Set when user returns from System Settings after being sent there for screen recording.
-    /// Triggers the "Restart to activate" prompt.
-    @Published public var awaitingScreenCaptureRestart = false
-
     #if DEBUG
-    /// Live SCK diagnostic string — updated by refreshSCKDiagnostics().
     @Published public var sckDiagnostics: String = "not checked"
     #endif
 
@@ -65,8 +57,6 @@ public final class AppState: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private var timerTask: Task<Void, Never>?
-    /// Set to true when we open Screen Recording settings; cleared on next app-foreground event.
-    private var awaitingSettingsReturn = false
 
     // MARK: - Init
 
@@ -160,8 +150,8 @@ public final class AppState: ObservableObject {
         } catch let e as PipelineError {
             // Explicit switch is more reliable than catch-pattern matching for enum cases
             switch e {
-            case .captureScreenRecordingPermissionDenied:
-                permissionRequired = .screenRecording
+            case .captureSystemAudioPermissionDenied:
+                permissionRequired = .systemAudioRecording
             case .captureMicrophonePermissionDenied:
                 permissionRequired = .microphone
             default:
@@ -176,11 +166,8 @@ public final class AppState: ObservableObject {
     public func openPermissionSettings(for kind: PermissionRequired) {
         let urlString: String
         switch kind {
-        case .screenRecording:
+        case .systemAudioRecording:
             urlString = "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
-            // Track that we sent the user to Screen Recording settings so we can
-            // show the "Restart to activate" prompt when they return.
-            awaitingSettingsReturn = true
         case .microphone:
             urlString = "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"
         }
@@ -189,38 +176,24 @@ public final class AppState: ObservableObject {
         }
     }
 
-    /// Relaunches Voxema so a newly-granted Screen Recording permission takes effect.
-    /// Uses exit(0) — more reliable than NSApp.terminate which can be intercepted or delayed.
-    public func restartApp() {
-        let bundlePath = Bundle.main.bundlePath
-        log.info("restartApp", bundlePath)
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        task.arguments = ["-n", bundlePath]
-        try? task.run()
-        // 1 second gives the new process time to start before we exit.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            exit(0)
-        }
-    }
 
     #if DEBUG
-    /// Runs a live SCK content check and updates sckDiagnostics with the result.
-    /// Called from Debug menu → Check SCK Permission (⇧⌘K).
+    /// Checks system audio recording permission status via AVFoundation.
+    /// Called from Debug menu → Check Audio Permission (⇧⌘K).
     public func refreshSCKDiagnostics() async {
         sckDiagnostics = "checking…"
-        let preflight = CGPreflightScreenCaptureAccess()
-        do {
-            let content = try await SCShareableContent.excludingDesktopWindows(
-                false, onScreenWindowsOnly: false
-            )
-            let displays = content.displays.count
-            let windows = content.windows.count
-            sckDiagnostics = "✅ granted — \(displays) display(s), \(windows) window(s) | CGPreflight=\(preflight) | bundle=\(Bundle.main.bundlePath)"
-            log.info("SCK diagnostic: granted")
-        } catch let e as NSError {
-            sckDiagnostics = "❌ denied — \(e.domain) \(e.code): \(e.localizedDescription) | CGPreflight=\(preflight) | bundle=\(Bundle.main.bundlePath)"
-            log.error("SCK diagnostic: denied", "\(e.domain) \(e.code)")
+        let status = AVCaptureDevice.authorizationStatus(for: .audio)
+        switch status {
+        case .authorized:
+            sckDiagnostics = "✅ audio authorized | bundle=\(Bundle.main.bundlePath)"
+        case .denied:
+            sckDiagnostics = "❌ audio denied | bundle=\(Bundle.main.bundlePath)"
+        case .restricted:
+            sckDiagnostics = "⚠️ audio restricted | bundle=\(Bundle.main.bundlePath)"
+        case .notDetermined:
+            sckDiagnostics = "⏳ audio not determined | bundle=\(Bundle.main.bundlePath)"
+        @unknown default:
+            sckDiagnostics = "? unknown status"
         }
     }
     #endif
@@ -303,8 +276,8 @@ public final class AppState: ObservableObject {
                     // They must NOT also set pipelineError — that would show the generic
                     // "Recording Error" alert first and swallow the permission alert.
                     switch err {
-                    case .captureScreenRecordingPermissionDenied:
-                        self?.permissionRequired = .screenRecording
+                    case .captureSystemAudioPermissionDenied:
+                        self?.permissionRequired = .systemAudioRecording
                     case .captureMicrophonePermissionDenied:
                         self?.permissionRequired = .microphone
                     default:
@@ -320,18 +293,6 @@ public final class AppState: ObservableObject {
             .receive(on: RunLoop.main)
             .assign(to: &$pipelineProgress)
 
-        // When the user returns from System Settings (after we opened Screen Recording there),
-        // show the "Restart to activate" prompt instead of the original permission alert.
-        NotificationCenter.default
-            .publisher(for: NSApplication.didBecomeActiveNotification)
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                guard let self, self.awaitingSettingsReturn else { return }
-                self.awaitingSettingsReturn = false
-                self.permissionRequired = nil
-                self.awaitingScreenCaptureRestart = true
-            }
-            .store(in: &cancellables)
     }
 
     private func applySearch() {

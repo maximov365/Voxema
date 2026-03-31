@@ -446,7 +446,7 @@
 					"$(SRCROOT)/Voxema/Features/MeetingLibrary",
 					"$(SRCROOT)/Voxema/Features/Onboarding",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MARKETING_VERSION = 1.0;
 				OTHER_SWIFT_FLAGS = "-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include -Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include -Xcc -I$(SRCROOT)/Voxema/Bridge/CLlama/include";
 				PRODUCT_BUNDLE_IDENTIFIER = com.voxema.Voxema;
@@ -521,7 +521,7 @@
 					"$(SRCROOT)/Voxema/Features/MeetingLibrary",
 					"$(SRCROOT)/Voxema/Features/Onboarding",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MARKETING_VERSION = 1.0;
 				OTHER_SWIFT_FLAGS = "-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include -Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include -Xcc -I$(SRCROOT)/Voxema/Bridge/CLlama/include";
 				PRODUCT_BUNDLE_IDENTIFIER = com.voxema.Voxema;

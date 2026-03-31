@@ -296,6 +296,50 @@ Zero changes to `WhisperEngine.swift` are required.
 
 ---
 
+## DEC-7 — System audio capture: Core Audio tap (macOS 14.2+) instead of ScreenCaptureKit
+
+**Status:** accepted
+**Date:** 2026-03-29
+**Source:** Discovery (TASK-20)
+
+### Context
+
+Voxema captures system audio to record remote meeting participants. The original implementation used ScreenCaptureKit (`SCStream`), which requires the full "Screen & System Audio Recording" TCC permission (`kTCCServiceScreenCaptureWithAudio`). This caused multiple problems:
+
+- macOS TCC caching issues required app restarts after permission grants
+- The word "screen recording" in the permission prompt conflicted with Voxema's audio-only positioning
+- Recurring development issues with apps not appearing in System Settings
+
+macOS 14.2 introduced Core Audio Process Taps (`CATapDescription` + `AudioHardwareCreateProcessTap`), which capture system audio without any screen recording involvement. Apps using this API appear under the separate "Allow system audio recording" section in System Settings, not under "Screen Recording".
+
+### Options Considered
+
+1. **Stay with ScreenCaptureKit** — no deployment target change, but full "screen recording" permission required forever
+2. **Core Audio tap on macOS 14.2+, SCK fallback on 13.0–14.1** — dual path, added maintenance burden
+3. **Full migration to Core Audio tap, raise minimum to macOS 14.2** (selected)
+
+### Decision
+
+Replace `SystemAudioCapture.swift` with a Core Audio tap implementation. Raise minimum deployment target from **macOS 13.0 to macOS 14.2**.
+
+- `NSScreenCaptureUsageDescription` replaced with `NSAudioCaptureUsageDescription`
+- No restart required after granting permission (tap takes effect immediately)
+- `PipelineError.captureScreenRecordingPermissionDenied` renamed to `.captureSystemAudioPermissionDenied`
+
+### Rationale
+
+- Core Audio tap is the technically correct API for audio-only capture — it was purpose-built for this use case
+- The privacy story improves materially: users grant audio recording permission, not screen recording
+- All Apple Silicon Macs can run macOS 14.2 (released December 2023); Ventura market share <10% by launch
+- Eliminates the entire `kTCCServiceScreenCapture` TCC problem class permanently
+- Single-file change to `SystemAudioCapture.swift` — no other pipeline changes required
+
+### Deployment target note
+
+macOS 13.0 was originally chosen because it was the earliest version supporting ScreenCaptureKit audio. With the move to Core Audio taps, the effective minimum is macOS 14.2. There are no other macOS 14.2+ API dependencies; future regressions to 13.0 would require reverting `SystemAudioCapture.swift` only.
+
+---
+
 ## DEC-13: AppState uses ObservableObject (@MainActor) instead of @Observable
 
 **Date:** 2026-03-30

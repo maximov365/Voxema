@@ -2,8 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>NSScreenCaptureUsageDescription</key>
-    <string>Voxema captures system audio to record remote meeting participants. Audio is processed entirely on your device.</string>
+    <key>NSAudioCaptureUsageDescription</key>
+    <string>Voxema records system audio to capture remote meeting participants. Audio is processed entirely on your device and never leaves it.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Voxema captures your microphone to record your voice during meetings. Audio is processed entirely on your device.</string>
     <key>NSHumanReadableCopyright</key>

@@ -42,7 +42,7 @@ Voxema is a native macOS application (SwiftUI, Apple Silicon) that processes mee
 
 | Component | Technology | Purpose |
 |---|---|---|
-| SystemAudioCapture | ScreenCaptureKit | Capture remote participants' audio |
+| SystemAudioCapture | Core Audio tap (`CATapDescription`, macOS 14.2+) | Capture remote participants' audio |
 | MicrophoneCapture | AVAudioEngine | Capture local user's microphone |
 | AudioSessionManager | AVAudioSession | Manage device selection, format negotiation |
 
@@ -480,7 +480,7 @@ Voxema/
 |---|---|
 | Language | Swift (with C++ bridging for Whisper.cpp and llama.cpp via Swift C interop) |
 | UI Framework | SwiftUI — no third-party UI frameworks, no Electron, no web views |
-| Minimum macOS | 13.0 (Ventura) — required for ScreenCaptureKit audio-only capture API |
+| Minimum macOS | 14.2 (Sonoma, December 2023) — required for Core Audio tap API (`CATapDescription`) used for system audio capture. See DEC-7. |
 | Hardware | Apple Silicon only — ML models optimized for Neural Engine / GPU via Metal |
 | Build toolchain | Swift 5.9+ / Xcode 15+ |
 | Database (client) | SQLite via GRDB |

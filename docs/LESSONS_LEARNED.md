@@ -736,3 +736,26 @@ The `.xcstrings` file is processed by Xcode and placed in `Contents/Resources/`.
 ### Pattern confirmed
 - **All persistence for user credentials must happen in `complete()`, not `onAppear` or field onChange.** Users may navigate back and change their selection; save only at commit time.
 - **Keychain coordinates must live in exactly one type** (`CloudProvider`). Callers use public static helpers, never duplicate the service/account strings.
+
+---
+
+## 2026-03-29 — TASK-20: Core Audio tap migration (DEC-7)
+
+**Workflow outcome:** completed
+
+### Root cause resolved
+- The entire recurring `kTCCServiceScreenCapture` / `kTCCServiceScreenCaptureWithAudio` TCC problem was caused by using ScreenCaptureKit for audio-only capture. SCK always registers the app as a "Screen Recording" app, which requires the full Screen & System Audio Recording TCC grant.
+- macOS 14.2 introduced `CATapDescription` + `AudioHardwareCreateProcessTap` (Core Audio Process Taps) — a dedicated API for audio-only capture that appears under "System Audio Recording Only" in System Settings.
+
+### What worked
+- Replacing `SystemAudioCapture.swift` with `CATapDescription` + aggregate device + `AVAudioEngine` eliminates all TCC screen-capture issues permanently.
+- Using `AVAudioEngine.installTap` avoids raw C I/O-proc callbacks entirely — no C function pointer coercion issues.
+- `AudioFileWriter` already handles resampling via `AVAudioConverter`, so no downstream pipeline changes were needed.
+- Restart no longer required after granting permission — Core Audio tap takes effect immediately.
+
+### C function pointer lesson
+- Swift cannot form a `@convention(c)` function pointer from a function reference in all contexts. When encountering "a C function pointer can only be formed from a reference to a 'func' or a literal closure", prefer a higher-level Swift API (like `AVAudioEngine`) over raw C callbacks to avoid the issue entirely.
+
+### Deployment target
+- Minimum macOS changed from 13.0 → 14.2 (December 2023). This drops Ventura and early Sonoma but is acceptable because all Apple Silicon Macs can run macOS 14.2, and the privacy and UX improvement is material.
+- The original 13.0 minimum was SCK-imposed; with Core Audio tap there is no architectural reason to support 13.x.

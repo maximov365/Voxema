@@ -46,7 +46,7 @@ public struct CaptureConfiguration: Sendable {
 
 // MARK: - CaptureStage
 
-/// Orchestrates system audio (ScreenCaptureKit) and microphone (AVAudioEngine) capture.
+/// Orchestrates system audio (Core Audio tap) and microphone (AVAudioEngine) capture.
 ///
 /// Produces exactly two `AudioStream` objects — `.remote` (system audio) and `.local`
 /// (microphone) — with temporary WAV files encrypted at rest by `EncryptionManager`.
@@ -66,7 +66,7 @@ public final class CaptureStage: CaptureStageProtocol {
 
     // MARK: - Init
 
-    /// Production initialiser uses real ScreenCaptureKit + AVAudioEngine capturers.
+    /// Production initialiser uses Core Audio tap (system audio) + AVAudioEngine (microphone).
     public convenience init(config: CaptureConfiguration = .default) {
         self.init(
             systemAudio: SystemAudioCapture(),
