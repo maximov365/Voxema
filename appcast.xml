@@ -4,9 +4,8 @@
   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>Voxema Updates</title>
-    <link>https://maximov365.github.io/Voxema/appcast.xml</link>
+    <link>https://voxema.pages.dev/appcast.xml</link>
     <description>Voxema release notes</description>
     <language>en</language>
-    <!-- Release items are prepended here by the release workflow -->
   </channel>
 </rss>
