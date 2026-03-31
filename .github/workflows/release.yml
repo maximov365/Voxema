@@ -160,7 +160,8 @@ jobs:
             -o "$RUNNER_TEMP/sparkle.zip"
           unzip -q "$RUNNER_TEMP/sparkle.zip" -d "$RUNNER_TEMP/sparkle"
 
-          echo "$SPARKLE_PRIVATE_KEY" | base64 --decode > "$RUNNER_TEMP/sparkle_key"
+          # sign_update expects a plain base64 text file, not binary
+          echo "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_key"
 
           SIGNATURE=$("$RUNNER_TEMP/sparkle/bin/sign_update" \
             --ed-key-file "$RUNNER_TEMP/sparkle_key" \
