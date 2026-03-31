@@ -7,7 +7,7 @@
     <key>NSMicrophoneUsageDescription</key>
     <string>Voxema captures your microphone to record your voice during meetings. Audio is processed entirely on your device.</string>
     <key>SUFeedURL</key>
-    <string>https://maximov365.github.io/Voxema/appcast.xml</string>
+    <string>https://voxema.pages.dev/appcast.xml</string>
     <key>SUPublicEDKey</key>
     <string>PLACEHOLDER_REPLACE_WITH_OUTPUT_OF_generate_keys</string>
     <key>NSHumanReadableCopyright</key>

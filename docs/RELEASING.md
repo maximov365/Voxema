@@ -50,9 +50,9 @@ Then, in GitHub repo settings → Pages:
 - Source: Deploy from branch
 - Branch: `gh-pages` / `/ (root)`
 
-The appcast URL will be:
+The appcast URL is:
 ```
-https://maximov365.github.io/Voxema/appcast.xml
+https://voxema.pages.dev/appcast.xml
 ```
 
 This URL is already set as `SUFeedURL` in `Voxema/Info.plist`.

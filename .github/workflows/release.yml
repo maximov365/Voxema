@@ -247,7 +247,7 @@ jobs:
           ET.SubElement(item, "title").text = "Voxema ${VERSION}"
           ET.SubElement(item, "pubDate").text = "${DATE}"
           ET.SubElement(item, "sparkle:version").text = "${{ needs.build.outputs.build_number }}"
-          ET.SubElement(item, "sparkle:shortVersionString").text = "${VERSION}"
+            ET.SubElement(item, "sparkle:shortVersionString").text = "${VERSION}"
           enclosure = ET.SubElement(item, "enclosure")
           enclosure.set("url", "${DMG_URL}")
           enclosure.set("length", "0")          # length filled by CI improvement later
@@ -265,6 +265,7 @@ jobs:
           ET.indent(tree, space="  ")
           tree.write(path, encoding="unicode", xml_declaration=True)
           PYEOF
+
 
       - name: Commit and push appcast
         run: |
