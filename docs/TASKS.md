@@ -35,3 +35,4 @@
 | TASK-19 | Settings screen: microphone, transcription model, summarization provider + fix empty model URL in pipeline | completed | high | medium |
 | FIX-3   | ModelManager: verify file existence for bundled models — fixes .bundled status without actual file on disk | completed | high | small |
 | TASK-20 | Migrate system audio capture from ScreenCaptureKit to Core Audio tap API; raise minimum macOS to 14.2 (DEC-7) | completed | high | medium |
+| TASK-21 | Sparkle auto-update integration + DMG release pipeline (GitHub Actions + GitHub Pages appcast) | completed | high | medium |

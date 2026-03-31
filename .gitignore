@@ -39,6 +39,11 @@ build/
 # Sparkle EdDSA keys — never commit private keys
 *.pem
 EdDSA*
+sparkle_private_key
+
+# Release artifacts
+dist/
+.build_dmg/
 
 # Instruments
 *.trace

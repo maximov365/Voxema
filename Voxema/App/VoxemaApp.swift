@@ -1,11 +1,17 @@
 import SwiftUI
 import Security
+import Sparkle
 
 @main
 struct VoxemaApp: App {
 
     @StateObject private var appState = AppState.production()
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
 
     init() {
         #if DEBUG
@@ -42,6 +48,9 @@ struct VoxemaApp: App {
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
         .commands {
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesView(updater: updaterController.updater)
+            }
             CommandGroup(replacing: .newItem) {
                 Button(String(localized: "New Recording")) {
                     Task { await appState.startRecording() }

@@ -1,0 +1,275 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write    # create GitHub releases, upload assets
+  pages: write       # push appcast to gh-pages
+  id-token: write    # OIDC for pages deployment
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # 1. Build and archive
+  # ─────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build & Archive
+    runs-on: macos-14         # Apple Silicon (M1) runner, macOS 14+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build_number: ${{ steps.version.outputs.build_number }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"      # strip leading 'v'
+          BUILD="${GITHUB_RUN_NUMBER}"
+          echo "version=$VERSION"       >> "$GITHUB_OUTPUT"
+          echo "build_number=$BUILD"    >> "$GITHUB_OUTPUT"
+
+      - name: Set bundle version in Info.plist
+        run: |
+          /usr/libexec/PlistBuddy -c \
+            "Set :CFBundleShortVersionString ${{ steps.version.outputs.version }}" \
+            Voxema/Info.plist
+          /usr/libexec/PlistBuddy -c \
+            "Set :CFBundleVersion ${{ steps.version.outputs.build_number }}" \
+            Voxema/Info.plist
+
+      # ── Code signing ──────────────────────────────────────────────────────
+      # Requires GitHub Secrets (see docs/RELEASING.md for setup):
+      #   DEVELOPER_ID_APPLICATION_CERT_P12  – base64-encoded .p12
+      #   DEVELOPER_ID_APPLICATION_CERT_PASS – password for the .p12
+      #   KEYCHAIN_PASSWORD                  – temp keychain password
+      - name: Import Developer ID certificate
+        if: ${{ secrets.DEVELOPER_ID_APPLICATION_CERT_P12 != '' }}
+        env:
+          CERT_P12: ${{ secrets.DEVELOPER_ID_APPLICATION_CERT_P12 }}
+          CERT_PASS: ${{ secrets.DEVELOPER_ID_APPLICATION_CERT_PASS }}
+          KEYCHAIN_PASS: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain"
+          echo "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+          security import "$RUNNER_TEMP/cert.p12" \
+            -k "$KEYCHAIN_PATH" \
+            -P "$CERT_PASS" \
+            -T /usr/bin/codesign
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S "apple-tool:,apple:" \
+            -s -k "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -scheme Voxema -project Voxema.xcodeproj
+
+      - name: Archive
+        run: |
+          CODE_SIGN_FLAG=""
+          if [ -n "${{ secrets.DEVELOPER_ID_APPLICATION_CERT_P12 }}" ]; then
+            CODE_SIGN_FLAG="CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=Developer ID Application"
+          else
+            # Ad-hoc signing for F&F beta builds (Gatekeeper warning expected)
+            CODE_SIGN_FLAG="CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual"
+          fi
+
+          xcodebuild archive \
+            -scheme Voxema \
+            -project Voxema.xcodeproj \
+            -archivePath "$RUNNER_TEMP/Voxema.xcarchive" \
+            -configuration Release \
+            $CODE_SIGN_FLAG \
+            SKIP_INSTALL=NO \
+            BUILD_LIBRARY_FOR_DISTRIBUTION=NO \
+            | xcpretty || true
+
+      - name: Export archive
+        run: |
+          if [ -n "${{ secrets.DEVELOPER_ID_APPLICATION_CERT_P12 }}" ]; then
+            METHOD="developer-id"
+          else
+            METHOD="mac-application"   # ad-hoc export (no notarization)
+          fi
+
+          cat > "$RUNNER_TEMP/ExportOptions.plist" << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>${METHOD}</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Voxema.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
+
+      # ── Notarization (requires paid Developer Program + secrets) ──────────
+      - name: Notarize app
+        if: ${{ secrets.NOTARIZE_APPLE_ID != '' }}
+        env:
+          APPLE_ID: ${{ secrets.NOTARIZE_APPLE_ID }}
+          TEAM_ID: ${{ secrets.NOTARIZE_TEAM_ID }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.NOTARIZE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          xcrun notarytool submit "$RUNNER_TEMP/export/Voxema.app" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$TEAM_ID" \
+            --password "$APP_SPECIFIC_PASSWORD" \
+            --wait
+          xcrun stapler staple "$RUNNER_TEMP/export/Voxema.app"
+
+      # ── DMG ───────────────────────────────────────────────────────────────
+      - name: Create DMG
+        run: |
+          APP_PATH="$RUNNER_TEMP/export/Voxema.app"
+          DMG_PATH="$RUNNER_TEMP/Voxema-${{ steps.version.outputs.version }}.dmg"
+
+          # Create a read-write image, add app + Applications symlink, convert to read-only
+          STAGING="$RUNNER_TEMP/dmg_staging"
+          mkdir -p "$STAGING"
+          cp -R "$APP_PATH" "$STAGING/"
+          ln -s /Applications "$STAGING/Applications"
+
+          hdiutil create \
+            -volname "Voxema ${{ steps.version.outputs.version }}" \
+            -srcfolder "$STAGING" \
+            -ov -format UDBZ \
+            "$DMG_PATH"
+
+          echo "DMG_PATH=$DMG_PATH" >> "$GITHUB_ENV"
+
+      # ── EdDSA signature for Sparkle ───────────────────────────────────────
+      # Requires GitHub Secret:
+      #   SPARKLE_PRIVATE_KEY  – base64-encoded ed private key from `generate_keys`
+      - name: Sign DMG with EdDSA (Sparkle)
+        if: ${{ secrets.SPARKLE_PRIVATE_KEY != '' }}
+        run: |
+          # Download Sparkle CLI tools matching the SPM package version
+          SPARKLE_VERSION="2.6.4"
+          TOOLS_URL="https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-for-Swift-Package-Manager.zip"
+          curl -L "$TOOLS_URL" -o "$RUNNER_TEMP/sparkle.zip"
+          unzip -q "$RUNNER_TEMP/sparkle.zip" -d "$RUNNER_TEMP/sparkle"
+
+          echo "${{ secrets.SPARKLE_PRIVATE_KEY }}" | base64 --decode \
+            > "$RUNNER_TEMP/sparkle_private_key"
+
+          SIGNATURE=$("$RUNNER_TEMP/sparkle/bin/sign_update" \
+            --ed-key-file "$RUNNER_TEMP/sparkle_private_key" \
+            "$DMG_PATH")
+          echo "SPARKLE_SIGNATURE=$SIGNATURE" >> "$GITHUB_ENV"
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Voxema-dmg
+          path: ${{ env.DMG_PATH }}
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 2. Create GitHub Release
+  # ─────────────────────────────────────────────────────────────────────────
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download DMG artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Voxema-dmg
+          path: ./dist
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Voxema ${{ needs.build.outputs.version }}"
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+          files: ./dist/*.dmg
+          generate_release_notes: true
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 3. Publish appcast to GitHub Pages
+  # ─────────────────────────────────────────────────────────────────────────
+  appcast:
+    name: Publish Appcast
+    needs: [build, release]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Update appcast.xml
+        run: |
+          VERSION="${{ needs.build.outputs.version }}"
+          DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
+          DMG_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/Voxema-${VERSION}.dmg"
+          SIGNATURE="${{ env.SPARKLE_SIGNATURE }}"
+
+          # Prepend new item to appcast.xml
+          python3 - <<PYEOF
+          import xml.etree.ElementTree as ET
+          import os
+
+          path = "appcast.xml"
+          if not os.path.exists(path):
+              # Create minimal appcast
+              with open(path, "w") as f:
+                  f.write("""<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"\n  xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"\n  xmlns:dc="http://purl.org/dc/elements/1.1/">\n  <channel>\n    <title>Voxema Updates</title>\n    <link>https://${{ github.repository_owner }}.github.io/Voxema/appcast.xml</link>\n    <description>Voxema release notes</description>\n    <language>en</language>\n  </channel>\n</rss>\n""")
+
+          tree = ET.parse(path)
+          root = tree.getroot()
+          channel = root.find("channel")
+
+          item = ET.SubElement(channel, "item")
+          ET.SubElement(item, "title").text = "Voxema ${VERSION}"
+          ET.SubElement(item, "pubDate").text = "${DATE}"
+          ET.SubElement(item, "sparkle:version").text = "${{ needs.build.outputs.build_number }}"
+          ET.SubElement(item, "sparkle:shortVersionString").text = "${VERSION}"
+          enclosure = ET.SubElement(item, "enclosure")
+          enclosure.set("url", "${DMG_URL}")
+          enclosure.set("length", "0")          # length filled by CI improvement later
+          enclosure.set("type", "application/octet-stream")
+          if "${SIGNATURE}":
+              enclosure.set("sparkle:edSignature", "${SIGNATURE}")
+
+          # Move new item to top (after title/link/description/language)
+          items = channel.findall("item")
+          for it in items:
+              channel.remove(it)
+          for it in reversed(items):
+              channel.insert(4, it)
+
+          ET.indent(tree, space="  ")
+          tree.write(path, encoding="unicode", xml_declaration=True)
+          PYEOF
+
+      - name: Commit and push appcast
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add appcast.xml
+          git commit -m "chore: appcast v${{ needs.build.outputs.version }}" || echo "Nothing to commit"
+          git push

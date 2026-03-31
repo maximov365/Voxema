@@ -7,15 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		43B0EC1AFCDC423F8FB924D9 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = C949F91ACBCF46AA959F8D6A /* Localizable.xcstrings */; };
-		E8F9A0B1C2D3E4F506071829 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D7E8A9B0C1D2E3F405060718 /* Assets.xcassets */; };
-		A27B4219CEE1433381449F00 /* models-manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 6AC8C9D953764CD2B350BB0A /* models-manifest.json */; };
 		02BD4BA095355D76BF93A537 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BF42BE8D185A762C01B2F5 /* Storage.swift */; };
 		11974B20BD9E895CCA83509C /* OnboardingFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1E446B894ABD98541008CE /* OnboardingFeature.swift */; };
 		15AF4E9995E9017153B20B7A /* AudioFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72974C2385E06A6471151AA0 /* AudioFileWriter.swift */; };
+		29932BB200CF4AAE8A529C3E /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2779CB164B174A7C9D6A80B1 /* AppPreferences.swift */; };
 		29E249C1B4CDC2112974CC83 /* TranscribeStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89D44BAAAC38680265D3642B /* TranscribeStage.swift */; };
 		2AB14C76A9964B2CAA3A51F4 /* SummaryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E9F3DDF4FC4C4D8596C849 /* SummaryProvider.swift */; };
 		35234FA9803548B8DD008B36 /* MeetingLibraryFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0056483CBD12B4E426183543 /* MeetingLibraryFeature.swift */; };
+		43B0EC1AFCDC423F8FB924D9 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = C949F91ACBCF46AA959F8D6A /* Localizable.xcstrings */; };
 		4898AD0F422A479ABCCFE3B5 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59005DF71F247CA9A047490 /* AppState.swift */; };
 		54334387A79712FC1DC146B4 /* PipelineStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A734FCCA2F8A69A1ED1820F /* PipelineStage.swift */; };
 		55BE449D82B1785E09BBFDAC /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F446369FAFBB68D1DA4F16 /* NetworkManager.swift */; };
@@ -28,12 +27,12 @@
 		78282898C2224E8CAC72DC8C /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */; };
 		799D4441A8AF7B351609577D /* MicrophoneCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */; };
 		88FC1D362F924271B46B8081 /* voxema_ecapa_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = 906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */; };
-		29932BB200CF4AAE8A529C3E /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2779CB164B174A7C9D6A80B1 /* AppPreferences.swift */; };
 		8B7A4D2A9387714EA94F34FF /* Security.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE244398BB7B0EB11B366116 /* Security.swift */; };
 		8CE04B8D9D693252E04018BF /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22E49F9BB542993C30ED696 /* Logger.swift */; };
 		96D84AF4BE3E6178BD9B08BF /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45042E2906A245B1FA47D8B /* UpdateManager.swift */; };
 		971CC19C76E7467CABD26579 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 5A68113763614767A3E5CFF5 /* GRDB */; };
 		9AC94458970E16560A2D4AE6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786D40B188704EF95C45E824 /* ContentView.swift */; };
+		A27B4219CEE1433381449F00 /* models-manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 6AC8C9D953764CD2B350BB0A /* models-manifest.json */; };
 		A9FE4458BE2AD9F3B472BD29 /* CaptureStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D544B3B00BE2B45C33D8B7 /* CaptureStage.swift */; };
 		AC974F178490BC72174F2154 /* VoxemaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 870E41CE835DFCBC4B9BB89B /* VoxemaApp.swift */; };
 		B21C41BE842974668EA10D39 /* ONNXRuntimePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AA4531B96F4FB4B5EB49EF /* ONNXRuntimePlaceholder.swift */; };
@@ -44,14 +43,12 @@
 		DDF841BE8CFC5782A53CF9B0 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0875409299C88494CAC62720 /* Models.swift */; };
 		E0724AD49F16A7D7DF24F28B /* LicenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A264553A0B3FEE14CBBA5AC /* LicenseManager.swift */; };
 		E2354F3DBF284C988B0E5F1A /* ModelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C5D4CB4A5A7091867F5F33B /* ModelManager.swift */; };
+		E8F9A0B1C2D3E4F506071829 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D7E8A9B0C1D2E3F405060718 /* Assets.xcassets */; };
 		EB01E5579F7A4BA6AB64A22E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6E66AA4FE9344087A9996939 /* Sparkle */; };
 		FEA64BF9A609ED462F592AF3 /* PipelineCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB348A3B7CAD8F19BA24F27 /* PipelineCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C949F91ACBCF46AA959F8D6A /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "Localizable.xcstrings"; path = Voxema/Resources/Localizable.xcstrings; sourceTree = SOURCE_ROOT; };
-		D7E8A9B0C1D2E3F405060718 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		6AC8C9D953764CD2B350BB0A /* models-manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "models-manifest.json"; path = Voxema/Resources/Models/models-manifest.json; sourceTree = SOURCE_ROOT; };
 		001F42E79B4AF6153DFE7562 /* ExportStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ExportStage.swift; path = Voxema/Pipeline/Export/ExportStage.swift; sourceTree = SOURCE_ROOT; };
 		0056483CBD12B4E426183543 /* MeetingLibraryFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeetingLibraryFeature.swift; path = Voxema/Features/MeetingLibrary/MeetingLibraryFeature.swift; sourceTree = SOURCE_ROOT; };
 		04C44BB795AEA58A037EE5A2 /* DiarizeStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DiarizeStage.swift; path = Voxema/Pipeline/Diarize/DiarizeStage.swift; sourceTree = SOURCE_ROOT; };
@@ -62,12 +59,14 @@
 		16D544B3B00BE2B45C33D8B7 /* CaptureStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CaptureStage.swift; path = Voxema/Pipeline/Capture/CaptureStage.swift; sourceTree = SOURCE_ROOT; };
 		18A046239045A9DF698277F7 /* SummarizeStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SummarizeStage.swift; path = Voxema/Pipeline/Summarize/SummarizeStage.swift; sourceTree = SOURCE_ROOT; };
 		18E9F3DDF4FC4C4D8596C849 /* SummaryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SummaryProvider.swift; path = Voxema/Pipeline/Summarize/SummaryProvider.swift; sourceTree = SOURCE_ROOT; };
+		2779CB164B174A7C9D6A80B1 /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppPreferences.swift; path = Voxema/Core/Preferences/AppPreferences.swift; sourceTree = SOURCE_ROOT; };
 		366C41A391399F212715812E /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsFeature.swift; path = Voxema/Features/Settings/SettingsFeature.swift; sourceTree = SOURCE_ROOT; };
 		39AA4531B96F4FB4B5EB49EF /* ONNXRuntimePlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ONNXRuntimePlaceholder.swift; path = Voxema/Core/ModelManager/ONNXRuntimePlaceholder.swift; sourceTree = SOURCE_ROOT; };
 		4A264553A0B3FEE14CBBA5AC /* LicenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LicenseManager.swift; path = Voxema/Core/LicenseManager/LicenseManager.swift; sourceTree = SOURCE_ROOT; };
 		4FA14A23BAA040BBED193165 /* RecordingFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecordingFeature.swift; path = Voxema/Features/Recording/RecordingFeature.swift; sourceTree = SOURCE_ROOT; };
 		5A734FCCA2F8A69A1ED1820F /* PipelineStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PipelineStage.swift; path = Voxema/Pipeline/Coordinator/PipelineStage.swift; sourceTree = SOURCE_ROOT; };
 		5C1C49C29FFCFBC4C9F9A1B2 /* MeetingDetailFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeetingDetailFeature.swift; path = Voxema/Features/MeetingDetail/MeetingDetailFeature.swift; sourceTree = SOURCE_ROOT; };
+		6AC8C9D953764CD2B350BB0A /* models-manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "models-manifest.json"; path = "Voxema/Resources/Models/models-manifest.json"; sourceTree = SOURCE_ROOT; };
 		72974C2385E06A6471151AA0 /* AudioFileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioFileWriter.swift; path = Voxema/Pipeline/Capture/AudioFileWriter.swift; sourceTree = SOURCE_ROOT; };
 		786D40B188704EF95C45E824 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = Voxema/App/ContentView.swift; sourceTree = SOURCE_ROOT; };
 		7FB348A3B7CAD8F19BA24F27 /* PipelineCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PipelineCoordinator.swift; path = Voxema/Pipeline/Coordinator/PipelineCoordinator.swift; sourceTree = SOURCE_ROOT; };
@@ -81,12 +80,13 @@
 		B22E49F9BB542993C30ED696 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Voxema/Core/Logging/Logger.swift; sourceTree = SOURCE_ROOT; };
 		B45042E2906A245B1FA47D8B /* UpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UpdateManager.swift; path = Voxema/Core/UpdateManager/UpdateManager.swift; sourceTree = SOURCE_ROOT; };
 		B59005DF71F247CA9A047490 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = Voxema/App/AppState.swift; sourceTree = SOURCE_ROOT; };
-		2779CB164B174A7C9D6A80B1 /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppPreferences.swift; path = Voxema/Core/Preferences/AppPreferences.swift; sourceTree = SOURCE_ROOT; };
 		BE244398BB7B0EB11B366116 /* Security.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Security.swift; path = Voxema/Core/Security/Security.swift; sourceTree = SOURCE_ROOT; };
 		BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MicrophoneCapture.swift; path = Voxema/Pipeline/Capture/MicrophoneCapture.swift; sourceTree = SOURCE_ROOT; };
 		BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = voxema_llm_stub.c; path = Voxema/Bridge/CLlama/voxema_llm_stub.c; sourceTree = SOURCE_ROOT; };
+		C949F91ACBCF46AA959F8D6A /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = Localizable.xcstrings; path = Voxema/Resources/Localizable.xcstrings; sourceTree = SOURCE_ROOT; };
 		CC1E446B894ABD98541008CE /* OnboardingFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingFeature.swift; path = Voxema/Features/Onboarding/OnboardingFeature.swift; sourceTree = SOURCE_ROOT; };
 		D4BF42BE8D185A762C01B2F5 /* Storage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Storage.swift; path = Voxema/Core/Storage/Storage.swift; sourceTree = SOURCE_ROOT; };
+		D7E8A9B0C1D2E3F405060718 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,6 +142,7 @@
 				BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */,
 				906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */,
 				11B14214BB197C5F1E65C6C6 /* whisper_stub.c */,
+				824EA6D22F7B9D72009B7E04 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -151,6 +152,14 @@
 				824EA6BF2F7956E4009B7E04 /* Voxema.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		824EA6D22F7B9D72009B7E04 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				D7E8A9B0C1D2E3F405060718 /* Assets.xcassets */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -400,6 +409,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = D62B4YK927;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -475,6 +485,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = D62B4YK927;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
