@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import Accelerate
 
 // MARK: - TranscribeConfiguration
 
@@ -11,6 +12,11 @@ public struct TranscribeConfiguration: Sendable {
     public let language: String?
     /// Segments with `noSpeechProb` above this value are discarded (silence gate).
     public let noSpeechThreshold: Float
+    /// Audio RMS energy gate: channels whose mean RMS is below this value are
+    /// skipped entirely before Whisper is even loaded. Prevents Whisper hallucinations
+    /// on silent or near-silent system-audio when no call is active.
+    /// Typical speech RMS: 0.05–0.3.  Ambient noise/silence: < 0.002.
+    public let minAudioRMS: Float
     /// Keychain key identifier used to decrypt audio files from the Capture stage.
     public let encryptionKeyId: String
 
@@ -18,6 +24,7 @@ public struct TranscribeConfiguration: Sendable {
         modelURL: URL(fileURLWithPath: ""),  // replaced at runtime by PipelineCoordinator
         language: nil,
         noSpeechThreshold: 0.6,
+        minAudioRMS: 0.004,
         encryptionKeyId: "com.voxema.app.capture-audio-key"
     )
 
@@ -25,11 +32,13 @@ public struct TranscribeConfiguration: Sendable {
         modelURL: URL,
         language: String? = nil,
         noSpeechThreshold: Float = 0.6,
+        minAudioRMS: Float = 0.004,
         encryptionKeyId: String = "com.voxema.app.capture-audio-key"
     ) {
         self.modelURL = modelURL
         self.language = language
         self.noSpeechThreshold = noSpeechThreshold
+        self.minAudioRMS = minAudioRMS
         self.encryptionKeyId = encryptionKeyId
     }
 }
@@ -121,7 +130,7 @@ enum AudioSampleDecoder {
 /// The model is loaded before and unloaded after each channel to manage memory.
 public final class TranscribeStage: TranscribeStageProtocol {
 
-    private let engineFactory: () -> WhisperEngineProtocol
+    private let engineFactory: @Sendable () -> any WhisperEngineProtocol
     private let config: TranscribeConfiguration
     private let log = VoxemaLogger.make(category: "transcribe.stage")
     private var isCancelled = false
@@ -135,7 +144,7 @@ public final class TranscribeStage: TranscribeStageProtocol {
 
     /// Injectable initialiser — accepts a factory closure for tests.
     init(
-        engineFactory: @escaping () -> WhisperEngineProtocol,
+        engineFactory: @escaping @Sendable () -> any WhisperEngineProtocol,
         config: TranscribeConfiguration = .default
     ) {
         self.engineFactory = engineFactory
@@ -170,45 +179,57 @@ public final class TranscribeStage: TranscribeStageProtocol {
     // MARK: - Private
 
     private func transcribeStream(_ stream: AudioStream) async throws -> [TranscribedSegment] {
-        let encURL = URL(fileURLWithPath: stream.filePath)
+        let encURL        = URL(fileURLWithPath: stream.filePath)
+        let channel       = stream.channel
+        let modelURL      = config.modelURL
+        let encryptionKey = config.encryptionKeyId
+        let language      = config.language
+        let noSpeechGate  = config.noSpeechThreshold
+        let minRMS        = config.minAudioRMS
+        let engine        = engineFactory()
 
-        // Decode audio to float32 samples
-        let samples: [Float]
-        do {
-            samples = try AudioSampleDecoder.decode(
-                from: encURL,
-                encryptionKeyId: config.encryptionKeyId
-            )
-        } catch PipelineError.transcribeAudioFileEmpty {
-            log.info("TranscribeStage: audio file empty or too short, skipping channel")
-            return []
+        // Use withCheckedThrowingContinuation + DispatchQueue.global() instead of
+        // Task.detached. This puts the work on a plain GCD thread that has zero
+        // interaction with Swift's actor system, eliminating any risk of the compiler's
+        // @MainActor inference causing these methods to dispatch back to the main thread.
+        let rawSegments: [WhisperSegment] = try await withCheckedThrowingContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let samples = try AudioSampleDecoder.decode(
+                        from: encURL, encryptionKeyId: encryptionKey)
+                    guard !samples.isEmpty else {
+                        continuation.resume(returning: [])
+                        return
+                    }
+                    // RMS energy gate: skip Whisper entirely on silent audio.
+                    // Prevents hallucinations (e.g. Russian subtitle credits) when the
+                    // remote channel is quiet and no real speech is present.
+                    var rms: Float = 0
+                    vDSP_rmsqv(samples, 1, &rms, vDSP_Length(samples.count))
+                    guard rms >= minRMS else {
+                        continuation.resume(returning: [])
+                        return
+                    }
+                    try engine.loadModel(at: modelURL)
+                    defer { engine.unloadModel() }
+                    let segs = try engine.transcribe(samples: samples, language: language)
+                    continuation.resume(returning: segs)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
         }
 
-        guard !samples.isEmpty else { return [] }
+        guard !rawSegments.isEmpty else { return [] }
 
-        // Load model, transcribe, unload
-        let engine = engineFactory()
-        defer { engine.unloadModel() }
-
-        do {
-            try engine.loadModel(at: config.modelURL)
-        } catch {
-            throw (error as? PipelineError) ?? PipelineError.transcribeModelNotFound(modelName: "")
-        }
-
-        let rawSegments = try engine.transcribe(samples: samples, language: config.language)
-
-        // Detect language (from whisper context if available; fallback to "und")
-        let detectedLanguage = config.language ?? "und"
-
-        // Map raw segments → typed TranscribedSegment, applying no-speech gate
+        let detectedLanguage = language ?? "und"
         return rawSegments
-            .filter { $0.noSpeechProb < config.noSpeechThreshold }
+            .filter { $0.noSpeechProb < noSpeechGate }
             .compactMap { seg -> TranscribedSegment? in
                 guard !seg.text.isEmpty else { return nil }
                 return TranscribedSegment(
                     segmentId: UUID(),
-                    channel: stream.channel,
+                    channel:   channel,
                     startTime: Float(seg.startMs) / 1000.0,
                     endTime:   Float(seg.endMs)   / 1000.0,
                     text:      seg.text,

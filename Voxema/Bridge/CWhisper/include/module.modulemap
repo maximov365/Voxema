@@ -1,4 +1,5 @@
 module CWhisper {
     header "whisper.h"
+    header "whisper-compat.h"
     export *
 }

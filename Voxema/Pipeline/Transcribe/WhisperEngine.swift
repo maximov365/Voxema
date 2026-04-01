@@ -31,14 +31,13 @@ public protocol WhisperEngineProtocol: AnyObject {
 
 // MARK: - WhisperEngine
 
-/// Real implementation backed by the whisper.cpp C library (via `CWhisper`).
-///
-/// Swift imports the opaque `whisper_context *` as `OpaquePointer?`.
+/// Real implementation backed by whisper.cpp v1.5.5 (via `CWhisper`).
 ///
 /// Thread safety: one instance per channel — do not share across threads.
-public final class WhisperEngine: WhisperEngineProtocol {
+/// @unchecked Sendable: all mutable state (ctx) is accessed exclusively from
+/// the single thread that owns each instance (enforced by TranscribeStage).
+public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
 
-    // whisper_context * is an opaque C struct → Swift imports as OpaquePointer
     private var ctx: OpaquePointer?
     private let log = VoxemaLogger.make(category: "transcribe.engine")
 
@@ -48,12 +47,14 @@ public final class WhisperEngine: WhisperEngineProtocol {
 
     public func loadModel(at url: URL) throws {
         unloadModel()
+        var cparams = whisper_context_default_params()
+        cparams.use_gpu = true
         let loaded: OpaquePointer? = url.withUnsafeFileSystemRepresentation { path in
             guard let path else { return nil }
-            return whisper_init_from_file(path)
+            return whisper_init_from_file_with_params(path, cparams)
         }
         guard let loaded else {
-            log.error("whisper_init_from_file returned nil")
+            log.error("whisper_init_from_file_with_params returned nil")
             throw PipelineError.transcribeModelNotFound(modelName: url.lastPathComponent)
         }
         ctx = loaded
@@ -66,26 +67,33 @@ public final class WhisperEngine: WhisperEngineProtocol {
         }
         guard !samples.isEmpty else { return [] }
 
-        var params = whisper_full_default_params()
+        // Beam search produces noticeably better transcription than greedy,
+        // especially for non-English languages. The overhead is small on GPU.
+        var params = whisper_full_default_params(WHISPER_SAMPLING_BEAM_SEARCH)
+        params.print_progress  = false
+        params.print_realtime  = false
+        params.print_special   = false
+        params.print_timestamps = false
+        // With Metal GPU, matrix math runs on-device; keep only 2 CPU threads
+        // for preprocessing so the main actor and UI remain fully responsive.
+        params.n_threads = 2
 
-        if let lang = language {
-            withUnsafeMutableBytes(of: &params.language) { buf in
-                let langBytes = Array(lang.utf8.prefix(buf.count - 1))
-                for (i, byte) in langBytes.enumerated() { buf[i] = byte }
-                if langBytes.count < buf.count { buf[langBytes.count] = 0 }
+        let langStr = language ?? "auto"
+        var segments: [WhisperSegment] = []
+
+        let rc: Int32 = langStr.withCString { langPtr in
+            params.language = langPtr
+            return samples.withUnsafeBufferPointer { buf in
+                whisper_full(ctx, params, buf.baseAddress, Int32(buf.count))
             }
         }
 
-        let result = samples.withUnsafeBufferPointer { buf in
-            whisper_full(ctx, params, buf.baseAddress, Int32(buf.count))
-        }
-        guard result == 0 else {
+        guard rc == 0 else {
             log.error("whisper_full returned non-zero")
             return []
         }
 
         let n = Int(whisper_full_n_segments(ctx))
-        var segments: [WhisperSegment] = []
         segments.reserveCapacity(n)
 
         for i in 0 ..< n {
