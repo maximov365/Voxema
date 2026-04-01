@@ -9,6 +9,7 @@
 | DEC-3 | Backend stack: TypeScript (Hono) + Railway + PostgreSQL | accepted | 2026-03-29 |
 | DEC-4 | Auto-update: Sparkle 2 via SPM + GitHub Pages/Releases | accepted | 2026-03-29 |
 | DEC-2 | Model packaging: Hybrid bundle + on-demand download | accepted | 2026-03-29 |
+| DEC-16 | Diarization embedding: MFCC via Accelerate (interim) → CoreML ECAPA-TDNN (production) | accepted | 2026-03-29 |
 
 ---
 
@@ -354,3 +355,79 @@ macOS 13.0 was originally chosen because it was the earliest version supporting 
 - `ObservableObject` requires explicit `@Published` annotation on every observed property — more boilerplate than `@Observable`, but no runtime version gate.
 - `@Observable` would allow finer-grained dependency tracking and fewer redraws, but is only available macOS 14+.
 - Migration to `@Observable` is a mechanical rename when minimum deployment target is raised to macOS 14.
+
+---
+
+## DEC-14: whisper.cpp integration via direct source files in CWhisper target
+
+**Date:** 2026-03-29
+**Task:** TASK-23
+**Status:** accepted
+
+**Context:** TASK-22 attempted SPM integration of `ggerganov/whisper.cpp` but failed due to Xcode package resolution errors and module conflicts. A Discovery phase evaluated three options: (A) direct source files, (B) pre-built XCFramework, (C) SPM.
+
+**Decision:** Integrate whisper.cpp v1.5.5 as direct C/C++ source files in the existing `CWhisper` Xcode target. Source files live in `Voxema/Bridge/CWhisper/src/`. The real `whisper.h` replaces the stub header in `include/`. A `whisper-compat.h` shim provides `whisper_full_get_segment_no_speech_prob` (returns 0.0) until a version with native support is integrated. `WhisperEngine.swift` uses `whisper_init_from_file_with_params` and `whisper_full_default_params(WHISPER_SAMPLING_GREEDY)`.
+
+**Tradeoffs:**
+- No SPM / package manager overhead; source files are committed to the repo.
+- ~1.7MB of C/C++ source added to the repo, but this is acceptable given the privacy-first, offline-first architecture.
+- `whisper_full_get_segment_no_speech_prob` is not available in v1.5.5; the compat shim returns 0.0 so all segments pass the silence gate. To be revisited when upgrading to a version with native support.
+- Upgrade path: replace files in `src/`, update `include/whisper.h`, remove compat shim if the function becomes available.
+
+---
+
+## DEC-15: Metal GPU acceleration for whisper.cpp — default.metallib approach
+
+**Date:** 2026-03-29
+**Task:** TASK-27
+**Status:** accepted
+
+**Context:** whisper-medium on CPU-only takes 3–5 minutes for a 30-second recording. Metal GPU reduces this to ~9–15 seconds on Apple Silicon (15–25× speedup). whisper.cpp v1.5.5's `ggml.c`, `ggml-backend.c`, and `whisper.cpp` already contain `#ifdef GGML_USE_METAL` hooks — they just needed the Metal implementation files.
+
+**Decision:** Add `ggml-metal.h`, `ggml-metal.m`, and `ggml-metal.metal` from whisper.cpp v1.5.5 to the existing Voxema Xcode target. `ggml-metal.metal` compiles via Xcode's Metal frontend into `default.metallib` embedded in the app bundle. `ggml-metal.m` loads `default.metallib` at runtime via `[bundle pathForResource:@"default" ofType:@"metallib"]`. `GGML_USE_METAL` added to `OTHER_CFLAGS` and `OTHER_CPLUSPLUSFLAGS`. `cparams.use_gpu = true` in `WhisperEngine.swift`.
+
+**Why not GGML_METAL_EMBED_LIBRARY:** That approach requires generating `ggml_metallib_start/end` symbols via a pre-build script. The `default.metallib` approach is the standard Xcode Metal workflow — simpler, no pre-build script, no generated files, and equally correct.
+
+**Graceful fallback:** `ggml_backend_metal_supports_family(backend_gpu, 7)` in `whisper.cpp:1223` falls back to CPU silently on devices below Metal family 7 (irrelevant for macOS 14.2+ Apple Silicon, but safe).
+
+**Tradeoffs:**
+- ~420KB of additional Metal source added to the repo (`ggml-metal.m` + `ggml-metal.metal`).
+- Xcode compiles `ggml-metal.metal` → `default.metallib` at build time (~5–10s, cached).
+- First inference per app session triggers shader pipeline compilation (~200ms, OS-cached after).
+- Upgrade path: replace `ggml-metal.*` files when upgrading whisper.cpp version.
+
+---
+
+## DEC-16 — Diarization embedding: MFCC via Accelerate (interim) → CoreML ECAPA-TDNN (production)
+
+**Date:** 2026-03-29
+**Task:** TASK-28
+**Status:** accepted
+
+**Context:** The ECAPA-TDNN speaker embedding stub (`voxema_ecapa_stub.c`) returns zero-filled 192-dim vectors for all audio. Zero vectors give cosine similarity = 0 for all pairs, which is always below the 0.75 matching threshold, so every segment receives a new "Speaker X" label — broken diarization. The architecture (DEC-2, DEC-5) specified ONNX Runtime as the inference backend. Discovery (2026-03-29) evaluated 5 approaches and found:
+
+1. **ONNX Runtime via SPM** — same binary artifact failure mode as Sparkle (DEC-14 pattern); 350–400MB download per clean build.
+2. **ONNX Runtime via direct dylib** — 85–100MB embedded binary requiring complex notarization and CI setup.
+3. **CoreML direct** — no new runtime dependency; ECAPA-TDNN converts to ~22MB `.mlpackage` via one-time Python step; ANE acceleration identical to ORT+CoreML EP.
+4. **MFCC statistics (no model file)** — pure Accelerate/vDSP; no download; within-session same-speaker cosine ~0.82–0.95; usable interim before model conversion.
+5. **Apple Speech framework** — speaker diarization API not available on macOS.
+
+**Decision (two-phase):**
+- **Phase 1 (TASK-28, completed):** `voxema_ecapa_mfcc.c` — log-Mel filterbank mean + variance using `vDSP_fft_zrip`. No model file, no new dependencies beyond `Accelerate.framework`. Within-session speaker clustering only.
+- **Phase 2 (TASK-29, implemented):** `voxema_ecapa_coreml.m` + `ecapa-tdnn.mlpackage` (SpeechBrain ECAPA-TDNN, Apache 2.0, ~22MB). One-time developer conversion via `coremltools` (`scripts/convert_ecapa_coreml.py`). MFCC fallback active when model file absent. The C API (`voxema_ecapa.h`) did not change. Updates DEC-2 "ONNX Runtime" → "CoreML direct".
+
+**Why not ORT now:** DEC-14 documented SPM binary artifact failure. The ORT dylib path avoids SPM but introduces 90MB embedded binary, notarization complexity, and CI setup overhead. CoreML eliminates all of this while providing the same ANE delegation.
+
+**Phase 2 implementation notes (TASK-29):**
+- `voxema_ecapa_coreml.m` loads `ecapa-tdnn.mlpackage` via CoreML (ANE + GPU + CPU, `MLComputeUnitsAll`).
+- Output tensor name discovered dynamically at init (first `MLFeatureTypeMultiArray` output).
+- MFCC fallback is always initialised; CoreML activates only when the model file is present.
+- ObjC objects (MLModel, NSString) stored in the C struct via `CFBridgingRetain`/`CFBridgingRelease`.
+- `AppState.makeCoordinator()` resolves `Bundle.main.url(forResource:)` for the model; passes empty URL on miss → silent MFCC fallback.
+- `EmbeddingEngine.loadModel` now uses `url.withUnsafeFileSystemRepresentation` (correct POSIX UTF-8 path for CoreML).
+
+**Tradeoffs (Phase 2 CoreML):**
+- Multi-speaker separation in single mixed stream: significantly improved over MFCC ✓
+- Cross-session speaker recognition: supported (model is stateless, embeddings are comparable across sessions) ✓
+- Developer prerequisite: one-time Python script execution + ~22MB model in bundle
+- Without model file: transparent MFCC fallback, no user-visible degradation

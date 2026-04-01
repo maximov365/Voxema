@@ -71,7 +71,7 @@ Voxema is a native macOS application (SwiftUI, Apple Silicon) that processes mee
 
 | Component | Technology | Purpose |
 |---|---|---|
-| SpeakerEmbedding | ECAPA-TDNN (ONNX Runtime, CoreML EP) | Extract voice embeddings |
+| SpeakerEmbedding | ECAPA-TDNN (CoreML, `ecapa-tdnn.mlpackage`; MFCC fallback when absent) | Extract voice embeddings |
 | VoiceProfileStore | SQLite (encrypted) | Persist known speaker profiles |
 | SpeakerMatcher | Cosine similarity | Match embeddings to known profiles |
 
@@ -80,7 +80,7 @@ Voxema is a native macOS application (SwiftUI, Apple Silicon) that processes mee
 - Match threshold: cosine similarity ≥ 0.75
 - Unknown speakers assigned temporary labels (`Speaker A`, `Speaker B`, ...)
 - User can rename/merge/delete profiles via UI
-- ECAPA-TDNN runs via ONNX Runtime with CoreML Execution Provider for ANE/GPU delegation (DEC-2)
+- ECAPA-TDNN runs via CoreML (`MLComputeUnitsAll` — ANE + GPU + CPU, DEC-16 Phase 2 / TASK-29); falls back to MFCC embeddings when `ecapa-tdnn.mlpackage` is absent
 
 ### 4. Summarize
 

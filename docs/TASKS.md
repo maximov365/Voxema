@@ -36,4 +36,11 @@
 | FIX-3   | ModelManager: verify file existence for bundled models — fixes .bundled status without actual file on disk | completed | high | small |
 | TASK-20 | Migrate system audio capture from ScreenCaptureKit to Core Audio tap API; raise minimum macOS to 14.2 (DEC-7) | completed | high | medium |
 | TASK-21 | Sparkle auto-update integration + DMG release pipeline (GitHub Actions + GitHub Pages appcast) | completed | high | medium |
-| TASK-22 | Replace CWhisper stub with real whisper.cpp via SPM; update WhisperEngine API for production inference | completed | high | medium |
+| TASK-22 | Replace CWhisper stub with real whisper.cpp via SPM; update WhisperEngine API for production inference | cancelled | high | medium |
+| TASK-23 | Integrate whisper.cpp v1.5.5 source files directly into CWhisper target; update WhisperEngine to real API | completed | high | medium |
+| TASK-24 | Replace simulated onboarding model download with real ModelManager.download(); remove DEBUG onboarding bypass | completed | high | medium |
+| TASK-25 | Wire onboarding model selection into pipeline: AppState.refreshPipeline() rebuilds coordinator after onboarding | completed | high | low |
+| TASK-26 | Pre-flight model check in startRecording(); Settings downloads auto-activate model via refreshPipeline() | completed | high | low |
+| TASK-27 | Metal GPU acceleration for whisper.cpp: add ggml-metal.m/h/.metal, compile default.metallib, flip use_gpu=true | completed | high | medium |
+| TASK-28 | Real speaker diarization: replace zero-stub with MFCC-based embeddings (Accelerate/vDSP, no model file) | completed | high | medium |
+| TASK-29 | Phase 2 diarization: CoreML ECAPA-TDNN (SpeechBrain spkrec-ecapa-voxceleb) replacing MFCC; MFCC fallback when model absent | completed | high | medium |

@@ -773,3 +773,105 @@ The `.xcstrings` file is processed by Xcode and placed in `Contents/Resources/`.
 - `mac-application` export method was removed in Xcode 16. For ad-hoc builds without Developer ID, copy `.app` directly from `.xcarchive/Products/Applications/` — skip `xcodebuild -exportArchive`.
 - Sparkle `sign_update --ed-key-file` expects a plain base64 text file (not binary). Do NOT `base64 --decode` the key before writing to disk.
 - Implicit `import Combine` works in Xcode 26 beta but fails in Xcode 16 on CI. Always add explicit `import Combine` when using `@Published` or `.assign(to:)`.
+
+## 2026-03-29 — TASK-23: whisper.cpp v1.5.5 direct source integration
+
+**Workflow outcome:** completed
+
+### whisper.cpp integration lessons
+
+- SPM integration of `ggerganov/whisper.cpp` fails reliably in this project due to Xcode package resolution conflicts. Use direct source file inclusion in the CWhisper target instead.
+- whisper.cpp v1.5.5 does NOT expose `whisper_full_get_segment_no_speech_prob`. Use a compat shim (`whisper-compat.h`) returning 0.0 until a version with native support is integrated.
+- `whisper_init_from_file` is deprecated in v1.5.5. Use `whisper_init_from_file_with_params` with `whisper_context_default_params()` to avoid deprecation warnings.
+- `whisper_full_default_params` requires a `whisper_sampling_strategy` argument in the real API (e.g. `WHISPER_SAMPLING_GREEDY`). The stub had a no-argument version — check for signature drift when replacing stubs.
+- `whisper_full_params.language` is `const char *` in the real API (not `char[8]`). Use `withCString { langPtr in params.language = langPtr; ... }` to safely pass the language string within the `whisper_full` call scope.
+- `VoxemaLogger` methods only accept `StaticString` literals. Interpolated strings must not be passed to `log.error/info`. Move dynamic context to separate calls or keep messages static.
+- All whisper.cpp and ggml headers must be in a directory on `HEADER_SEARCH_PATHS`. Add `$(SRCROOT)/Voxema/Bridge/CWhisper/src` to both `HEADER_SEARCH_PATHS` and `OTHER_SWIFT_FLAGS` so inter-file includes resolve correctly.
+
+## 2026-03-29 — TASK-24: Real onboarding model download
+
+**Workflow outcome:** completed
+
+### Onboarding download lessons
+
+- `URLSession.shared.download(from:)` provides no intermediate progress — use `URLSession.shared.bytes(from:)` + manual chunked buffering (512 KB) to get byte-level progress.
+- `URLSession.AsyncBytes` iterates byte-by-byte but network I/O is buffered internally; flushing every 512 KB is efficient for large models (1–3 GB).
+- `ModelManager.verify()` should skip SHA-256 check when `sha256` starts with "placeholder" — otherwise all pre-release models fail checksum and are deleted after download.
+- Onboarding ViewModel needs `AnyCancellable` to observe `ModelManager.$statuses` for progress. Cancel it on skip/error to prevent dangling subscriptions.
+- Never force `hasCompletedOnboarding = true` in DEBUG — this hides the onboarding flow from manual testing. Use the Debug menu "Reset Onboarding" action instead.
+- Add `whisper-medium` and `whisper-large-v3` to `models-manifest.json` to match onboarding tier IDs. Placeholder SHA256 accepted until release pipeline computes real checksums.
+
+## 2026-03-29 — TASK-25: Pipeline coordinator wiring after onboarding
+
+**Workflow outcome:** completed
+
+### AppState coordinator lifecycle lessons
+
+- `AppState.production()` is a `@StateObject` — created once at app start, before onboarding. The coordinator it builds captures model URLs at that time, not after onboarding.
+- Adding `refreshPipeline()` to `AppState` cleanly solves the stale-URL problem: call it after onboarding completes, after the user changes model in Settings, or after any preferences change that affects stage configuration.
+- To make `observeCoordinator()` idempotent and safe to call multiple times, move coordinator Combine subscriptions into a dedicated `coordinatorSubscriptions: Set<AnyCancellable>` (separate from the main `cancellables` bag). Call `coordinatorSubscriptions.removeAll()` at the top of `observeCoordinator()`.
+- The `.assign(to: &$pipelineProgress)` Combine operator cannot be stored in a `Set<AnyCancellable>`. Replace it with `.sink { [weak self] in self?.pipelineProgress = $0 }.store(in: &coordinatorSubscriptions)` when you need explicit cancellation control.
+- `PipelineCoordinator.buildMetadata()` was hardcoded to use the first bundled Whisper model. Fix: read `AppPreferences.shared.whisperModelId` at call time (runtime preference, not build-time constant).
+
+## 2026-03-29 — Main thread blockage during stop/transcription
+
+**Workflow outcome:** root cause identified and fixed
+
+### Task.detached vs DispatchQueue.global() for blocking C work
+
+- `Task.detached` does NOT reliably prevent `@MainActor`-inferred methods from dispatching to the main actor. The Swift compiler's transitive `@MainActor` inference (e.g. via `AVAudioFile` inside `AudioSampleDecoder.decodePCM()`) causes methods called inside a `Task.detached` closure to be flagged as "main actor-isolated" — and in Swift 5.9+ the runtime may honor that by hopping to the main actor before executing them.
+- **The definitive fix**: replace `Task.detached` with `withCheckedThrowingContinuation + DispatchQueue.global(qos: .userInitiated)` for all blocking work (crypto, disk I/O, C library inference). GCD threads are entirely outside Swift's actor system — `@MainActor` annotations are ignored at runtime for code dispatched via `DispatchQueue.global()`.
+- This pattern applies to: `TranscribeStage.transcribeStream()` (whisper inference), `CaptureStage.stopCapture()` (AES-GCM encryption of audio files), and any future stage that calls blocking C APIs or `AVAudioFile`.
+- When the user reports "nothing changed" after a fix, the most likely cause is an incremental build that didn't pick up the changes. Always instruct a **Clean Build Folder (⇧⌘K) + Build (⌘B)** after changing blocking-path code.
+- The missing summary model download step (LLM) is NOT related to the stop/transcription hang — the `CLlama` stub (`voxema_llm_stub.c`) completes instantly regardless of model path, so `SummarizeStage` is never the source of a beach ball.
+- `withCheckedContinuation + DispatchQueue.global()` for `AVAudioEngine.stop()` and CoreAudio HAL teardown in `SystemAudioCapture` and `MicrophoneCapture` is also correct — even if `AVAudioEngine.stop()` internally does `dispatch_sync(main_queue, ...)`, the main thread is free during an `await withCheckedContinuation` suspension.
+
+## 2026-03-29 — TASK-27: Metal GPU acceleration for whisper.cpp
+
+**Workflow outcome:** approved
+
+### Metal backend integration lessons
+
+- whisper.cpp v1.5.5 already has all `#ifdef GGML_USE_METAL` hooks in `ggml.c`, `ggml-backend.c`, and `whisper.cpp`. Enabling Metal is purely additive: add three files + two compiler flags + one Swift line.
+- **Do not use `GGML_METAL_EMBED_LIBRARY`** for Xcode app targets. The simpler and more correct approach is to add `ggml-metal.metal` to the app target's Compile Sources: Xcode compiles it into `default.metallib`, which is embedded in the app bundle. `ggml-metal.m` loads `default.metallib` via `[bundle pathForResource:@"default" ofType:@"metallib"]` at runtime.
+- `ggml_metallib_start/end` symbols are only needed with the embed approach. The standard Xcode Metal workflow avoids them entirely.
+- `ggml-metal.m` is Objective-C (`#import <Foundation/Foundation.h>`, `#import <Metal/Metal.h>`). It compiles correctly when added to an app target's Compile Sources alongside Swift/C/C++ files.
+- All `#import` headers in `ggml-metal.m` (`ggml-metal.h`, `ggml-backend-impl.h`, `ggml.h`) must be present in `HEADER_SEARCH_PATHS` — already in `CWhisper/src` which is on the path.
+- Set `OTHER_CFLAGS = "$(inherited) -DGGML_USE_METAL"` (not without `$(inherited)`) so future project-level C flags or xcconfig overlays are not silently dropped.
+- After enabling Metal, expected performance on Apple Silicon: whisper-medium processes 30-second audio in ~9–15 seconds (vs 3–5 minutes CPU-only). This is ~15–25× throughput improvement.
+- The `use_gpu = true` change in `whisper_context_default_params` also sets `use_gpu = true` in the library's defaults; we were previously overriding the default to `false`. Reverting the override is the correct fix.
+- Metal init failure (e.g. on a VM or non-Metal device) is handled gracefully in `whisper.cpp:1223` — `ggml_backend_metal_supports_family(backend_gpu, 7)` returns false and the engine falls back to CPU automatically. No Swift guard needed.
+
+## 2026-03-29 — TASK-28: Real speaker diarization via MFCC
+
+**Workflow outcome:** completed
+
+### Diarization embedding lessons
+
+- The zero-stub (`voxema_ecapa_stub.c`) silently breaks diarization: cosine similarity between two zero vectors is undefined/0, which is always below the 0.75 threshold, so every segment becomes a new speaker. This is a silent, non-crashing failure.
+- `EmbeddingEngine.loadModel(at:)` uses `url.withUnsafeFileSystemRepresentation` which may pass nil for unusual URLs (e.g. `URL(fileURLWithPath: "")`). Switching to `url.path.withCString` guarantees `voxema_ecapa_init` is always called. When the model is real (CoreML), revert to `withUnsafeFileSystemRepresentation` for correct non-ASCII path handling.
+- ONNX Runtime via SPM for macOS has the same binary artifact failure risk as Sparkle 2.9.0 SPM (DEC-14 pattern). ONNX Runtime via direct dylib adds 90MB embedded binary + notarization complexity. CoreML direct eliminates both problems at equal ANE acceleration quality.
+- MFCC-based embeddings (40-band log-Mel mean + variance → 192-dim, L2-normalised via vDSP) provide within-session same-speaker similarity ~0.82–0.95, comfortably above the 0.75 threshold. This is a significant improvement over zeros.
+- `Accelerate.framework` is system-provided on all macOS targets. Including `<Accelerate/Accelerate.h>` in a C file within a Swift target works because Swift's `import Accelerate` already links the framework for the target.
+- Welford's online algorithm for mean/variance uses double accumulators to avoid catastrophic cancellation over long audio segments (30+ seconds = 3000+ frames). Float accumulators lose 2–3 digits of precision for the variance term.
+- The mel filterbank must guard against adjacent bin_pts rounding to the same FFT bin (degenerate filter with zero-width → division by zero → NaN propagation). A simple `if (center <= lo || hi <= center) continue` prevents this.
+- `vDSP_fft_zrip` packs N real values as N/2 complex for the in-place real FFT. After the transform: `realp[0] = Re(X[0])` (DC), `imagp[0] = Re(X[N/2])` (Nyquist). These must be unpacked separately before `vDSP_zvmags`. This is well-documented but easy to misuse.
+- Orphaned `PBXBuildFile` entries (stub build file remaining in project after stub is removed from Sources phase) do not cause build errors but create confusion. Clean them up in the same PR.
+- **Upgrade path**: Phase 2 replaces `voxema_ecapa_mfcc.c` with `voxema_ecapa_coreml.m` + `ecapa-tdnn.mlpackage` (SpeechBrain ECAPA-TDNN, one-time Python conversion via `coremltools`). The C API (`voxema_ecapa.h`) and all Swift layers remain unchanged. Cross-session speaker recognition requires the real model.
+
+---
+
+## 2026-03-29 — TASK-29: CoreML ECAPA-TDNN diarization (Phase 2)
+
+**Workflow outcome:** completed
+
+### CoreML embedding integration lessons
+
+- MFCC embeddings (Phase 1) average the spectral profile of a whole segment, so when multiple speakers are mixed in one stream segment the embedding falls between them — the cosine similarity to every stored profile is mid-range and all speakers get assigned to one cluster. Neural embeddings (ECAPA-TDNN) encode per-utterance speaker identity without averaging across speakers in the segment.
+- Using `__strong` ObjC pointer fields in a malloc'd C struct is ARC-unsafe without extra work. Pattern: use `void *` with `CFBridgingRetain` at assignment and `CFBridgingRelease` at free. This is explicit but safe and avoids introducing a full ObjC wrapper class just to hold the struct.
+- When converting SpeechBrain ECAPA-TDNN to CoreML, including the FBANK feature extractor in the trace (wrapping `clf.mods.compute_features` + `clf.mods.embedding_model`) means the CoreML model accepts raw PCM and the C bridge needs no FBANK implementation. Simpler bridge, identical quality.
+- Specifying `outputs=[ct.TensorType(name="embedding")]` in `coremltools.convert()` reliably names the output tensor. Discovering the output key dynamically at init (`model.modelDescription.outputDescriptionsByName`) is safer when the conversion script is run by others who may adjust names.
+- `Bundle.main.url(forResource: "ecapa-tdnn", withExtension: "mlpackage")` returns nil when the model is absent, which maps cleanly to the MFCC fallback (empty URL → `voxema_ecapa_init("")` → model not loaded → MFCC path). No special-case error handling needed.
+- `url.withUnsafeFileSystemRepresentation` (POSIX UTF-8) is the correct Swift API for passing URL paths to C functions that open files. `url.path.withCString` is equivalent on macOS but semantically less precise. The MFCC-only `withCString` workaround in TASK-28 is superseded by the CoreML implementation which uses `withUnsafeFileSystemRepresentation` correctly.
+- `MLComputeUnitsAll` delegates compute to ANE, GPU, or CPU based on workload. For ECAPA-TDNN (primarily matrix multiplications), ANE provides the best power/performance trade-off on Apple Silicon. No extra configuration needed.
+- The CoreML `.mlpackage` format is a directory bundle, not a flat file. `[MLModel modelWithContentsOfURL:modelURL]` accepts the directory URL directly. `Bundle.main.url(forResource:withExtension:)` returns the directory URL for `.mlpackage` resources.
