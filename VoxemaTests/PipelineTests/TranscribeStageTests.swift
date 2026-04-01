@@ -247,6 +247,53 @@ final class TranscribeStageTests: XCTestCase {
 
     // MARK: - Cancel
 
+    // MARK: - Rolling context prompt
+
+    func testRollingContextPassedToSecondStream() async throws {
+        // The text from the first stream should be appended to initialPrompt
+        // and passed to the second stream's engine call.
+        let mock = makeMockEngine()
+        mock.segmentsToReturn = [WhisperSegment(startMs: 0, endMs: 1000, text: "Hello world", noSpeechProb: 0.1)]
+        let config = TranscribeConfiguration(
+            modelURL: tempDir.appendingPathComponent("model.gguf"),
+            noSpeechThreshold: 0.5,
+            minAudioRMS: 0.0,
+            encryptionKeyId: encKeyId,
+            initialPrompt: "Meeting:"
+        )
+        let stage = TranscribeStage(engineFactory: { mock }, config: config)
+        let s1 = try makeSilentEncFile(channel: .local)
+        let s2 = try makeSilentEncFile(channel: .remote)
+        _ = try await stage.run([s1, s2])
+        // Second call prompt must contain text from first stream
+        XCTAssertTrue(
+            mock.lastInitialPrompt?.contains("Hello world") == true,
+            "Second stream prompt should contain first stream's transcript, got: \(mock.lastInitialPrompt ?? "nil")"
+        )
+    }
+
+    func testRollingContextCappedAt448Chars() async throws {
+        // Prompt must never exceed 448 chars (Whisper prompt window ~224 tokens)
+        let mock = makeMockEngine()
+        let longText = String(repeating: "word ", count: 200) // 1000 chars
+        mock.segmentsToReturn = [WhisperSegment(startMs: 0, endMs: 1000, text: longText, noSpeechProb: 0.1)]
+        let config = TranscribeConfiguration(
+            modelURL: tempDir.appendingPathComponent("model.gguf"),
+            noSpeechThreshold: 0.5,
+            minAudioRMS: 0.0,
+            encryptionKeyId: encKeyId,
+            initialPrompt: "Meeting:"
+        )
+        let stage = TranscribeStage(engineFactory: { mock }, config: config)
+        let s1 = try makeSilentEncFile(channel: .local)
+        let s2 = try makeSilentEncFile(channel: .remote)
+        _ = try await stage.run([s1, s2])
+        XCTAssertLessThanOrEqual(
+            mock.lastInitialPrompt?.count ?? 0, 448,
+            "Rolling prompt must be capped at 448 chars"
+        )
+    }
+
     func testCancelDuringRunStopsSubsequentChannels() async throws {
         // cancel() called before run() has no effect (run resets the flag).
         // Verify that cancel() at minimum does not crash and that a fresh run

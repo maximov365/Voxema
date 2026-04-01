@@ -166,12 +166,28 @@ public final class TranscribeStage: TranscribeStageProtocol {
 
         log.info("TranscribeStage.run started")
 
-        // Transcribe each channel independently; collect results in order
+        // Rolling context: after each stream is transcribed, the last ~200 chars
+        // of its output are appended to the initial_prompt for subsequent streams.
+        // This lets Whisper recognise domain terms and speaker names established
+        // in one channel when it processes the other channel.
+        // Capped at 448 chars (~224 tokens) to stay within Whisper's prompt window.
+        var rollingPrompt: String = config.initialPrompt ?? ""
+
         var allSegments: [TranscribedSegment] = []
         for stream in streams {
             if isCancelled { throw PipelineError.transcribeAudioFileEmpty }
-            let segments = try await transcribeStream(stream)
+            let segments = try await transcribeStream(stream, prompt: rollingPrompt.isEmpty ? nil : rollingPrompt)
             allSegments.append(contentsOf: segments)
+
+            // Update rolling context with the tail of this channel's transcript
+            let tail = segments.map(\.text).joined(separator: " ")
+            if !tail.isEmpty {
+                let combined = rollingPrompt.isEmpty ? tail : rollingPrompt + " " + tail
+                // Keep only the last 448 chars so we never overflow the prompt window
+                rollingPrompt = combined.count > 448
+                    ? String(combined.suffix(448))
+                    : combined
+            }
         }
 
         log.info("TranscribeStage.run complete")
@@ -185,7 +201,7 @@ public final class TranscribeStage: TranscribeStageProtocol {
 
     // MARK: - Private
 
-    private func transcribeStream(_ stream: AudioStream) async throws -> [TranscribedSegment] {
+    private func transcribeStream(_ stream: AudioStream, prompt: String?) async throws -> [TranscribedSegment] {
         let encURL        = URL(fileURLWithPath: stream.filePath)
         let channel       = stream.channel
         let modelURL      = config.modelURL
@@ -193,7 +209,7 @@ public final class TranscribeStage: TranscribeStageProtocol {
         let language      = config.language
         let noSpeechGate  = config.noSpeechThreshold
         let minRMS        = config.minAudioRMS
-        let initialPrompt = config.initialPrompt
+        let initialPrompt = prompt
         let engine        = engineFactory()
 
         // Use withCheckedThrowingContinuation + DispatchQueue.global() instead of
