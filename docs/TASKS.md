@@ -45,3 +45,4 @@
 | TASK-28 | Real speaker diarization: replace zero-stub with MFCC-based embeddings (Accelerate/vDSP, no model file) | completed | high | medium |
 | TASK-29 | Phase 2 diarization: CoreML ECAPA-TDNN (SpeechBrain spkrec-ecapa-voxceleb) replacing MFCC; MFCC fallback when model absent | completed | high | medium |
 | TASK-30 | Quality improvements: Whisper initialPrompt context hint, RMS normalisation, DiarizeStage short-segment guard (≥1.5s), whisper-small default | completed | high | medium |
+| TASK-31 | Replace llama.cpp stub with real inference: build llama.xcframework (Metal GPU, arm64), implement voxema_llm_gguf.mm, Embed Frameworks phase | completed | high | large |
