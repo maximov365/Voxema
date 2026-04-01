@@ -7,7 +7,6 @@ struct LibrarySidebarView: View {
     var body: some View {
         VStack(spacing: 0) {
             recordButton
-            searchBar
             meetingList
         }
     }
@@ -59,34 +58,6 @@ struct LibrarySidebarView: View {
         switch appState.pipelineState {
         case .idle, .complete, .failed, .cancelled: return false
         default: return true
-        }
-    }
-
-    @ViewBuilder
-    private var searchBar: some View {
-        if !appState.meetings.isEmpty || !appState.searchQuery.isEmpty {
-            HStack(spacing: 6) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.tertiary)
-                TextField("Search meetings…", text: $appState.searchQuery)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 12))
-                if !appState.searchQuery.isEmpty {
-                    Button { appState.searchQuery = "" } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.tertiary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .padding(.horizontal, 10)
-            .padding(.bottom, 6)
         }
     }
 
@@ -172,7 +143,7 @@ struct MeetingRowView: View {
             .font(.system(size: 11))
             .foregroundStyle(.secondary)
         }
-        .padding(.vertical, 1)
+        .padding(.vertical, 3)
     }
 
     private var relativeDate: String {

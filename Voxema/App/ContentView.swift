@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var appState: AppState
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -12,6 +13,23 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationSplitViewStyle(.balanced)
+        .searchable(
+            text: $appState.searchQuery,
+            placement: .toolbar,
+            prompt: "Search meetings…"
+        )
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    openSettings()
+                } label: {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 13))
+                }
+                .help("Settings")
+                .keyboardShortcut(",", modifiers: .command)
+            }
+        }
         .alert(
             "Recording Error",
             isPresented: Binding(

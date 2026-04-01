@@ -391,7 +391,6 @@ private struct TranscriptTabView: View {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(meeting.transcript) { segment in
                     TranscriptSegmentRow(segment: segment)
-                    Divider().opacity(0.4)
                 }
             }
             .padding(18)
@@ -421,7 +420,7 @@ private struct TranscriptSegmentRow: View {
                     .textSelection(.enabled)
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 5)
     }
 
     private var formattedTime: String {
