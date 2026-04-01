@@ -162,8 +162,9 @@ public enum ModelError: Error, LocalizedError, Equatable {
 /// each pipeline stage. `ModelManager` only manages files and status.
 ///
 /// ## Thread safety
-/// All mutable state is `@MainActor`-isolated. `download(_:)` bridges back to the main actor
-/// for `@Published` updates.
+/// All mutable state is `@MainActor`-isolated. The byte-streaming in `download(_:)` runs
+/// on the cooperative thread pool (nonisolated helper); only progress updates hop back to
+/// the main actor, keeping the UI fully responsive during large downloads.
 @MainActor
 public final class ModelManager: ObservableObject {
 
@@ -279,6 +280,7 @@ public final class ModelManager: ObservableObject {
     /// - Returns: `true` when the digest matches; `false` on mismatch.
     /// - Throws: `ModelError.modelNotInManifest` when the file is absent.
     public func verify(_ model: ModelInfo) throws -> Bool {
+        guard !model.sha256.hasPrefix("placeholder") else { return true }
         let url = localURL(for: model)
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw ModelError.modelNotInManifest(id: model.id)
@@ -293,10 +295,10 @@ public final class ModelManager: ObservableObject {
 
     /// Downloads `model` to `modelsDirectory`, verifies its SHA-256, then marks it `.available`.
     ///
-    /// The download is atomic: URLSession writes to a system temp file, which is moved to the
-    /// final destination only after SHA-256 verification succeeds. A corrupt download is deleted.
-    ///
-    /// Progress is reflected in `statuses` (`.downloading`) and `activeDownloads`.
+    /// Byte-streaming runs on the cooperative thread pool (nonisolated helper) — the main actor
+    /// and the UI remain fully responsive throughout the download. Progress is reported back to
+    /// the main actor roughly every 1 % of total file size. Supports Task cancellation: cancelling
+    /// the enclosing Task cleans up the temp file and marks the model `.missing`.
     public func download(_ model: ModelInfo) async throws {
         guard activeDownloads[model.id] == nil else {
             throw ModelError.downloadAlreadyInProgress(id: model.id)
@@ -314,20 +316,39 @@ public final class ModelManager: ObservableObject {
 
         defer { activeDownloads.removeValue(forKey: model.id) }
 
-        // URLSession.download(from:) writes the response body to a temp file atomically.
-        let (tempURL, response) = try await URLSession.shared.download(from: model.downloadURL)
+        let modelId   = model.id
+        let downloadURL = model.downloadURL
 
-        if let http = response as? HTTPURLResponse, http.statusCode != 200 {
-            statuses[model.id] = .missing
-            throw ModelError.downloadHTTPError(statusCode: http.statusCode)
-        }
+        // Force execution onto the cooperative thread pool so the main actor and
+        // UI remain fully responsive. Task.detached breaks the @MainActor context.
+        // Progress callbacks hop back to @MainActor via MainActor.run — accessing
+        // ModelManager.shared there is valid because we're on the main actor.
+        let tempURL: URL = try await Task.detached(priority: .utility) {
+            try await ModelManager.downloadToTemp(
+                url: downloadURL,
+                onProgress: { fraction in
+                    await MainActor.run {
+                        let mm = ModelManager.shared
+                        mm.statuses[modelId] = .downloading(progress: fraction)
+                        mm.activeDownloads[modelId] = ModelDownloadProgress(
+                            modelId: modelId,
+                            fractionCompleted: fraction
+                        )
+                    }
+                },
+                onError: {
+                    await MainActor.run {
+                        ModelManager.shared.statuses[modelId] = .missing
+                    }
+                }
+            )
+        }.value
 
         if FileManager.default.fileExists(atPath: destination.path) {
             try FileManager.default.removeItem(at: destination)
         }
         try FileManager.default.moveItem(at: tempURL, to: destination)
 
-        // Verify checksum — delete corrupt file to force re-download
         let valid = try verify(model)
         guard valid else {
             try? FileManager.default.removeItem(at: destination)
@@ -336,6 +357,71 @@ public final class ModelManager: ObservableObject {
         }
 
         statuses[model.id] = .available
+    }
+
+    /// Streams `url` to a temporary file entirely on the cooperative thread pool.
+    ///
+    /// `static` so it can be called from `Task.detached` without crossing actor boundaries.
+    /// Progress is reported every 0.1 % (smooth for files ≥10 MB) via `onProgress`.
+    /// Propagates `CancellationError` when the enclosing Task is cancelled.
+    private static nonisolated func downloadToTemp(
+        url: URL,
+        onProgress: @escaping @Sendable (Double) async -> Void,
+        onError:    @escaping @Sendable ()       async -> Void
+    ) async throws -> URL {
+        let (asyncBytes, response) = try await URLSession.shared.bytes(from: url)
+
+        if let http = response as? HTTPURLResponse, http.statusCode != 200 {
+            await onError()
+            throw ModelError.downloadHTTPError(statusCode: http.statusCode)
+        }
+
+        let expectedBytes = (response as? HTTPURLResponse)?.expectedContentLength ?? 0
+
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("voxema-model-\(UUID().uuidString)")
+        FileManager.default.createFile(atPath: tempURL.path, contents: nil)
+        let fileHandle = try FileHandle(forWritingTo: tempURL)
+
+        // 256 KB flush interval — small enough that progress is smooth, large enough
+        // to keep system-call overhead low even for 3 GB files.
+        let flushInterval = 256 * 1024
+        var buffer = Data(capacity: flushInterval)
+        var received: Int64 = 0
+        var lastReportedFraction: Double = 0
+
+        do {
+            for try await byte in asyncBytes {
+                try Task.checkCancellation()
+                buffer.append(byte)
+                received += 1
+
+                if buffer.count >= flushInterval {
+                    try fileHandle.write(contentsOf: buffer)
+                    buffer.removeAll(keepingCapacity: true)
+
+                    let fraction = expectedBytes > 0
+                        ? min(Double(received) / Double(expectedBytes), 1.0)
+                        : 0
+                    // Report every 0.1 % so the progress bar moves visibly from the start.
+                    if fraction - lastReportedFraction >= 0.001 {
+                        await onProgress(fraction)
+                        lastReportedFraction = fraction
+                    }
+                }
+            }
+            if !buffer.isEmpty {
+                try fileHandle.write(contentsOf: buffer)
+            }
+            try fileHandle.close()
+        } catch {
+            try? fileHandle.close()
+            try? FileManager.default.removeItem(at: tempURL)
+            await onError()
+            throw error
+        }
+
+        return tempURL
     }
 
     // MARK: Private

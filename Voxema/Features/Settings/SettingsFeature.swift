@@ -23,8 +23,28 @@ struct SettingsView: View {
 
 private struct GeneralSettingsTab: View {
 
+    @EnvironmentObject private var appState: AppState
     @State private var availableMics: [AVCaptureDevice] = []
     @State private var selectedUID: String = AppPreferences.shared.microphoneDeviceUID
+    @State private var selectedLanguage: String = AppPreferences.shared.whisperLanguage
+
+    private let languages: [(code: String, label: String)] = [
+        ("auto",  "Auto-detect"),
+        ("ru",    "Russian (ru)"),
+        ("en",    "English (en)"),
+        ("de",    "German (de)"),
+        ("fr",    "French (fr)"),
+        ("es",    "Spanish (es)"),
+        ("it",    "Italian (it)"),
+        ("zh",    "Chinese (zh)"),
+        ("ja",    "Japanese (ja)"),
+        ("ko",    "Korean (ko)"),
+        ("pt",    "Portuguese (pt)"),
+        ("nl",    "Dutch (nl)"),
+        ("pl",    "Polish (pl)"),
+        ("tr",    "Turkish (tr)"),
+        ("uk",    "Ukrainian (uk)"),
+    ]
 
     var body: some View {
         Form {
@@ -39,12 +59,29 @@ private struct GeneralSettingsTab: View {
             } header: {
                 Text(String(localized: "Microphone"))
             } footer: {
-                Text(String(localized: "Changes take effect on the next app launch."))
+                Text(String(localized: "Changes take effect on the next recording."))
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Picker(String(localized: "Transcription language"), selection: $selectedLanguage) {
+                    ForEach(languages, id: \.code) { lang in
+                        Text(lang.label).tag(lang.code)
+                    }
+                }
+                .onChange(of: selectedLanguage) {
+                    AppPreferences.shared.whisperLanguage = $0
+                    appState.refreshPipeline()
+                }
+            } header: {
+                Text(String(localized: "Language"))
+            } footer: {
+                Text(String(localized: "Force a specific language to improve accuracy. Auto-detect works well for English; for other languages, setting explicitly gives significantly better results."))
                     .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
-        .frame(width: 500, height: 160)
+        .frame(width: 500, height: 260)
         .onAppear { loadMics() }
     }
 
@@ -62,6 +99,7 @@ private struct GeneralSettingsTab: View {
 
 private struct ModelsSettingsTab: View {
 
+    @EnvironmentObject private var appState: AppState
     @ObservedObject private var mm = ModelManager.shared
     @State private var selectedWhisperID: String = AppPreferences.shared.whisperModelId
 
@@ -78,7 +116,7 @@ private struct ModelsSettingsTab: View {
             } header: {
                 Text(String(localized: "Transcription Model"))
             } footer: {
-                Text(String(localized: "Changes take effect on the next app launch."))
+                Text(String(localized: "Select and download a model. Changes apply immediately after download."))
                     .foregroundStyle(.secondary)
             }
         }
@@ -99,6 +137,7 @@ private struct ModelsSettingsTab: View {
                 guard isReady else { return }
                 selectedWhisperID = model.id
                 AppPreferences.shared.whisperModelId = model.id
+                appState.refreshPipeline()
             } label: {
                 ZStack {
                     Circle()
@@ -135,7 +174,15 @@ private struct ModelsSettingsTab: View {
             // Download button for non-bundled missing models
             if status == .missing || status == .corrupt {
                 Button(String(localized: "Download")) {
-                    Task { try? await mm.download(model) }
+                    Task {
+                        try? await mm.download(model)
+                        // Auto-select and activate this model once downloaded
+                        if mm.statuses[model.id] == .available {
+                            selectedWhisperID = model.id
+                            AppPreferences.shared.whisperModelId = model.id
+                            appState.refreshPipeline()
+                        }
+                    }
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)

@@ -59,6 +59,26 @@ final class OnboardingViewModel: ObservableObject {
     @Published private(set) var downloadProgress: Double = 0
     @Published private(set) var downloadError: String? = nil
     @Published var skipDownload = false
+    private var cancellable: AnyCancellable?
+    private var downloadTask: Task<Void, Never>?
+
+    /// Human-readable "X MB / Y GB" progress label derived from fraction + manifest size.
+    var downloadSizeLabel: String {
+        guard let modelID = selectedWhisperModel,
+              let model = ModelManager.shared.manifest.models.first(where: { $0.id == modelID }) else {
+            return ""
+        }
+        let total = Double(model.sizeBytes)
+        let totalStr = formatBytes(total)
+        guard downloadProgress > 0 else { return totalStr }
+        return "\(formatBytes(downloadProgress * total)) / \(totalStr)"
+    }
+
+    private func formatBytes(_ bytes: Double) -> String {
+        if bytes >= 1_000_000_000 { return String(format: "%.1f GB", bytes / 1_000_000_000) }
+        if bytes >= 1_000_000     { return String(format: "%.0f MB", bytes / 1_000_000) }
+        return String(format: "%.0f KB", bytes / 1_000)
+    }
 
     // Summarization step
     @Published var selectedSummarizationTier = 1   // 0=local-light, 1=local-mid, 2=cloud
@@ -216,21 +236,64 @@ final class OnboardingViewModel: ObservableObject {
 
     func startModelDownload() {
         guard let modelID = selectedWhisperModel else { advance(); return }
+
+        let mm = ModelManager.shared
+
+        guard let model = mm.manifest.models.first(where: { $0.id == modelID }) else {
+            advance()
+            return
+        }
+
+        // Already on disk — skip straight through
+        switch mm.statuses[modelID] {
+        case .available, .bundled:
+            advance()
+            return
+        default:
+            break
+        }
+
         isDownloading = true
         downloadError = nil
         downloadProgress = 0
-        Task { @MainActor in
-            for i in 1...20 {
-                try? await Task.sleep(nanoseconds: 150_000_000)
-                downloadProgress = Double(i) / 20.0
+
+        // Observe ModelManager progress on each status update
+        cancellable = mm.$statuses
+            .receive(on: RunLoop.main)
+            .compactMap { $0[modelID] }
+            .sink { [weak self] status in
+                guard let self else { return }
+                if case .downloading(let p) = status {
+                    self.downloadProgress = p
+                }
             }
-            isDownloading = false
-            _ = modelID
-            advance()
+
+        downloadTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                try await mm.download(model)
+                self.cancellable = nil
+                self.downloadTask = nil
+                self.isDownloading = false
+                self.advance()
+            } catch is CancellationError {
+                self.cancellable = nil
+                self.downloadTask = nil
+                self.isDownloading = false
+            } catch {
+                self.cancellable = nil
+                self.downloadTask = nil
+                self.isDownloading = false
+                self.downloadError = error.localizedDescription
+            }
         }
     }
 
     func skipModelDownload() {
+        downloadTask?.cancel()
+        downloadTask = nil
+        cancellable = nil
+        isDownloading = false
         skipDownload = true
         advance()
     }
@@ -330,14 +393,14 @@ struct OnboardingView: View {
             }
 
         case .download:
-            if !vm.isDownloading {
-                HStack(spacing: 10) {
-                    backButton
-                    Spacer()
-                    Button(String(localized: "Skip for now")) { vm.skipModelDownload() }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.secondary)
+            HStack(spacing: 10) {
+                if !vm.isDownloading { backButton }
+                Spacer()
+                Button(String(localized: "Skip for now")) { vm.skipModelDownload() }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.secondary)
+                if !vm.isDownloading && vm.downloadError == nil {
                     primaryButton(label: String(localized: "Download")) { vm.startModelDownload() }
                 }
             }
@@ -635,21 +698,39 @@ private struct DownloadStep: View {
                 subtitle: String(localized: "Downloading \(selectedTierName). The model is stored locally and used for all future transcriptions.")
             )
             if vm.isDownloading {
-                VStack(spacing: 8) {
-                    ProgressView(value: vm.downloadProgress)
-                        .progressViewStyle(.linear)
-                        .tint(.accentColor)
-                    Text("\(Int(vm.downloadProgress * 100))%")
+                VStack(spacing: 6) {
+                    if vm.downloadProgress > 0 {
+                        ProgressView(value: vm.downloadProgress)
+                            .progressViewStyle(.linear)
+                            .tint(.accentColor)
+                        HStack {
+                            Text("\(Int(vm.downloadProgress * 100))%")
+                            Spacer()
+                            Text(vm.downloadSizeLabel)
+                        }
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
+                    } else {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .scaleEffect(0.7)
+                        Text(String(localized: "Connecting…"))
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
                 }
                 .padding(.horizontal, 20)
             }
             if let err = vm.downloadError {
-                Text(err)
-                    .font(.system(size: 12))
-                    .foregroundColor(.red)
-                    .multilineTextAlignment(.center)
+                VStack(spacing: 8) {
+                    Text(err)
+                        .font(.system(size: 12))
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                    Button(String(localized: "Retry")) { vm.startModelDownload() }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                }
             }
             Spacer()
         }

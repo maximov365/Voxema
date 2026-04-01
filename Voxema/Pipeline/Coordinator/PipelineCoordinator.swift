@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import Accelerate
 
 /// Orchestrates the five pipeline stages sequentially.
 ///
@@ -46,14 +47,15 @@ public final class PipelineCoordinator: ObservableObject {
         diarizeStage:    any DiarizeStageProtocol,
         summarizeStage:  any SummarizeStageProtocol,
         exportStage:     any ExportStageProtocol,
-        modelManager:    ModelManager = .shared
+        modelManager:    ModelManager? = nil
     ) {
         self.captureStage    = captureStage
         self.transcribeStage = transcribeStage
         self.diarizeStage    = diarizeStage
         self.summarizeStage  = summarizeStage
         self.exportStage     = exportStage
-        self.modelManager    = modelManager
+        // Resolve inside the @MainActor init body — default expressions are non-isolated
+        self.modelManager    = modelManager ?? .shared
     }
 
     // MARK: - Recording Lifecycle
@@ -137,14 +139,16 @@ public final class PipelineCoordinator: ObservableObject {
         // ── Transcribe ──────────────────────────────────────────────────
         log.info("stage transcribe starting")
         updateProgress(.transcribing(progress: 0))
-        let segments: [TranscribedSegment]
+        let rawSegments: [TranscribedSegment]
         do {
-            segments = try await transcribeStage.run(streams)
+            rawSegments = try await transcribeStage.run(streams)
         } catch {
             let err = asPipelineError(error, fallback: .transcribeAudioFileCorrupt)
             state = .failed(err); throw err
         }
-        log.info("stage transcribe complete", "segments=\(segments.count)")
+        // Secondary text-based filter: remove any remaining local-channel duplicates.
+        let segments = filterAcousticBleed(from: rawSegments)
+        log.info("stage transcribe complete", "segments=\(segments.count) (raw=\(rawSegments.count))")
 
         // ── Diarize ─────────────────────────────────────────────────────
         log.info("stage diarize starting")
@@ -202,16 +206,147 @@ public final class PipelineCoordinator: ObservableObject {
         state = .processing(stage)
     }
 
+    // MARK: - Acoustic bleed filters
+
+    /// Primary filter — energy-based.
+    ///
+    /// Decrypts and measures RMS energy of each channel.
+    /// If the local channel's energy is < `ratio` of the remote channel's energy,
+    /// the user was not speaking (the mic only recorded acoustic bleed) and the
+    /// entire local channel is dropped before transcription.
+    ///
+    /// Typical ratios:
+    ///   - User silent, speakers playing:   0.02 – 0.10  → dropped  ✓
+    ///   - User speaking actively:          0.40 – 2.00  → kept     ✓
+    ///   - Headphone leakage + some speech: 0.15 – 0.40  → kept     ✓
+    ///
+    /// AudioSampleDecoder.decode is @MainActor (uses EncryptionManager), so we
+    /// call it sequentially here on the main actor. The two file reads complete
+    /// in < 200 ms for typical meeting recordings and do not block the UI
+    /// because the coordinator is already suspended on an `await` at this point.
+    private func filterSilentLocalChannel(
+        _ streams: [AudioStream],
+        ratio: Float = 0.25
+    ) async -> [AudioStream] {
+        let keyId = "com.voxema.app.capture-audio-key"
+        var rms: [AudioChannel: Float] = [:]
+
+        for stream in streams {
+            let url = URL(fileURLWithPath: stream.filePath)
+            guard let samples = try? AudioSampleDecoder.decode(
+                from: url, encryptionKeyId: keyId),
+                  !samples.isEmpty
+            else { continue }
+            var result: Float = 0
+            vDSP_rmsqv(samples, 1, &result, vDSP_Length(samples.count))
+            rms[stream.channel] = result
+        }
+
+        let localRMS  = rms[.local]  ?? 0
+        let remoteRMS = rms[.remote] ?? 0
+        guard remoteRMS > 0 else { return streams }
+
+        let energyRatio = localRMS / remoteRMS
+        log.info("channel energy computed", "ratio=\(String(format: "%.3f", energyRatio))")
+
+        if energyRatio < ratio {
+            log.info("local channel skipped — user was silent",
+                     "ratio=\(String(format: "%.3f", energyRatio))")
+            return streams.filter { $0.channel != .local }
+        }
+        return streams
+    }
+
+    /// Secondary filter — text-based.
+    ///
+    /// Removes any remaining local-channel segments that duplicate a remote segment.
+    /// Uses character 4-gram similarity so Russian (and other morphologically rich)
+    /// word-form variants are caught: "открывают"/"открывает", "отложило"/"отложил"
+    /// share most 4-gram substrings even though they are different word forms.
+    private func filterAcousticBleed(
+        from segments: [TranscribedSegment],
+        timeTolerance: Float = 15.0,
+        similarityThreshold: Double = 0.35
+    ) -> [TranscribedSegment] {
+        let remote = segments.filter { $0.channel == .remote }
+        guard !remote.isEmpty else { return segments }
+
+        return segments.filter { seg in
+            guard seg.channel == .local else { return true }
+            guard !seg.text.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
+
+            let isDuplicate = remote.contains { rSeg in
+                guard abs(seg.startTime - rSeg.startTime) <= timeTolerance else { return false }
+                // Take the max of word-level and char-4-gram similarity.
+                // Word-level handles exact duplicates; n-gram handles inflected variants.
+                let sim = max(
+                    oneSidedWordOverlap(seg.text, rSeg.text),
+                    charNgramSimilarity(seg.text, rSeg.text)
+                )
+                return sim >= similarityThreshold
+            }
+            if isDuplicate {
+                log.info("bleed segment removed", "t=\(seg.startTime)")
+            }
+            return !isDuplicate
+        }
+    }
+
+    /// One-sided word overlap: |intersection| / min(|A|, |B|).
+    private func oneSidedWordOverlap(_ a: String, _ b: String) -> Double {
+        func words(_ s: String) -> Set<String> {
+            Set(
+                s.lowercased()
+                    .components(separatedBy: .whitespacesAndNewlines)
+                    .map { $0.trimmingCharacters(in: .punctuationCharacters) }
+                    .filter { !$0.isEmpty }
+            )
+        }
+        let wa = words(a)
+        let wb = words(b)
+        let smaller = Double(min(wa.count, wb.count))
+        guard smaller > 0 else { return 0 }
+        return Double(wa.intersection(wb).count) / smaller
+    }
+
+    /// One-sided character 4-gram similarity: |intersection| / min(|ngrams_A|, |ngrams_B|).
+    ///
+    /// Morphology-agnostic: inflected forms of the same root share most 4-gram substrings.
+    /// Example: "открывают" and "открывает" share "откр","ткры","крыв","рыва","ывае","вает".
+    private func charNgramSimilarity(_ a: String, _ b: String, n: Int = 4) -> Double {
+        func ngrams(_ s: String) -> Set<String> {
+            let chars = s.lowercased().unicodeScalars
+                .filter { CharacterSet.letters.union(.decimalDigits).contains($0) }
+                .map(Character.init)
+            guard chars.count >= n else { return [] }
+            var result = Set<String>()
+            result.reserveCapacity(chars.count - n + 1)
+            for i in 0 ... (chars.count - n) {
+                result.insert(String(chars[i ..< i + n]))
+            }
+            return result
+        }
+        let ga = ngrams(a)
+        let gb = ngrams(b)
+        let smaller = Double(min(ga.count, gb.count))
+        guard smaller > 0 else { return 0 }
+        return Double(ga.intersection(gb).count) / smaller
+    }
+
     private func asPipelineError(_ error: Error, fallback: PipelineError) -> PipelineError {
         (error as? PipelineError) ?? fallback
     }
 
     private func buildMetadata(segments: [TranscribedSegment], summary: MeetingSummary) -> MeetingMetadata {
         let wordCount = segments.reduce(0) { $0 + $1.text.split(separator: " ").count }
-        let bundledWhisper = modelManager.manifest.models
-            .first { $0.family == .whisper && $0.isBundled }?.id ?? "whisper-tiny"
+        let whisperModelId: String = {
+            let id = AppPreferences.shared.whisperModelId
+            if !id.isEmpty { return id }
+            return modelManager.manifest.models
+                .first { $0.family == .whisper && $0.isBundled }?.id ?? "whisper-tiny"
+        }()
         return MeetingMetadata(
-            whisperModel: bundledWhisper,
+            whisperModel: whisperModelId,
             summaryProvider: summary.providerUsed.rawValue,
             languageDetected: segments.first?.language ?? "unknown",
             segmentCount: segments.count,

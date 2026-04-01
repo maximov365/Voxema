@@ -37,6 +37,10 @@ public final class AppState: ObservableObject {
     }
     /// Elapsed seconds since recording started (driven by `timerTask`).
     @Published public private(set) var recordingDuration: TimeInterval = 0
+    /// Elapsed seconds since processing started (driven by `processingTimerTask`).
+    /// Counts up from 0 while `pipelineState` is `.processing(...)` so the UI
+    /// can show a live "processing for Xs…" indicator instead of a static subtitle.
+    @Published public private(set) var processingElapsed: Int = 0
     /// Last pipeline error surfaced to the UI.
     @Published public var pipelineError: PipelineError?
     /// `true` while notifications permission is being requested.
@@ -49,14 +53,18 @@ public final class AppState: ObservableObject {
 
     // MARK: - Dependencies
 
-    public let coordinator: PipelineCoordinator
+    public private(set) var coordinator: PipelineCoordinator
     private let store: MeetingStore
     private let log = VoxemaLogger.make(category: "app.state")
 
     // MARK: - Private
 
     private var cancellables = Set<AnyCancellable>()
+    /// Separate bag for coordinator-only Combine subscriptions so `refreshPipeline()`
+    /// can cancel only those without touching unrelated subscriptions.
+    private var coordinatorSubscriptions = Set<AnyCancellable>()
     private var timerTask: Task<Void, Never>?
+    private var processingTimerTask: Task<Void, Never>?
 
     // MARK: - Init
 
@@ -94,7 +102,9 @@ public final class AppState: ObservableObject {
             else { return URL(fileURLWithPath: "") }
             return mm.localURL(for: model)
         }()
-        let transcribeConfig = TranscribeConfiguration(modelURL: whisperURL)
+        let langPref = prefs.whisperLanguage
+        let languageOverride: String? = (langPref == "auto" || langPref.isEmpty) ? nil : langPref
+        let transcribeConfig = TranscribeConfiguration(modelURL: whisperURL, language: languageOverride)
 
         // Summarization: resolve provider + LLM model
         let provider: ProviderType = prefs.summarizationProvider == "cloud" ? .cloud : .local
@@ -113,10 +123,17 @@ public final class AppState: ObservableObject {
             localModelURL: llmURL
         )
 
+        // Diarize: resolve ecapa-tdnn.mlpackage from bundle (CoreML Phase 2).
+        // Empty URL → MFCC fallback inside voxema_ecapa_coreml.m (no crash, no config needed).
+        let ecapaURL: URL = Bundle.main
+            .url(forResource: "ecapa-tdnn", withExtension: "mlpackage")
+            ?? URL(fileURLWithPath: "")
+        let diarizeConfig = DiarizeConfiguration(modelURL: ecapaURL)
+
         return PipelineCoordinator(
             captureStage:    CaptureStage(config: captureConfig),
             transcribeStage: TranscribeStage(config: transcribeConfig),
-            diarizeStage:    DiarizeStage(),
+            diarizeStage:    DiarizeStage(config: diarizeConfig),
             summarizeStage:  SummarizeStage(config: summarizeConfig),
             exportStage:     (try? ExportStage()) ?? ExportStage.failing
         )
@@ -142,8 +159,32 @@ public final class AppState: ObservableObject {
         pipelineError = nil
         permissionRequired = nil
         recordingDuration = 0
-        // If the coordinator is stuck in .failed from a previous attempt, reset to .idle
-        if case .failed = coordinator.state { coordinator.reset() }
+
+        // Pre-flight: verify the selected Whisper model file is on disk before
+        // starting capture. Failing here is instant; failing after capture wastes
+        // the entire recording session.
+        let mm = ModelManager.shared
+        let whisperModelId = AppPreferences.shared.whisperModelId
+        if !whisperModelId.isEmpty,
+           let model = mm.manifest.models.first(where: { $0.id == whisperModelId && $0.family == .whisper }) {
+            let status = mm.statuses[whisperModelId] ?? .missing
+            switch status {
+            case .missing, .corrupt:
+                pipelineError = .transcribeModelNotFound(modelName: whisperModelId)
+                log.warning("startRecording blocked: whisper model not on disk")
+                return
+            default:
+                break
+            }
+        }
+
+        // Reset any terminal state (failed, complete, or cancelled) before starting.
+        switch coordinator.state {
+        case .failed, .complete, .cancelled:
+            coordinator.reset()
+        default:
+            break
+        }
         do {
             try await coordinator.startRecording()
             startTimer()
@@ -197,6 +238,13 @@ public final class AppState: ObservableObject {
         }
     }
     #endif
+
+    /// Cancels an active recording or processing run and returns to idle on next start.
+    public func cancelProcessing() {
+        coordinator.cancel()
+        stopTimer()
+        stopProcessingTimer()
+    }
 
     /// Stops capture and triggers the processing pipeline.
     public func stopRecording() async {
@@ -260,17 +308,23 @@ public final class AppState: ObservableObject {
     // MARK: - Private
 
     private func observeCoordinator() {
+        coordinatorSubscriptions.removeAll()
+
         coordinator.$state
             .receive(on: RunLoop.main)
             .sink { [weak self] state in
                 self?.pipelineState = state
                 switch state {
+                case .processing:
+                    self?.startProcessingTimer()
                 case .complete(let id):
+                    self?.stopProcessingTimer()
                     self?.stopTimer()
                     self?.loadMeetings()
                     self?.selectedMeetingId = id
                     self?.sendProcessingCompleteNotification(meetingId: id)
                 case .failed(let err):
+                    self?.stopProcessingTimer()
                     self?.stopTimer()
                     // Permission errors are routed to permissionRequired (targeted recovery UI).
                     // They must NOT also set pipelineError — that would show the generic
@@ -283,16 +337,34 @@ public final class AppState: ObservableObject {
                     default:
                         self?.pipelineError = err
                     }
+                case .cancelled:
+                    self?.stopProcessingTimer()
                 default:
                     break
                 }
             }
-            .store(in: &cancellables)
+            .store(in: &coordinatorSubscriptions)
 
         coordinator.$progress
             .receive(on: RunLoop.main)
-            .assign(to: &$pipelineProgress)
+            .sink { [weak self] progress in
+                self?.pipelineProgress = progress
+            }
+            .store(in: &coordinatorSubscriptions)
+    }
 
+    /// Recreates the pipeline coordinator from the current `AppPreferences`.
+    ///
+    /// Call this after onboarding completes or when the user changes the active model
+    /// in Settings. Safe to call only when `pipelineState == .idle`.
+    public func refreshPipeline() {
+        guard pipelineState == .idle else {
+            log.warning("refreshPipeline called in non-idle state — ignored")
+            return
+        }
+        coordinator = Self.makeCoordinator()
+        observeCoordinator()
+        log.info("pipeline coordinator refreshed")
     }
 
     private func applySearch() {
@@ -319,6 +391,22 @@ public final class AppState: ObservableObject {
     private func stopTimer() {
         timerTask?.cancel()
         timerTask = nil
+    }
+
+    private func startProcessingTimer() {
+        processingElapsed = 0
+        processingTimerTask?.cancel()
+        processingTimerTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                processingElapsed += 1
+            }
+        }
+    }
+
+    private func stopProcessingTimer() {
+        processingTimerTask?.cancel()
+        processingTimerTask = nil
     }
 
     private func sendProcessingCompleteNotification(meetingId: UUID) {

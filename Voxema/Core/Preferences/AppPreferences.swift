@@ -14,6 +14,7 @@ public final class AppPreferences {
     private enum Keys {
         static let microphoneDeviceUID    = "voxema.microphoneDeviceUID"
         static let whisperModelId         = "voxema.whisperModelId"
+        static let whisperLanguage        = "voxema.whisperLanguage"
         static let llmModelId             = "voxema.llmModelId"
         static let summarizationProvider  = "voxema.summarizationProvider"
     }
@@ -32,6 +33,14 @@ public final class AppPreferences {
     public var whisperModelId: String {
         get { UserDefaults.standard.string(forKey: Keys.whisperModelId) ?? "whisper-tiny" }
         set { UserDefaults.standard.set(newValue, forKey: Keys.whisperModelId) }
+    }
+
+    /// BCP-47 language code passed to Whisper. `"auto"` enables per-segment detection.
+    /// Forcing the language (e.g. `"ru"`, `"en"`) significantly improves accuracy
+    /// because the model skips the detection step on every segment.
+    public var whisperLanguage: String {
+        get { UserDefaults.standard.string(forKey: Keys.whisperLanguage) ?? "auto" }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.whisperLanguage) }
     }
 
     /// Manifest model ID of the selected local LLM for summarization.

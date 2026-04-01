@@ -50,22 +50,37 @@ struct RecordingView: View {
         }
     }
 
+    private var isStopping: Bool {
+        if case .stopping = appState.pipelineState { return true }
+        return false
+    }
+
     private var stopButton: some View {
         Button {
             Task { await appState.stopRecording() }
         } label: {
             HStack(spacing: 7) {
-                RoundedRectangle(cornerRadius: 2)
-                    .frame(width: 10, height: 10)
-                Text("Stop Recording")
+                if isStopping {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .scaleEffect(0.65)
+                        .frame(width: 10, height: 10)
+                } else {
+                    RoundedRectangle(cornerRadius: 2)
+                        .frame(width: 10, height: 10)
+                }
+                Text(isStopping ? "Stopping…" : "Stop Recording")
                     .font(.system(size: 13, weight: .semibold))
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 9)
             .background(Color(nsColor: .controlBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .opacity(isStopping ? 0.6 : 1)
         }
         .buttonStyle(.plain)
+        .disabled(isStopping)
+        .animation(.easeInOut(duration: 0.15), value: isStopping)
     }
 
     private var formattedDuration: String {
@@ -79,6 +94,7 @@ struct RecordingView: View {
 /// Full-area view shown while `pipelineState == .processing(...)`.
 struct ProcessingView: View {
     @EnvironmentObject private var appState: AppState
+    @State private var showCancelConfirm = false
 
     var body: some View {
         VStack(spacing: 22) {
@@ -95,8 +111,28 @@ struct ProcessingView: View {
                 }
             }
             .frame(width: 310)
+
+            Button(String(localized: "Cancel")) {
+                showCancelConfirm = true
+            }
+            .buttonStyle(.plain)
+            .font(.system(size: 12))
+            .foregroundStyle(.secondary)
+            .padding(.top, 4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .confirmationDialog(
+            String(localized: "Cancel Processing?"),
+            isPresented: $showCancelConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "Cancel Processing"), role: .destructive) {
+                appState.cancelProcessing()
+            }
+            Button(String(localized: "Keep Processing"), role: .cancel) {}
+        } message: {
+            Text(String(localized: "The recording will be discarded. This cannot be undone."))
+        }
     }
 
     private var currentStage: PipelineProcessingStage? {
@@ -104,11 +140,23 @@ struct ProcessingView: View {
         return nil
     }
 
+    private var isTranscribing: Bool {
+        if case .processing(.transcribing) = appState.pipelineState { return true }
+        return false
+    }
+
     private var durationSubtitle: String {
         let total = Int(appState.recordingDuration)
         let m = total / 60; let s = total % 60
-        let dur = s == 0 ? "\(m) min" : "\(m)m \(s)s"
-        return "\(dur) · estimated 1–2 min remaining"
+        let recDur = s == 0 ? "\(m) min" : "\(m)m \(s)s"
+
+        let elapsed = appState.processingElapsed
+        if elapsed >= 1 {
+            let em = elapsed / 60; let es = elapsed % 60
+            let elapsedStr = em > 0 ? "\(em)m \(es)s" : "\(es)s"
+            return "\(recDur) recording · processing for \(elapsedStr)…"
+        }
+        return "\(recDur) recording · starting…"
     }
 }
 

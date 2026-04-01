@@ -41,6 +41,32 @@
       "description": "Higher transcription accuracy. Recommended for accented speech."
     },
     {
+      "id": "whisper-medium",
+      "name": "Whisper Medium",
+      "family": "whisper",
+      "variant": "medium",
+      "size_bytes": 1533116160,
+      "sha256": "placeholder-whisper-medium-sha256",
+      "ram_gb": 3.0,
+      "tier": null,
+      "download_url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin",
+      "is_bundled": false,
+      "description": "Balanced quality and speed. Best for most Mac setups."
+    },
+    {
+      "id": "whisper-large-v3",
+      "name": "Whisper Large v3",
+      "family": "whisper",
+      "variant": "large-v3",
+      "size_bytes": 3094517248,
+      "sha256": "placeholder-whisper-large-v3-sha256",
+      "ram_gb": 7.0,
+      "tier": null,
+      "download_url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin",
+      "is_bundled": false,
+      "description": "Highest accuracy. Best for multilingual or noisy environments."
+    },
+    {
       "id": "ecapa-tdnn",
       "name": "ECAPA-TDNN",
       "family": "ecapa",

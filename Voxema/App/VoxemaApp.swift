@@ -23,20 +23,21 @@ struct VoxemaApp: App {
 
     init() {
         #if DEBUG
-        // Skip onboarding in debug builds so the main UI is reached immediately.
-        // Use Debug menu → Reset Onboarding (⇧⌘O) to test the flow manually.
-        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-
-        // Delete stale encryption keychain items created by previous builds.
-        // Without a stable Team ID, each rebuild has a different code signature.
-        // macOS then prompts "allow this app to access com.voxema.app.encryption"
-        // on every new build. Deleting at launch forces a fresh item to be created
-        // silently. Safe in debug: no persistent encrypted data survives across builds.
-        let staleQuery: [CFString: Any] = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrService: "com.voxema.app.encryption",
-        ]
-        SecItemDelete(staleQuery as CFDictionary)
+        // Delete ALL stale app keychain items created by previous builds.
+        // Without a stable Team ID each rebuild has a different code signature,
+        // causing macOS to prompt for every existing item. Safe in debug: no
+        // persistent encrypted data survives across ad-hoc builds anyway.
+        for service in [
+            "com.voxema.app.encryption",
+            "com.voxema.app.capture-audio-key",
+            "com.voxema.app",
+        ] {
+            let q: [CFString: Any] = [
+                kSecClass: kSecClassGenericPassword,
+                kSecAttrService: service,
+            ]
+            SecItemDelete(q as CFDictionary)
+        }
         #endif
     }
 
@@ -48,6 +49,9 @@ struct VoxemaApp: App {
                 .sheet(isPresented: .constant(!hasCompletedOnboarding)) {
                     OnboardingView {
                         hasCompletedOnboarding = true
+                        // Rebuild the pipeline coordinator so it picks up the
+                        // whisper model ID that was saved during onboarding.
+                        appState.refreshPipeline()
                     }
                     .frame(width: 480, height: 560)
                     .interactiveDismissDisabled()
@@ -89,6 +93,7 @@ struct VoxemaApp: App {
 
         Settings {
             SettingsView()
+                .environmentObject(appState)
         }
     }
 }
