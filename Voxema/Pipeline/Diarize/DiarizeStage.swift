@@ -207,24 +207,31 @@ public struct DiarizeConfiguration: Sendable {
     public let matchThreshold: Float
     /// Label used for the local-channel speaker (device user).
     public let userLabel: String
+    /// Minimum segment duration (seconds) required to extract a speaker embedding.
+    /// Segments shorter than this threshold reuse the last known remote speaker
+    /// instead of computing a noisy embedding from too few audio frames.
+    public let minEmbeddingDuration: Float
 
     public static let `default` = DiarizeConfiguration(
         modelURL: URL(fileURLWithPath: ""),
         encryptionKeyId: "com.voxema.app.capture-audio-key",
         matchThreshold: 0.75,
-        userLabel: "You"
+        userLabel: "You",
+        minEmbeddingDuration: 1.5
     )
 
     public init(
         modelURL: URL,
         encryptionKeyId: String = "com.voxema.app.capture-audio-key",
         matchThreshold: Float = 0.75,
-        userLabel: String = "You"
+        userLabel: String = "You",
+        minEmbeddingDuration: Float = 1.5
     ) {
         self.modelURL = modelURL
         self.encryptionKeyId = encryptionKeyId
         self.matchThreshold = matchThreshold
         self.userLabel = userLabel
+        self.minEmbeddingDuration = minEmbeddingDuration
     }
 }
 
@@ -293,6 +300,10 @@ public final class DiarizeStage: DiarizeStageProtocol {
 
         var results: [DiarizedSegment] = []
         results.reserveCapacity(segments.count)
+        // Tracks the last successfully matched remote speaker so that very short
+        // segments (below minEmbeddingDuration) can reuse it rather than
+        // producing a noisy embedding that may create a spurious new profile.
+        var lastRemoteProfile: VoiceProfile?
 
         for segment in segments {
             if isCancelled { break }
@@ -311,36 +322,51 @@ public final class DiarizeStage: DiarizeStageProtocol {
                 )
 
             case .remote:
-                let samples = streamSamples[.remote] ?? []
-                let slicedSamples = sliceSamples(
-                    samples,
-                    startTime: segment.startTime,
-                    endTime: segment.endTime
-                )
+                let segDuration = segment.endTime - segment.startTime
 
-                let embedding: [Float]
-                if slicedSamples.isEmpty {
-                    embedding = [Float](repeating: 0, count: Int(VOXEMA_ECAPA_EMBEDDING_DIM))
+                if segDuration < config.minEmbeddingDuration, let prev = lastRemoteProfile {
+                    // Segment too short for a reliable embedding — reuse the
+                    // previous speaker rather than risking a mis-classification.
+                    speaker = SpeakerIdentity(
+                        speakerId: prev.profileId,
+                        label: prev.label,
+                        isUser: false,
+                        confidence: 0.0,
+                        isKnown: false
+                    )
                 } else {
-                    embedding = (try? engine.embed(samples: slicedSamples))
-                        ?? [Float](repeating: 0, count: Int(VOXEMA_ECAPA_EMBEDDING_DIM))
+                    let samples = streamSamples[.remote] ?? []
+                    let slicedSamples = sliceSamples(
+                        samples,
+                        startTime: segment.startTime,
+                        endTime: segment.endTime
+                    )
+
+                    let embedding: [Float]
+                    if slicedSamples.isEmpty {
+                        embedding = [Float](repeating: 0, count: Int(VOXEMA_ECAPA_EMBEDDING_DIM))
+                    } else {
+                        embedding = (try? engine.embed(samples: slicedSamples))
+                            ?? [Float](repeating: 0, count: Int(VOXEMA_ECAPA_EMBEDDING_DIM))
+                    }
+
+                    let profile = store.matchOrCreate(
+                        embedding: embedding,
+                        threshold: config.matchThreshold
+                    )
+                    lastRemoteProfile = profile
+                    let similarity = profile.embedding.isEmpty
+                        ? 0
+                        : SpeakerMatcher.cosine(profile.embedding, embedding)
+
+                    speaker = SpeakerIdentity(
+                        speakerId: profile.profileId,
+                        label: profile.label,
+                        isUser: false,
+                        confidence: similarity,
+                        isKnown: false
+                    )
                 }
-
-                let profile = store.matchOrCreate(
-                    embedding: embedding,
-                    threshold: config.matchThreshold
-                )
-                let similarity = profile.embedding.isEmpty
-                    ? 0
-                    : SpeakerMatcher.cosine(profile.embedding, embedding)
-
-                speaker = SpeakerIdentity(
-                    speakerId: profile.profileId,
-                    label: profile.label,
-                    isUser: false,
-                    confidence: similarity,
-                    isKnown: false  // no persistent profile in TASK-9
-                )
             }
 
             results.append(DiarizedSegment(

@@ -19,27 +19,34 @@ public struct TranscribeConfiguration: Sendable {
     public let minAudioRMS: Float
     /// Keychain key identifier used to decrypt audio files from the Capture stage.
     public let encryptionKeyId: String
+    /// Optional context hint passed to Whisper as `initial_prompt` for the first
+    /// 30-second chunk. Reduces hallucinations and anchors vocabulary to meeting
+    /// domain. `nil` disables the prompt (Whisper default behaviour).
+    public let initialPrompt: String?
 
     public static let `default` = TranscribeConfiguration(
         modelURL: URL(fileURLWithPath: ""),  // replaced at runtime by PipelineCoordinator
         language: nil,
-        noSpeechThreshold: 0.6,
+        noSpeechThreshold: 0.5,
         minAudioRMS: 0.004,
-        encryptionKeyId: "com.voxema.app.capture-audio-key"
+        encryptionKeyId: "com.voxema.app.capture-audio-key",
+        initialPrompt: "Meeting transcript:"
     )
 
     public init(
         modelURL: URL,
         language: String? = nil,
-        noSpeechThreshold: Float = 0.6,
+        noSpeechThreshold: Float = 0.5,
         minAudioRMS: Float = 0.004,
-        encryptionKeyId: String = "com.voxema.app.capture-audio-key"
+        encryptionKeyId: String = "com.voxema.app.capture-audio-key",
+        initialPrompt: String? = "Meeting transcript:"
     ) {
         self.modelURL = modelURL
         self.language = language
         self.noSpeechThreshold = noSpeechThreshold
         self.minAudioRMS = minAudioRMS
         self.encryptionKeyId = encryptionKeyId
+        self.initialPrompt = initialPrompt
     }
 }
 
@@ -186,6 +193,7 @@ public final class TranscribeStage: TranscribeStageProtocol {
         let language      = config.language
         let noSpeechGate  = config.noSpeechThreshold
         let minRMS        = config.minAudioRMS
+        let initialPrompt = config.initialPrompt
         let engine        = engineFactory()
 
         // Use withCheckedThrowingContinuation + DispatchQueue.global() instead of
@@ -210,9 +218,26 @@ public final class TranscribeStage: TranscribeStageProtocol {
                         continuation.resume(returning: [])
                         return
                     }
+                    // RMS normalisation: scale audio to targetRMS when it is
+                    // quieter than the target. Whisper is sensitive to input
+                    // level — under-gain causes missed words; over-gain is safe
+                    // because we clamp output to [-1, 1].
+                    let targetRMS: Float = 0.1
+                    let transcribeSamples: [Float]
+                    if rms > 0 && rms < targetRMS {
+                        var scale = targetRMS / rms
+                        var normalised = [Float](repeating: 0, count: samples.count)
+                        vDSP_vsmul(samples, 1, &scale, &normalised, 1, vDSP_Length(samples.count))
+                        var lower: Float = -1.0
+                        var upper: Float =  1.0
+                        vDSP_vclip(normalised, 1, &lower, &upper, &normalised, 1, vDSP_Length(normalised.count))
+                        transcribeSamples = normalised
+                    } else {
+                        transcribeSamples = samples
+                    }
                     try engine.loadModel(at: modelURL)
                     defer { engine.unloadModel() }
-                    let segs = try engine.transcribe(samples: samples, language: language)
+                    let segs = try engine.transcribe(samples: transcribeSamples, language: language, initialPrompt: initialPrompt)
                     continuation.resume(returning: segs)
                 } catch {
                     continuation.resume(throwing: error)

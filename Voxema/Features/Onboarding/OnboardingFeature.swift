@@ -52,7 +52,7 @@ final class OnboardingViewModel: ObservableObject {
     @Published var selectedWhisperModel: String? = nil
     @Published var availableWhisperTiers: [WhisperModelTier] = []
     @Published private(set) var detectedHardwareLabel: String = ""
-    @Published private(set) var recommendedTierId: String = "whisper-medium"
+    @Published private(set) var recommendedTierId: String = "whisper-small"
 
     // Download step
     @Published private(set) var isDownloading   = false
@@ -207,15 +207,13 @@ final class OnboardingViewModel: ObservableObject {
     private func detectHardware() {
         let ramGB = Int(ProcessInfo.processInfo.physicalMemory / (1024 * 1024 * 1024))
         let name = macModelName()
-        if ramGB >= 16 {
-            recommendedTierId   = "whisper-medium"
-            selectedWhisperModel = "whisper-medium"
-            detectedHardwareLabel = "\(name) (\(ramGB) GB RAM) — Better tier recommended"
-        } else {
-            recommendedTierId   = "whisper-small"
-            selectedWhisperModel = "whisper-small"
-            detectedHardwareLabel = "\(name) (\(ramGB) GB RAM) — Good tier recommended"
-        }
+        // whisper-small is the default for all hardware tiers at MVP.
+        // whisper-medium and larger have placeholder sha256 values in the manifest
+        // and cannot be verified after download until release sha256s are known.
+        recommendedTierId    = "whisper-small"
+        selectedWhisperModel = "whisper-small"
+        let tierLabel = ramGB >= 16 ? "Better quality available (whisper-medium post-MVP)" : "Recommended"
+        detectedHardwareLabel = "\(name) (\(ramGB) GB RAM) — \(tierLabel)"
     }
 
     private func macModelName() -> String {

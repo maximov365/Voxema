@@ -24,7 +24,8 @@ public protocol WhisperEngineProtocol: AnyObject {
     func loadModel(at url: URL) throws
     /// Transcribes `samples` (mono float32, 16kHz) and returns raw segments.
     /// `language`: BCP-47 code or `nil` for auto-detect.
-    func transcribe(samples: [Float], language: String?) throws -> [WhisperSegment]
+    /// `initialPrompt`: optional context hint prepended to the first 30-s chunk.
+    func transcribe(samples: [Float], language: String?, initialPrompt: String?) throws -> [WhisperSegment]
     /// Releases the model from memory. Safe to call when no model is loaded.
     func unloadModel()
 }
@@ -61,7 +62,7 @@ public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
         log.info("WhisperEngine model loaded")
     }
 
-    public func transcribe(samples: [Float], language: String?) throws -> [WhisperSegment] {
+    public func transcribe(samples: [Float], language: String?, initialPrompt: String?) throws -> [WhisperSegment] {
         guard let ctx else {
             throw PipelineError.transcribeModelNotFound(modelName: "")
         }
@@ -78,13 +79,19 @@ public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
         // for preprocessing so the main actor and UI remain fully responsive.
         params.n_threads = 2
 
-        let langStr = language ?? "auto"
+        let langStr  = language ?? "auto"
+        // Non-empty prompt is passed as a C string. Nested withCString calls keep
+        // both pointers alive for the full duration of whisper_full().
+        let promptStr = initialPrompt ?? ""
         var segments: [WhisperSegment] = []
 
         let rc: Int32 = langStr.withCString { langPtr in
-            params.language = langPtr
-            return samples.withUnsafeBufferPointer { buf in
-                whisper_full(ctx, params, buf.baseAddress, Int32(buf.count))
+            promptStr.withCString { promptPtr in
+                params.language      = langPtr
+                params.initial_prompt = promptStr.isEmpty ? nil : promptPtr
+                return samples.withUnsafeBufferPointer { buf in
+                    whisper_full(ctx, params, buf.baseAddress, Int32(buf.count))
+                }
             }
         }
 

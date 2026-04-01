@@ -10,6 +10,8 @@
 | DEC-4 | Auto-update: Sparkle 2 via SPM + GitHub Pages/Releases | accepted | 2026-03-29 |
 | DEC-2 | Model packaging: Hybrid bundle + on-demand download | accepted | 2026-03-29 |
 | DEC-16 | Diarization embedding: MFCC via Accelerate (interim) → CoreML ECAPA-TDNN (production) | accepted | 2026-03-29 |
+| DEC-17 | Whisper initial_prompt: "Meeting transcript:" as default context hint | accepted | 2026-04-01 |
+| DEC-18 | DiarizeStage: skip embedding for segments < 1.5 s, reuse last speaker | accepted | 2026-04-01 |
 
 ---
 
@@ -431,3 +433,49 @@ macOS 13.0 was originally chosen because it was the earliest version supporting 
 - Cross-session speaker recognition: supported (model is stateless, embeddings are comparable across sessions) ✓
 - Developer prerequisite: one-time Python script execution + ~22MB model in bundle
 - Without model file: transparent MFCC fallback, no user-visible degradation
+
+---
+
+## DEC-17 — Whisper initial_prompt: "Meeting transcript:" as context hint
+
+**Status:** accepted
+**Date:** 2026-04-01
+**Source:** TASK-30 / Discovery FEAT-30
+
+### Context
+
+Whisper without context tends to hallucinate common phrases from its training data when handling silence or low-confidence audio. An `initial_prompt` anchors vocabulary and register to the meeting domain.
+
+### Decision
+
+Default `initialPrompt = "Meeting transcript:"` in `TranscribeConfiguration`. Passed via `whisper_full_params.initial_prompt` (nested `withCString` calls to keep both language and prompt C strings alive for the duration of `whisper_full()`). Users may override via `TranscribeConfiguration.initialPrompt`.
+
+### Rationale
+
+- Reduces hallucinations on quiet segments by priming Whisper toward meeting vocabulary.
+- Prompt is applied to the first 30-second chunk only (Whisper.cpp behaviour).
+- Zero additional memory or latency cost.
+- Reversible: set `initialPrompt = nil` to restore default Whisper behaviour.
+
+---
+
+## DEC-18 — DiarizeStage: skip embedding for segments shorter than 1.5 s
+
+**Status:** accepted
+**Date:** 2026-04-01
+**Source:** TASK-30 / Discovery FEAT-30
+
+### Context
+
+MFCC log-Mel statistics computed from fewer than ~24 frames (< 1.5 s at 10 ms hop) are numerically unreliable — variance estimates are high, cosine similarity is unstable. Such short segments frequently created spurious new speaker profiles or mis-matched the wrong existing speaker.
+
+### Decision
+
+`DiarizeConfiguration.minEmbeddingDuration = 1.5` (seconds). In `DiarizeStage.run()`, remote-channel segments shorter than this threshold reuse the last successfully matched speaker (`lastRemoteProfile`) instead of calling `engine.embed()`. If no previous speaker exists (first segment of a meeting), the embedding path runs regardless of duration.
+
+### Rationale
+
+- Eliminates the main source of spurious new speaker profiles in practice.
+- No embedding quality change — same MFCC/CoreML engine.
+- Configurable via `DiarizeConfiguration.minEmbeddingDuration` for future tuning.
+- Confidence field set to 0.0 for short-segment assignments to distinguish them from real matches.

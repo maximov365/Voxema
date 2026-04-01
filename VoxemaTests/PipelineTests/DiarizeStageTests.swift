@@ -214,4 +214,59 @@ final class DiarizeStageTests: XCTestCase {
         XCTAssertEqual(result.count, 1)
         XCTAssertTrue(result[0].speaker.isUser)
     }
+
+    // ── 11. Short-segment guard ──────────────────────────────────────────────
+
+    func testShortRemoteSegmentReusesLastSpeaker() async throws {
+        let engine = MockEmbeddingEngine()
+        // Give the first (long) segment a distinctive embedding so it creates Speaker A.
+        var longEmbedding = [Float](repeating: 0, count: 192)
+        longEmbedding[0] = 1.0
+        engine.embedResult = longEmbedding
+
+        // Config: minEmbeddingDuration = 1.5s
+        let config = DiarizeConfiguration(
+            modelURL: URL(fileURLWithPath: ""),
+            minEmbeddingDuration: 1.5
+        )
+        let stage = DiarizeStage(engineFactory: { engine }, config: config)
+
+        // seg1: 3s duration — triggers full embedding path
+        let seg1 = makeSeg(channel: .remote, start: 0, end: 3.0)
+        // seg2: 0.5s duration — too short, should reuse seg1's speaker
+        let seg2 = makeSeg(channel: .remote, start: 3.0, end: 3.5)
+
+        let result = try await stage.run([seg1, seg2], audioStreams: [])
+
+        XCTAssertEqual(result.count, 2)
+        // Both segments should have the same speaker label
+        XCTAssertEqual(result[0].speaker.label, result[1].speaker.label,
+                       "Short segment must reuse the previous speaker, not create a new one")
+        // Short segment should report confidence 0 (no embedding was computed)
+        XCTAssertEqual(result[1].speaker.confidence, 0.0, accuracy: 1e-6)
+        // embed() must have been called exactly once (only for the long segment)
+        XCTAssertEqual(engine.embedCallCount, 1,
+                       "embed() must not be called for segments below minEmbeddingDuration")
+    }
+
+    func testShortFirstRemoteSegmentFallsBackToEmbedding() async throws {
+        // When there is no previous speaker, a short first segment still goes
+        // through the embedding path (no prior to reuse).
+        let engine = MockEmbeddingEngine()
+        let config = DiarizeConfiguration(
+            modelURL: URL(fileURLWithPath: ""),
+            minEmbeddingDuration: 1.5
+        )
+        let stage = DiarizeStage(engineFactory: { engine }, config: config)
+        let shortFirst = makeSeg(channel: .remote, start: 0, end: 0.5)
+        let result = try await stage.run([shortFirst], audioStreams: [])
+        XCTAssertEqual(result.count, 1)
+        XCTAssertFalse(result[0].speaker.isUser)
+        // embed() called once — no prev speaker to reuse
+        XCTAssertEqual(engine.embedCallCount, 1)
+    }
+
+    func testConfigDefaultMinEmbeddingDuration() {
+        XCTAssertEqual(DiarizeConfiguration.default.minEmbeddingDuration, 1.5, accuracy: 1e-6)
+    }
 }

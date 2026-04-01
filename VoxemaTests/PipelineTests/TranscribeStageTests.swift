@@ -20,8 +20,11 @@ final class MockWhisperEngine: WhisperEngineProtocol {
         if let error = loadModelError { throw error }
     }
 
-    func transcribe(samples: [Float], language: String?) throws -> [WhisperSegment] {
+    private(set) var lastInitialPrompt: String?
+
+    func transcribe(samples: [Float], language: String?, initialPrompt: String?) throws -> [WhisperSegment] {
         transcribeCalled = true
+        lastInitialPrompt = initialPrompt
         if let error = transcribeError { throw error }
         return segmentsToReturn
     }
@@ -105,11 +108,32 @@ final class TranscribeStageTests: XCTestCase {
     // MARK: - TranscribeConfiguration
 
     func testDefaultConfigurationNoSpeechThreshold() {
-        XCTAssertEqual(TranscribeConfiguration.default.noSpeechThreshold, 0.6, accuracy: 0.001)
+        XCTAssertEqual(TranscribeConfiguration.default.noSpeechThreshold, 0.5, accuracy: 0.001)
     }
 
     func testDefaultConfigurationLanguageIsNil() {
         XCTAssertNil(TranscribeConfiguration.default.language)
+    }
+
+    func testDefaultConfigurationInitialPromptIsSet() {
+        XCTAssertNotNil(TranscribeConfiguration.default.initialPrompt)
+    }
+
+    func testInitialPromptPassedToEngine() async throws {
+        let mock = makeMockEngine()
+        mock.segmentsToReturn = [WhisperSegment(startMs: 0, endMs: 1000, text: "Hi", noSpeechProb: 0.1)]
+        // minAudioRMS: 0.0 disables the energy gate so silent test audio passes through.
+        let config = TranscribeConfiguration(
+            modelURL: tempDir.appendingPathComponent("model.gguf"),
+            noSpeechThreshold: 0.5,
+            minAudioRMS: 0.0,
+            encryptionKeyId: encKeyId,
+            initialPrompt: "Test prompt"
+        )
+        let stage = TranscribeStage(engineFactory: { mock }, config: config)
+        let stream = try makeSilentEncFile()
+        _ = try await stage.run([stream])
+        XCTAssertEqual(mock.lastInitialPrompt, "Test prompt")
     }
 
     // MARK: - Empty input
