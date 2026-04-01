@@ -76,7 +76,7 @@ public final class EmbeddingEngine: EmbeddingEngineProtocol {
 // MARK: - VoiceProfile
 
 /// In-memory representation of a known or discovered speaker.
-/// Persistence via GRDB is deferred to TASK-10.
+/// Persisted across sessions via GRDB (`SpeakerProfilePersistence`).
 public struct VoiceProfile: Equatable, Sendable {
     public let profileId: UUID
     /// Human-readable label: user name or temporary "Speaker A", "Speaker B", …
@@ -89,26 +89,34 @@ public struct VoiceProfile: Equatable, Sendable {
     /// Used to compute an adaptive matching threshold: new profiles require
     /// stricter similarity before merging with an incoming embedding.
     public var matchCount: Int
+    /// Timestamp of the most recent match (used for ordering in persistence).
+    public var lastSeenAt: Date
+    /// Timestamp when this profile was first created.
+    public let createdAt: Date
 
     public init(
-        profileId: UUID = UUID(),
-        label: String,
-        isUser: Bool,
-        embedding: [Float] = [],
-        matchCount: Int = 0
+        profileId:  UUID    = UUID(),
+        label:      String,
+        isUser:     Bool,
+        embedding:  [Float] = [],
+        matchCount: Int     = 0,
+        lastSeenAt: Date    = Date(),
+        createdAt:  Date    = Date()
     ) {
-        self.profileId = profileId
-        self.label = label
-        self.isUser = isUser
-        self.embedding = embedding
+        self.profileId  = profileId
+        self.label      = label
+        self.isUser     = isUser
+        self.embedding  = embedding
         self.matchCount = matchCount
+        self.lastSeenAt = lastSeenAt
+        self.createdAt  = createdAt
     }
 }
 
 // MARK: - VoiceProfileStore
 
 /// In-memory store for VoiceProfile objects.
-/// One store is created per pipeline run; cross-run persistence is deferred.
+/// Seeded from `SpeakerProfilePersistence` at the start of each run.
 public final class VoiceProfileStore {
 
     private var profiles: [UUID: VoiceProfile] = [:]
@@ -127,16 +135,29 @@ public final class VoiceProfileStore {
         profiles.values.filter { !$0.isUser }
     }
 
+    /// Pre-populates the store with profiles loaded from persistence.
+    /// Advances `remoteCount` so new speakers receive fresh labels.
+    public func seed(_ seeded: [VoiceProfile]) {
+        for p in seeded { profiles[p.profileId] = p }
+        let maxOrdinal = seeded
+            .filter { !$0.isUser }
+            .compactMap { labelOrdinal(of: $0.label) }
+            .max() ?? 0
+        remoteCount = max(remoteCount, maxOrdinal)
+    }
+
+    /// Returns all profiles currently held in the store.
+    public func allProfiles() -> [VoiceProfile] { Array(profiles.values) }
+
     /// Returns a profile whose embedding is close to `embedding` within `threshold`,
     /// or creates a new profile with the next alphabetic label ("Speaker A", "B", …).
     ///
     /// **Adaptive threshold:** new profiles (matchCount < 3) require a stricter
-    /// cosine similarity to be matched. This prevents an early, noisy embedding
-    /// from incorrectly merging two distinct speakers before either profile is
-    /// well-established. The boost converges to zero at matchCount = 3.
+    /// cosine similarity to be matched. Boost converges to zero at matchCount = 3.
     ///
     /// `blendWeight` controls how strongly the new embedding shifts the stored
     /// profile centroid (0 = no shift, 1 = full replacement).
+    /// Updates `matchCount` and `lastSeenAt` on a successful match.
     public func matchOrCreate(
         embedding: [Float],
         threshold: Float,
@@ -157,18 +178,20 @@ public final class VoiceProfileStore {
         if let (best, _) = matched {
             var updated = best
             updated.matchCount += 1
+            updated.lastSeenAt = Date()
             updated.embedding = SpeakerMatcher.weightedBlend(
                 best.embedding, embedding, newWeight: blendWeight)
             profiles[best.profileId] = updated
             return updated
         }
 
-        // Create new profile with next alphabetic label
         let label = nextSpeakerLabel()
         let p = VoiceProfile(label: label, isUser: false, embedding: embedding)
         profiles[p.profileId] = p
         return p
     }
+
+    // MARK: - Private helpers
 
     private func nextSpeakerLabel() -> String {
         remoteCount += 1
@@ -180,6 +203,20 @@ public final class VoiceProfileStore {
             n /= 26
         } while n > 0
         return "Speaker \(label)"
+    }
+
+    /// Converts "Speaker A" → 1, "Speaker B" → 2, "Speaker AA" → 27, etc.
+    private func labelOrdinal(of label: String) -> Int? {
+        let prefix = "Speaker "
+        guard label.hasPrefix(prefix) else { return nil }
+        let suffix = label.dropFirst(prefix.count)
+        guard !suffix.isEmpty else { return nil }
+        var n = 0
+        for ch in suffix.uppercased() {
+            guard let ascii = ch.asciiValue, ascii >= 65, ascii < 91 else { return nil }
+            n = n * 26 + Int(ascii - 64)
+        }
+        return n
     }
 }
 
@@ -309,6 +346,7 @@ public final class DiarizeStage: DiarizeStageProtocol {
 
     private let engineFactory: () -> EmbeddingEngineProtocol
     private let config: DiarizeConfiguration
+    private let profilePersistence: (any SpeakerProfilePersistence)?
     private let log = VoxemaLogger.make(category: "diarize.stage")
     private var isCancelled = false
 
@@ -319,14 +357,21 @@ public final class DiarizeStage: DiarizeStageProtocol {
 
     // MARK: - Init
 
-    public convenience init(config: DiarizeConfiguration = .default) {
-        self.init(engineFactory: { EmbeddingEngine() }, config: config)
+    public convenience init(
+        config: DiarizeConfiguration = .default,
+        profilePersistence: (any SpeakerProfilePersistence)? = nil
+    ) {
+        self.init(engineFactory: { EmbeddingEngine() },
+                  config: config,
+                  profilePersistence: profilePersistence)
     }
 
     init(engineFactory: @escaping () -> EmbeddingEngineProtocol,
-         config: DiarizeConfiguration = .default) {
+         config: DiarizeConfiguration = .default,
+         profilePersistence: (any SpeakerProfilePersistence)? = nil) {
         self.engineFactory = engineFactory
         self.config = config
+        self.profilePersistence = profilePersistence
     }
 
     // MARK: - DiarizeStageProtocol
@@ -339,6 +384,16 @@ public final class DiarizeStage: DiarizeStageProtocol {
         guard !segments.isEmpty else { return [] }
 
         let store = VoiceProfileStore()
+
+        // Seed with profiles from previous sessions
+        if let persistence = profilePersistence {
+            let stored = (try? persistence.loadRemoteProfiles()) ?? []
+            if !stored.isEmpty {
+                store.seed(stored)
+                log.info("DiarizeStage: profiles seeded from persistence")
+            }
+        }
+
         let userProfile = store.userProfile(label: config.userLabel)
 
         var streamSamples: [AudioChannel: [Float]] = [:]
@@ -498,6 +553,13 @@ public final class DiarizeStage: DiarizeStageProtocol {
                 )
             }
             log.info("DiarizeStage retro-pass complete")
+        }
+
+        // Persist updated profiles for next session
+        if let persistence = profilePersistence {
+            for profile in store.allProfiles() where !profile.isUser {
+                try? persistence.upsertProfile(profile)
+            }
         }
 
         log.info("DiarizeStage complete")

@@ -71,18 +71,19 @@ public final class AppState: ObservableObject {
     /// Production factory — creates real pipeline stages and opens the database.
     /// Stage configurations are read from `AppPreferences.shared`.
     public static func production() -> AppState {
-        let coordinator = makeCoordinator()
         do {
             let store = try MeetingStore(databasePath: ExportConfiguration.default.databasePath)
+            let coordinator = makeCoordinator(profilePersistence: store)
             return AppState(coordinator: coordinator, store: store)
         } catch {
+            let coordinator = makeCoordinator(profilePersistence: nil)
             return AppState(coordinator: coordinator, store: MeetingStore.failing)
         }
     }
 
     // MARK: - Coordinator factory (reads AppPreferences)
 
-    private static func makeCoordinator() -> PipelineCoordinator {
+    private static func makeCoordinator(profilePersistence: (any SpeakerProfilePersistence)?) -> PipelineCoordinator {
         let prefs = AppPreferences.shared
         let mm    = ModelManager.shared
 
@@ -133,7 +134,7 @@ public final class AppState: ObservableObject {
         return PipelineCoordinator(
             captureStage:    CaptureStage(config: captureConfig),
             transcribeStage: TranscribeStage(config: transcribeConfig),
-            diarizeStage:    DiarizeStage(config: diarizeConfig),
+            diarizeStage:    DiarizeStage(config: diarizeConfig, profilePersistence: profilePersistence),
             summarizeStage:  SummarizeStage(config: summarizeConfig),
             exportStage:     (try? ExportStage()) ?? ExportStage.failing
         )

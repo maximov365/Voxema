@@ -91,6 +91,27 @@ public final class MeetingStore {
         }
     }
 
+        // MARK: - Speaker Profile CRUD
+
+    /// Returns all remote speaker profiles ordered by `lastSeenAt` descending.
+    public func loadRemoteProfiles() throws -> [VoiceProfile] {
+        let rows = try db.read { db in
+            try SpeakerProfileRow
+                .order(Column("lastSeenAt").desc)
+                .fetchAll(db)
+        }
+        return rows.map { $0.toVoiceProfile() }
+    }
+
+    /// Inserts or replaces a speaker profile record.
+    public func upsertProfile(_ profile: VoiceProfile) throws {
+        guard !profile.isUser else { return }   // user profile is session-only
+        let row = SpeakerProfileRow(profile: profile)
+        try db.write { db in
+            try row.save(db)
+        }
+    }
+
     // MARK: - Migration
 
     private func runMigrations() throws {
@@ -105,6 +126,18 @@ public final class MeetingStore {
                 t.column("audioDeleted", .boolean).notNull().defaults(to: false)
                 t.column("meetingData", .blob).notNull()
                 t.column("searchText", .text).notNull().defaults(to: "")
+            }
+        }
+
+        migrator.registerMigration("v2_speaker_profiles") { db in
+            try db.create(table: "speaker_profiles", ifNotExists: true) { t in
+                t.primaryKey("profileId", .text)
+                t.column("label",      .text).notNull()
+                t.column("isUser",     .boolean).notNull().defaults(to: false)
+                t.column("embedding",  .blob).notNull()
+                t.column("matchCount", .integer).notNull().defaults(to: 0)
+                t.column("lastSeenAt", .double).notNull()
+                t.column("createdAt",  .double).notNull()
             }
         }
 
@@ -197,5 +230,84 @@ extension MeetingStore {
     /// Queries succeed but nothing is persisted to disk.
     static var failing: MeetingStore {
         return (try? MeetingStore(db: DatabaseQueue())) ?? { fatalError("MeetingStore in-memory init failed") }()
+    }
+}
+
+// MARK: - SpeakerProfilePersistence
+
+/// Abstracts cross-session persistence for speaker voice profiles.
+/// `MeetingStore` is the production conformer; tests supply a mock.
+public protocol SpeakerProfilePersistence: Sendable {
+    /// Returns all persisted remote speaker profiles, most-recently-seen first.
+    func loadRemoteProfiles() throws -> [VoiceProfile]
+    /// Inserts or replaces a speaker profile record.
+    func upsertProfile(_ profile: VoiceProfile) throws
+}
+
+extension MeetingStore: SpeakerProfilePersistence {}
+
+// MARK: - SpeakerProfileRow (GRDB record)
+
+private struct SpeakerProfileRow: FetchableRecord, PersistableRecord {
+    static let databaseTableName = "speaker_profiles"
+
+    let profileId:  String
+    let label:      String
+    let isUser:     Bool
+    let embedding:  Data    // raw Float32 little-endian bytes
+    let matchCount: Int
+    let lastSeenAt: Double
+    let createdAt:  Double
+
+    // ── FetchableRecord ──────────────────────────────────────────────────────
+
+    init(row: Row) {
+        profileId  = row["profileId"]
+        label      = row["label"]
+        isUser     = row["isUser"]
+        embedding  = row["embedding"]
+        matchCount = row["matchCount"]
+        lastSeenAt = row["lastSeenAt"]
+        createdAt  = row["createdAt"]
+    }
+
+    // ── PersistableRecord ────────────────────────────────────────────────────
+
+    func encode(to container: inout PersistenceContainer) throws {
+        container["profileId"]  = profileId
+        container["label"]      = label
+        container["isUser"]     = isUser
+        container["embedding"]  = embedding
+        container["matchCount"] = matchCount
+        container["lastSeenAt"] = lastSeenAt
+        container["createdAt"]  = createdAt
+    }
+
+    // ── Factory ──────────────────────────────────────────────────────────────
+
+    init(profile: VoiceProfile) {
+        profileId  = profile.profileId.uuidString
+        label      = profile.label
+        isUser     = profile.isUser
+        embedding  = profile.embedding.withUnsafeBytes { Data($0) }
+        matchCount = profile.matchCount
+        lastSeenAt = profile.lastSeenAt.timeIntervalSince1970
+        createdAt  = profile.createdAt.timeIntervalSince1970
+    }
+
+    func toVoiceProfile() -> VoiceProfile {
+        let floatCount = embedding.count / MemoryLayout<Float>.size
+        let floats: [Float] = embedding.withUnsafeBytes { ptr in
+            Array(ptr.bindMemory(to: Float.self).prefix(floatCount))
+        }
+        return VoiceProfile(
+            profileId:  UUID(uuidString: profileId) ?? UUID(),
+            label:      label,
+            isUser:     isUser,
+            embedding:  floats,
+            matchCount: matchCount,
+            lastSeenAt: Date(timeIntervalSince1970: lastSeenAt),
+            createdAt:  Date(timeIntervalSince1970: createdAt)
+        )
     }
 }

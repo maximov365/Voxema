@@ -1,5 +1,6 @@
 import XCTest
 import AVFoundation
+import GRDB
 @testable import Voxema
 
 // MARK: - Mock
@@ -533,5 +534,250 @@ final class DiarizeStageTests: XCTestCase {
         // Profile centroid should have moved only slightly toward nearBase
         let sim = SpeakerMatcher.cosine(updated.embedding, base)
         XCTAssertGreaterThan(sim, 0.99, "Low blend weight should keep centroid close to original")
+    }
+}
+
+// MARK: - MockSpeakerProfilePersistence
+
+private final class MockSpeakerProfilePersistence: SpeakerProfilePersistence {
+    var profilesToReturn: [VoiceProfile] = []
+    private(set) var upsertedProfiles: [VoiceProfile] = []
+    var loadError: Error?
+    var upsertError: Error?
+
+    func loadRemoteProfiles() throws -> [VoiceProfile] {
+        if let err = loadError { throw err }
+        return profilesToReturn
+    }
+
+    func upsertProfile(_ profile: VoiceProfile) throws {
+        if let err = upsertError { throw err }
+        if let idx = upsertedProfiles.firstIndex(where: { $0.profileId == profile.profileId }) {
+            upsertedProfiles[idx] = profile
+        } else {
+            upsertedProfiles.append(profile)
+        }
+    }
+}
+
+// MARK: - SpeakerProfilePersistenceTests
+
+final class SpeakerProfilePersistenceTests: XCTestCase {
+
+    // ── 1. Profiles loaded from persistence are seeded into the store ─────────
+
+    func testSeededProfileIsReusedForMatchingEmbedding() async throws {
+        let knownEmbedding: [Float] = [1, 0, 0] + [Float](repeating: 0, count: 189)
+        let persisted = VoiceProfile(
+            profileId: UUID(),
+            label: "Speaker A",
+            isUser: false,
+            embedding: knownEmbedding,
+            matchCount: 5
+        )
+
+        let persistence = MockSpeakerProfilePersistence()
+        persistence.profilesToReturn = [persisted]
+
+        let engine = MockEmbeddingEngine()
+        engine.embedResult = knownEmbedding   // same embedding → cosine = 1.0
+
+        let stage = DiarizeStage(
+            engineFactory: { engine },
+            config: DiarizeConfiguration(
+                modelURL: URL(fileURLWithPath: "/dev/null"),
+                matchThreshold: 0.75
+            ),
+            profilePersistence: persistence
+        )
+
+        let result = try await stage.run(
+            [makeSeg(channel: .remote, start: 0, end: 1)],
+            audioStreams: []
+        )
+
+        // Should reuse the seeded profile, not create a new "Speaker B"
+        XCTAssertEqual(result.first?.speaker.label, "Speaker A")
+    }
+
+    // ── 2. New profiles created during run are saved to persistence ───────────
+
+    func testNewProfileIsUpsertedAfterRun() async throws {
+        let persistence = MockSpeakerProfilePersistence()
+
+        let engine = MockEmbeddingEngine()
+        var embedding = [Float](repeating: 0, count: 192)
+        embedding[0] = 1.0
+        engine.embedResult = embedding
+
+        let stage = DiarizeStage(
+            engineFactory: { engine },
+            config: DiarizeConfiguration(
+                modelURL: URL(fileURLWithPath: "/dev/null"),
+                matchThreshold: 0.75
+            ),
+            profilePersistence: persistence
+        )
+
+        _ = try await stage.run(
+            [makeSeg(channel: .remote, start: 0, end: 1)],
+            audioStreams: []
+        )
+
+        XCTAssertEqual(persistence.upsertedProfiles.count, 1)
+        XCTAssertEqual(persistence.upsertedProfiles.first?.label, "Speaker A")
+    }
+
+    // ── 3. matchCount increments on a successful match ────────────────────────
+
+    func testMatchCountIncrementedOnMatch() async throws {
+        let embedding: [Float] = [1, 0, 0] + [Float](repeating: 0, count: 189)
+        let persisted = VoiceProfile(
+            profileId: UUID(),
+            label: "Speaker A",
+            isUser: false,
+            embedding: embedding,
+            matchCount: 3
+        )
+
+        let persistence = MockSpeakerProfilePersistence()
+        persistence.profilesToReturn = [persisted]
+
+        let engine = MockEmbeddingEngine()
+        engine.embedResult = embedding
+
+        let stage = DiarizeStage(
+            engineFactory: { engine },
+            config: DiarizeConfiguration(
+                modelURL: URL(fileURLWithPath: "/dev/null"),
+                matchThreshold: 0.75
+            ),
+            profilePersistence: persistence
+        )
+
+        _ = try await stage.run(
+            [makeSeg(channel: .remote, start: 0, end: 1)],
+            audioStreams: []
+        )
+
+        let saved = persistence.upsertedProfiles.first(where: { $0.label == "Speaker A" })
+        XCTAssertEqual(saved?.matchCount, 4, "matchCount should increment from 3 to 4")
+    }
+
+    // ── 4. Label ordinals continue past seeded labels ─────────────────────────
+
+    func testNextLabelContinuesPastSeededLabels() async throws {
+        // Seed "Speaker A" and "Speaker B" → new speaker should be "Speaker C"
+        let embA: [Float] = [1, 0, 0] + [Float](repeating: 0, count: 189)
+        let embB: [Float] = [0, 1, 0] + [Float](repeating: 0, count: 189)
+        let embC: [Float] = [0, 0, 1] + [Float](repeating: 0, count: 189)
+
+        let persistence = MockSpeakerProfilePersistence()
+        persistence.profilesToReturn = [
+            VoiceProfile(label: "Speaker A", isUser: false, embedding: embA),
+            VoiceProfile(label: "Speaker B", isUser: false, embedding: embB),
+        ]
+
+        let engine = MockEmbeddingEngine()
+        engine.embedResult = embC   // orthogonal to both → new profile
+
+        let stage = DiarizeStage(
+            engineFactory: { engine },
+            config: DiarizeConfiguration(
+                modelURL: URL(fileURLWithPath: "/dev/null"),
+                matchThreshold: 0.75
+            ),
+            profilePersistence: persistence
+        )
+
+        let result = try await stage.run(
+            [makeSeg(channel: .remote, start: 0, end: 1)],
+            audioStreams: []
+        )
+
+        XCTAssertEqual(result.first?.speaker.label, "Speaker C",
+                       "New speaker after seeded A+B should be C")
+    }
+
+    // ── 5. Load error is silently ignored (session continues without prior data) ──
+
+    func testLoadErrorFallsBackToEmptyStore() async throws {
+        let persistence = MockSpeakerProfilePersistence()
+        persistence.loadError = NSError(domain: "TestError", code: 1)
+
+        let engine = MockEmbeddingEngine()
+        let stage = DiarizeStage(
+            engineFactory: { engine },
+            config: .default,
+            profilePersistence: persistence
+        )
+
+        // Should not throw — load failure is soft
+        let result = try await stage.run(
+            [makeSeg(channel: .remote)],
+            audioStreams: []
+        )
+        XCTAssertFalse(result.isEmpty)
+    }
+
+    // ── 6. GRDB round-trip: save + reload preserves all fields ───────────────
+
+    func testMeetingStoreRoundTrip() throws {
+        let db = try MeetingStore(db: DatabaseQueue())
+
+        let original = VoiceProfile(
+            profileId:  UUID(),
+            label:      "Speaker Z",
+            isUser:     false,
+            embedding:  [0.1, 0.2, 0.3],
+            matchCount: 7,
+            lastSeenAt: Date(timeIntervalSince1970: 1_000_000),
+            createdAt:  Date(timeIntervalSince1970:   500_000)
+        )
+
+        try db.upsertProfile(original)
+
+        let loaded = try db.loadRemoteProfiles()
+        XCTAssertEqual(loaded.count, 1)
+        let p = try XCTUnwrap(loaded.first)
+        XCTAssertEqual(p.profileId,  original.profileId)
+        XCTAssertEqual(p.label,      "Speaker Z")
+        XCTAssertFalse(p.isUser)
+        XCTAssertEqual(p.matchCount, 7)
+        XCTAssertEqual(p.embedding[0], 0.1, accuracy: 1e-5)
+        XCTAssertEqual(p.embedding[1], 0.2, accuracy: 1e-5)
+        XCTAssertEqual(p.embedding[2], 0.3, accuracy: 1e-5)
+        XCTAssertEqual(p.lastSeenAt.timeIntervalSince1970, 1_000_000, accuracy: 0.001)
+        XCTAssertEqual(p.createdAt.timeIntervalSince1970,   500_000, accuracy: 0.001)
+    }
+
+    // ── 7. Upsert replaces existing record ───────────────────────────────────
+
+    func testMeetingStoreUpsertUpdatesExistingRecord() throws {
+        let db = try MeetingStore(db: DatabaseQueue())
+        let id = UUID()
+
+        let v1 = VoiceProfile(profileId: id, label: "Speaker A", isUser: false,
+                               embedding: [1, 0, 0], matchCount: 1)
+        try db.upsertProfile(v1)
+
+        let v2 = VoiceProfile(profileId: id, label: "Speaker A", isUser: false,
+                               embedding: [1, 0, 0], matchCount: 5)
+        try db.upsertProfile(v2)
+
+        let loaded = try db.loadRemoteProfiles()
+        XCTAssertEqual(loaded.count, 1, "upsert should not create a duplicate row")
+        XCTAssertEqual(loaded.first?.matchCount, 5)
+    }
+
+    // ── 8. User profiles are not persisted ────────────────────────────────────
+
+    func testUserProfileIsNotUpserted() throws {
+        let db = try MeetingStore(db: DatabaseQueue())
+        let user = VoiceProfile(label: "You", isUser: true, embedding: [1, 0, 0])
+        // upsertProfile should silently skip user profiles
+        XCTAssertNoThrow(try db.upsertProfile(user))
+        let loaded = try db.loadRemoteProfiles()
+        XCTAssertTrue(loaded.isEmpty, "User profile must not be persisted")
     }
 }
