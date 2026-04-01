@@ -139,7 +139,7 @@ public struct SpeakerIdentity: Codable, Equatable, Hashable, Sendable {
 /// A speaker-attributed transcript segment produced by the Diarize stage.
 /// `segmentId` is the same UUID as the corresponding `TranscribedSegment`.
 /// Corresponds to `DiarizedSegment` in PIPELINE_CONTRACTS.md.
-public struct DiarizedSegment: Codable, Equatable, Hashable, Sendable, Identifiable {
+public struct DiarizedSegment: Equatable, Hashable, Sendable, Identifiable {
     public var id: UUID { segmentId }
     /// Matches `TranscribedSegment.segmentId` for the source segment.
     public let segmentId: UUID
@@ -148,6 +148,9 @@ public struct DiarizedSegment: Codable, Equatable, Hashable, Sendable, Identifia
     public let text: String
     public let speaker: SpeakerIdentity
     public let channel: AudioChannel
+    /// BCP-47 language code inherited from `TranscribedSegment.language`.
+    /// Used by `PromptBuilder` to emit the summary in the meeting language.
+    public let language: String
 
     public init(
         segmentId: UUID,
@@ -155,7 +158,8 @@ public struct DiarizedSegment: Codable, Equatable, Hashable, Sendable, Identifia
         endTime: Float,
         text: String,
         speaker: SpeakerIdentity,
-        channel: AudioChannel
+        channel: AudioChannel,
+        language: String = "en"
     ) {
         self.segmentId = segmentId
         self.startTime = startTime
@@ -163,8 +167,11 @@ public struct DiarizedSegment: Codable, Equatable, Hashable, Sendable, Identifia
         self.text = text
         self.speaker = speaker
         self.channel = channel
+        self.language = language
     }
+}
 
+extension DiarizedSegment: Codable {
     enum CodingKeys: String, CodingKey {
         case segmentId = "segment_id"
         case startTime = "start_time"
@@ -172,6 +179,19 @@ public struct DiarizedSegment: Codable, Equatable, Hashable, Sendable, Identifia
         case text
         case speaker
         case channel
+        case language
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        segmentId = try c.decode(UUID.self,            forKey: .segmentId)
+        startTime = try c.decode(Float.self,           forKey: .startTime)
+        endTime   = try c.decode(Float.self,           forKey: .endTime)
+        text      = try c.decode(String.self,          forKey: .text)
+        speaker   = try c.decode(SpeakerIdentity.self, forKey: .speaker)
+        channel   = try c.decode(AudioChannel.self,    forKey: .channel)
+        // Default to "en" so records written before this field was added decode cleanly.
+        language  = try c.decodeIfPresent(String.self, forKey: .language) ?? "en"
     }
 }
 

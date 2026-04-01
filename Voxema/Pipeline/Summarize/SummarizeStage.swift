@@ -7,11 +7,17 @@ import Foundation
 public enum PromptBuilder {
 
     static let transcriptPlaceholder = "{{transcript}}"
+    static let languagePlaceholder   = "{{language}}"
 
-    /// Substitutes `{{transcript}}` in `template` with the formatted meeting transcript.
+    /// Substitutes `{{transcript}}` and `{{language}}` in `template` with the
+    /// formatted transcript and the dominant meeting language respectively.
     public static func build(segments: [DiarizedSegment], template: String) -> String {
+        let lang       = dominantLanguage(segments: segments)
+        let langName   = languageName(for: lang)
         let transcript = formatTranscript(segments: segments)
-        return template.replacingOccurrences(of: transcriptPlaceholder, with: transcript)
+        return template
+            .replacingOccurrences(of: languagePlaceholder,   with: langName)
+            .replacingOccurrences(of: transcriptPlaceholder, with: transcript)
     }
 
     /// Reads the default prompt template from the app bundle.
@@ -36,6 +42,37 @@ public enum PromptBuilder {
         }.joined(separator: "\n")
     }
 
+    /// Returns the BCP-47 code of the most frequently occurring language across segments.
+    static func dominantLanguage(segments: [DiarizedSegment]) -> String {
+        let counts = segments.reduce(into: [String: Int]()) { dict, seg in
+            guard !seg.language.isEmpty else { return }
+            dict[seg.language, default: 0] += 1
+        }
+        return counts.max(by: { $0.value < $1.value })?.key ?? "en"
+    }
+
+    /// Maps a BCP-47 code to a full English language name suitable for LLM prompts.
+    static func languageName(for code: String) -> String {
+        let base = code.lowercased().components(separatedBy: "-").first ?? code
+        let names: [String: String] = [
+            "af": "Afrikaans", "ar": "Arabic",  "be": "Belarusian", "bg": "Bulgarian",
+            "ca": "Catalan",   "cs": "Czech",   "cy": "Welsh",      "da": "Danish",
+            "de": "German",    "el": "Greek",   "en": "English",    "es": "Spanish",
+            "et": "Estonian",  "eu": "Basque",  "fa": "Persian",    "fi": "Finnish",
+            "fr": "French",    "ga": "Irish",   "gl": "Galician",   "he": "Hebrew",
+            "hi": "Hindi",     "hr": "Croatian","hu": "Hungarian",  "hy": "Armenian",
+            "id": "Indonesian","is": "Icelandic","it": "Italian",   "ja": "Japanese",
+            "ka": "Georgian",  "kk": "Kazakh",  "ko": "Korean",    "lt": "Lithuanian",
+            "lv": "Latvian",   "mk": "Macedonian","ms": "Malay",   "mt": "Maltese",
+            "nl": "Dutch",     "no": "Norwegian","pl": "Polish",   "pt": "Portuguese",
+            "ro": "Romanian",  "ru": "Russian", "sk": "Slovak",    "sl": "Slovenian",
+            "sq": "Albanian",  "sr": "Serbian", "sv": "Swedish",   "sw": "Swahili",
+            "th": "Thai",      "tr": "Turkish", "uk": "Ukrainian", "ur": "Urdu",
+            "vi": "Vietnamese","zh": "Chinese",
+        ]
+        return names[base] ?? code
+    }
+
     private static func formatTime(_ seconds: Float) -> String {
         let total = Int(seconds)
         let h = total / 3600
@@ -47,9 +84,11 @@ public enum PromptBuilder {
     }
 
     private static let defaultInlineTemplate = """
-    Analyze this meeting transcript and respond with a JSON object containing:
-    summary, key_decisions (array), action_items (array of {description, assignee, deadline}), open_questions (array).
-    Respond with only the JSON.
+    You are an expert meeting assistant. The meeting was conducted in {{language}}.
+    IMPORTANT: You MUST write every field of the JSON response in {{language}}. Do NOT use English.
+
+    Analyze the transcript and respond with only this JSON:
+    {"summary":"...","key_decisions":[...],"action_items":[{"description":"...","assignee":null,"deadline":null}],"open_questions":[...]}
 
     ## Transcript
     \(transcriptPlaceholder)

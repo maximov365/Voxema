@@ -52,11 +52,12 @@ public final class RefineStage: RefineStageProtocol {
         result.reserveCapacity(sorted.count)
 
         // Accumulator for the current in-progress speaker block
-        var accText    = sorted[0].text
-        var accStart   = sorted[0].startTime
-        var accEnd     = sorted[0].endTime
-        var accSpeaker = sorted[0].speaker
-        var accChannel = sorted[0].channel
+        var accText     = sorted[0].text
+        var accStart    = sorted[0].startTime
+        var accEnd      = sorted[0].endTime
+        var accSpeaker  = sorted[0].speaker
+        var accChannel  = sorted[0].channel
+        var accLanguage = sorted[0].language
 
         for seg in sorted.dropFirst() {
             let gap        = seg.startTime - accEnd
@@ -69,18 +70,19 @@ public final class RefineStage: RefineStageProtocol {
             } else {
                 // Different speaker or long pause → emit the accumulated block
                 result.append(emit(text: accText, start: accStart, end: accEnd,
-                                   speaker: accSpeaker, channel: accChannel))
-                accText    = seg.text
-                accStart   = seg.startTime
-                accEnd     = seg.endTime
-                accSpeaker = seg.speaker
-                accChannel = seg.channel
+                                   speaker: accSpeaker, channel: accChannel, language: accLanguage))
+                accText     = seg.text
+                accStart    = seg.startTime
+                accEnd      = seg.endTime
+                accSpeaker  = seg.speaker
+                accChannel  = seg.channel
+                accLanguage = seg.language
             }
         }
 
         // Emit the final accumulated block
         result.append(emit(text: accText, start: accStart, end: accEnd,
-                           speaker: accSpeaker, channel: accChannel))
+                           speaker: accSpeaker, channel: accChannel, language: accLanguage))
 
         log.info("RefineStage complete")
         return result
@@ -94,7 +96,7 @@ public final class RefineStage: RefineStageProtocol {
 
     private func emit(
         text: String, start: Float, end: Float,
-        speaker: SpeakerIdentity, channel: AudioChannel
+        speaker: SpeakerIdentity, channel: AudioChannel, language: String
     ) -> DiarizedSegment {
         DiarizedSegment(
             segmentId: UUID(),
@@ -102,7 +104,8 @@ public final class RefineStage: RefineStageProtocol {
             endTime:   end,
             text:      cleanText(text),
             speaker:   speaker,
-            channel:   channel
+            channel:   channel,
+            language:  language
         )
     }
 

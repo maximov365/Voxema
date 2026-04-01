@@ -518,7 +518,8 @@ public final class DiarizeStage: DiarizeStageProtocol {
                 endTime:   segment.endTime,
                 text:      segment.text,
                 speaker:   speaker,
-                channel:   segment.channel
+                channel:   segment.channel,
+                language:  segment.language
             ))
         }
 
@@ -549,7 +550,8 @@ public final class DiarizeStage: DiarizeStageProtocol {
                         confidence: sim,
                         isKnown:   false
                     ),
-                    channel: old.channel
+                    channel:  old.channel,
+                    language: old.language
                 )
             }
             log.info("DiarizeStage retro-pass complete")
