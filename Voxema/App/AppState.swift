@@ -167,7 +167,7 @@ public final class AppState: ObservableObject {
         let mm = ModelManager.shared
         let whisperModelId = AppPreferences.shared.whisperModelId
         if !whisperModelId.isEmpty,
-           let model = mm.manifest.models.first(where: { $0.id == whisperModelId && $0.family == .whisper }) {
+           mm.manifest.models.contains(where: { $0.id == whisperModelId && $0.family == .whisper }) {
             let status = mm.statuses[whisperModelId] ?? .missing
             switch status {
             case .missing, .corrupt:
@@ -363,7 +363,7 @@ public final class AppState: ObservableObject {
             log.warning("refreshPipeline called in non-idle state — ignored")
             return
         }
-        coordinator = Self.makeCoordinator()
+        coordinator = Self.makeCoordinator(profilePersistence: store)
         observeCoordinator()
         log.info("pipeline coordinator refreshed")
     }
