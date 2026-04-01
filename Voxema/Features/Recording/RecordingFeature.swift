@@ -5,6 +5,8 @@ import SwiftUI
 /// Full-area view shown while `pipelineState == .recording`.
 struct RecordingView: View {
     @EnvironmentObject private var appState: AppState
+    @State private var ringScale: CGFloat = 1.0
+    @State private var ringAlpha: Double = 0.5
 
     var body: some View {
         VStack(spacing: 20) {
@@ -24,15 +26,24 @@ struct RecordingView: View {
 
     private var pulsatingRing: some View {
         ZStack {
+            // Expanding pulse ring — scales out and fades like the CSS ring-pulse keyframe
             Circle()
-                .stroke(Color.red.opacity(0.25), lineWidth: 2)
+                .stroke(Color.red.opacity(0.3), lineWidth: 2)
                 .frame(width: 92, height: 92)
+                .scaleEffect(ringScale)
+                .opacity(1.0 - ringAlpha)
             Circle()
                 .fill(Color.red.opacity(0.12))
                 .frame(width: 92, height: 92)
             Circle()
                 .fill(Color.red)
                 .frame(width: 38, height: 38)
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 1.8).repeatForever(autoreverses: false)) {
+                ringScale = 1.25
+                ringAlpha = 1.0
+            }
         }
     }
 
@@ -267,12 +278,14 @@ private struct PipelineStepRow: View {
 struct ChannelPill: View {
     let label: String
     let color: Color
+    @State private var dotOpacity: Double = 1.0
 
     var body: some View {
         HStack(spacing: 6) {
             Circle()
                 .fill(color)
                 .frame(width: 6, height: 6)
+                .opacity(dotOpacity)
             Text(label)
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
@@ -282,5 +295,10 @@ struct ChannelPill: View {
         .background(Color(nsColor: .controlBackgroundColor))
         .clipShape(Capsule())
         .overlay(Capsule().stroke(Color(nsColor: .separatorColor), lineWidth: 0.5))
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+                dotOpacity = 0.25
+            }
+        }
     }
 }

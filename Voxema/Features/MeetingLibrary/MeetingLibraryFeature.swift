@@ -13,14 +13,17 @@ struct LibrarySidebarView: View {
 
     // MARK: - Sections
 
+    private var isRecordingActive: Bool {
+        if case .recording = appState.pipelineState { return true }
+        return false
+    }
+
     private var recordButton: some View {
         Button {
             Task { await appState.startRecording() }
         } label: {
             HStack(spacing: 6) {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 8, height: 8)
+                BlinkingRecordDot(active: isRecordingActive)
                 Text(recordButtonLabel)
                     .font(.system(size: 13, weight: .semibold))
             }
@@ -158,5 +161,36 @@ struct MeetingRowView: View {
     private var durationText: String {
         let m = Int(meeting.durationSeconds) / 60
         return m < 1 ? "< 1 min" : "\(m) min"
+    }
+}
+
+// MARK: - BlinkingRecordDot
+
+/// White circle that blinks (opacity 1.0 ↔ 0.25) while recording is active.
+private struct BlinkingRecordDot: View {
+    let active: Bool
+    @State private var opacity: Double = 1.0
+
+    var body: some View {
+        Circle()
+            .fill(Color.white)
+            .frame(width: 8, height: 8)
+            .opacity(opacity)
+            .onAppear { if active { startBlink() } }
+            .onChange(of: active) { isActive in
+                if isActive { startBlink() } else { stopBlink() }
+            }
+    }
+
+    private func startBlink() {
+        withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
+            opacity = 0.25
+        }
+    }
+
+    private func stopBlink() {
+        withAnimation(.easeOut(duration: 0.2)) {
+            opacity = 1.0
+        }
     }
 }

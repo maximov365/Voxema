@@ -11,6 +11,18 @@ struct ContentView: View {
         } detail: {
             detailContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            openSettings()
+                        } label: {
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 13))
+                        }
+                        .help("Settings")
+                        .keyboardShortcut(",", modifiers: .command)
+                    }
+                }
         }
         .navigationSplitViewStyle(.balanced)
         .searchable(
@@ -18,18 +30,6 @@ struct ContentView: View {
             placement: .toolbar,
             prompt: "Search meetings…"
         )
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    openSettings()
-                } label: {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 13))
-                }
-                .help("Settings")
-                .keyboardShortcut(",", modifiers: .command)
-            }
-        }
         .alert(
             "Recording Error",
             isPresented: Binding(
@@ -41,7 +41,6 @@ struct ContentView: View {
         } message: {
             Text(appState.pipelineError?.errorDescription ?? "An unknown error occurred.")
         }
-        // Alert: permission missing — send user to Settings.
         .alert(
             appState.permissionRequired == .systemAudioRecording
                 ? String(localized: "System Audio Recording Required")
