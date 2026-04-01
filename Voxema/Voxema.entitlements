@@ -2,13 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- App Sandbox disabled: required for ScreenCaptureKit system audio capture -->
-    <!-- Direct DMG distribution (not App Store) — see DEC-2, PRD Technical Constraints -->
+    <!-- App Sandbox disabled: required for Core Audio tap + direct DMG distribution (DEC-2) -->
     <key>com.apple.security.app-sandbox</key>
     <false/>
     <!-- Hardened Runtime required for notarization and Sparkle 2 (DEC-4) -->
     <!-- Library validation disabled: required for Sparkle XPC services -->
     <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+    <!-- Required by Hardened Runtime to allow microphone input via AVAudioEngine.
+         Without this, macOS silently blocks audio capture and TCC is never consulted. -->
+    <key>com.apple.security.device.audio-input</key>
     <true/>
 </dict>
 </plist>

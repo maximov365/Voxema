@@ -1,12 +1,14 @@
 //
-// voxema_ecapa.h  —  Voxema domain-specific C bridge for ECAPA-TDNN via ONNX Runtime.
+// voxema_ecapa.h  —  Voxema domain-specific C bridge for speaker embeddings.
 //
-// Exposes a minimal 4-function API hiding ONNX Runtime internals from Swift.
-// Embedding size: 192 float32 values (ECAPA-TDNN standard output).
+// Exposes a minimal 4-function API.
 //
-// REPLACEMENT: Remove voxema_ecapa_stub.c and add the real ONNX Runtime-backed
-// implementation when the ECAPA-TDNN ONNX model is available.
-// Swift wrapper (EmbeddingEngine.swift) does NOT need to change.
+// Current implementation: voxema_ecapa_coreml.m (DEC-16 Phase 2).
+//   - CoreML ECAPA-TDNN (SpeechBrain spkrec-ecapa-voxceleb, ~22 MB .mlpackage).
+//   - Falls back to MFCC statistics (Phase 1) when the model file is absent.
+//   - Obtain the model: python3 scripts/convert_ecapa_coreml.py
+//     then move ecapa-tdnn.mlpackage to Voxema/Resources/Models/
+//     and re-run python3 scripts/add_coreml_ecapa.py to bundle it.
 //
 
 #ifndef VOXEMA_ECAPA_H

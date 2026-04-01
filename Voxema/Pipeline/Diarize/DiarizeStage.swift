@@ -7,7 +7,9 @@ import Accelerate
 /// Abstraction over the ECAPA-TDNN ONNX Runtime session.
 /// Enables testing DiarizeStage with a mock engine without real inference.
 public protocol EmbeddingEngineProtocol: AnyObject {
-    /// Loads the ONNX model file at `url`.
+    /// Loads the speaker embedding model at `url`.
+    /// Pass a bundle resource URL for `ecapa-tdnn.mlpackage` (CoreML, DEC-16 Phase 2)
+    /// or an empty URL to use the MFCC fallback (Phase 1, no model file required).
     func loadModel(at url: URL) throws
     /// Extracts a 192-dim speaker embedding from mono float32 16kHz `samples`.
     func embed(samples: [Float]) throws -> [Float]
@@ -28,9 +30,13 @@ public final class EmbeddingEngine: EmbeddingEngineProtocol {
 
     public func loadModel(at url: URL) throws {
         unloadModel()
-        let loaded: OpaquePointer? = url.withUnsafeFileSystemRepresentation { path in
-            guard let path else { return nil }
-            return voxema_ecapa_init(path)
+        // withUnsafeFileSystemRepresentation provides the POSIX UTF-8 path needed
+        // by both the MFCC fallback (ignores it) and CoreML model loading.
+        // Empty path is valid — voxema_ecapa_coreml.m skips CoreML init and
+        // falls back to MFCC embeddings automatically.
+        var loaded: OpaquePointer?
+        url.withUnsafeFileSystemRepresentation { cPath in
+            loaded = voxema_ecapa_init(cPath)
         }
         guard let loaded else {
             log.error("voxema_ecapa_init returned nil")
