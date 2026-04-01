@@ -101,7 +101,7 @@
       "sha256": "placeholder-qwen7b-sha256-computed-at-release",
       "ram_gb": 5.5,
       "tier": "better",
-      "download_url": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q4_k_m.gguf",
+      "download_url": "https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf",
       "is_bundled": false,
       "description": "Better — recommended quality. Best for 16 GB+ Macs."
     }
