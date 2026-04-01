@@ -44,3 +44,4 @@
 | TASK-27 | Metal GPU acceleration for whisper.cpp: add ggml-metal.m/h/.metal, compile default.metallib, flip use_gpu=true | completed | high | medium |
 | TASK-28 | Real speaker diarization: replace zero-stub with MFCC-based embeddings (Accelerate/vDSP, no model file) | completed | high | medium |
 | TASK-29 | Phase 2 diarization: CoreML ECAPA-TDNN (SpeechBrain spkrec-ecapa-voxceleb) replacing MFCC; MFCC fallback when model absent | completed | high | medium |
+| TASK-30 | Quality improvements: Whisper initialPrompt context hint, RMS normalisation, DiarizeStage short-segment guard (≥1.5s), whisper-small default | completed | high | medium |
