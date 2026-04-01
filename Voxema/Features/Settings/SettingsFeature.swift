@@ -153,6 +153,7 @@ private struct ModelsSettingsTab: View {
             }
             .buttonStyle(.plain)
             .disabled(!isReady)
+            .opacity(isDownloading(status) || isReady ? 1 : 0.4)
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 8) {
@@ -164,6 +165,7 @@ private struct ModelsSettingsTab: View {
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
             }
+            .opacity(isDownloading(status) || isReady ? 1 : 0.5)
 
             Spacer()
 
@@ -196,7 +198,6 @@ private struct ModelsSettingsTab: View {
             }
         }
         .padding(.vertical, 4)
-        .opacity(isDownloading(status) || isReady ? 1 : 0.5)
     }
 
     private func isDownloading(_ status: ModelStatus) -> Bool {
@@ -346,6 +347,7 @@ private struct SummarizationSettingsTab: View {
             }
             .buttonStyle(.plain)
             .disabled(!isReady)
+            .opacity(!isReady ? 0.4 : 1)
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 8) {
@@ -359,6 +361,7 @@ private struct SummarizationSettingsTab: View {
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
             }
+            .opacity(!isReady ? 0.5 : 1)
 
             Spacer()
 
@@ -375,7 +378,6 @@ private struct SummarizationSettingsTab: View {
             }
         }
         .padding(.vertical, 4)
-        .opacity(!isReady ? 0.5 : 1)
     }
 
     private func tierBadge(_ tier: QualityTier) -> some View {
