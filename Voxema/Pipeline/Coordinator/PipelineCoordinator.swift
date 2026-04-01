@@ -32,6 +32,7 @@ public final class PipelineCoordinator: ObservableObject {
     private let captureStage:    any CaptureStageProtocol
     private let transcribeStage: any TranscribeStageProtocol
     private let diarizeStage:    any DiarizeStageProtocol
+    private let refineStage:     any RefineStageProtocol
     private let summarizeStage:  any SummarizeStageProtocol
     private let exportStage:     any ExportStageProtocol
     private let modelManager:    ModelManager
@@ -45,6 +46,7 @@ public final class PipelineCoordinator: ObservableObject {
         captureStage:    any CaptureStageProtocol,
         transcribeStage: any TranscribeStageProtocol,
         diarizeStage:    any DiarizeStageProtocol,
+        refineStage:     any RefineStageProtocol = RefineStage(),
         summarizeStage:  any SummarizeStageProtocol,
         exportStage:     any ExportStageProtocol,
         modelManager:    ModelManager? = nil
@@ -52,6 +54,7 @@ public final class PipelineCoordinator: ObservableObject {
         self.captureStage    = captureStage
         self.transcribeStage = transcribeStage
         self.diarizeStage    = diarizeStage
+        self.refineStage     = refineStage
         self.summarizeStage  = summarizeStage
         self.exportStage     = exportStage
         // Resolve inside the @MainActor init body — default expressions are non-isolated
@@ -111,6 +114,7 @@ public final class PipelineCoordinator: ObservableObject {
         case .processing:
             transcribeStage.cancel()
             diarizeStage.cancel()
+            refineStage.cancel()
             summarizeStage.cancel()
             exportStage.cancel()
         }
@@ -162,12 +166,24 @@ public final class PipelineCoordinator: ObservableObject {
         }
         log.info("stage diarize complete", "segments=\(diarized.count)")
 
+        // ── Refine ──────────────────────────────────────────────────────
+        log.info("stage refine starting")
+        updateProgress(.refining(progress: 0))
+        let refined: [DiarizedSegment]
+        do {
+            refined = try await refineStage.run(diarized)
+        } catch {
+            let err = asPipelineError(error, fallback: .diarizeAllSegmentsBelowThreshold)
+            state = .failed(err); throw err
+        }
+        log.info("stage refine complete", "segments=\(refined.count) (merged from \(diarized.count))")
+
         // ── Summarize ────────────────────────────────────────────────────
         log.info("stage summarize starting")
         updateProgress(.summarizing(progress: 0))
         let summary: MeetingSummary
         do {
-            summary = try await summarizeStage.run(diarized)
+            summary = try await summarizeStage.run(refined)
         } catch {
             let err = asPipelineError(error, fallback: .summarizeMalformedOutput)
             state = .failed(err); throw err
@@ -182,7 +198,7 @@ public final class PipelineCoordinator: ObservableObject {
         do {
             meeting = try await exportStage.run(
                 ExportStageInput(
-                    segments: diarized,
+                    segments: refined,
                     summary: summary,
                     metadata: metadata,
                     audioFilePaths: streams.map(\.filePath)

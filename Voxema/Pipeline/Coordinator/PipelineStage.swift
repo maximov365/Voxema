@@ -39,6 +39,17 @@ public extension DiarizeStageProtocol {
     }
 }
 
+/// Contract for the Refine stage.
+///
+/// Merges consecutive same-speaker segments that fall within the configured gap,
+/// applies light text cleanup (capitalisation, terminal punctuation), and sorts
+/// the output by start time. Input and output are both `[DiarizedSegment]` so the
+/// stage is transparent to the rest of the pipeline.
+public protocol RefineStageProtocol: AnyObject {
+    func run(_ segments: [DiarizedSegment]) async throws -> [DiarizedSegment]
+    func cancel()
+}
+
 /// Contract for the Summarize stage.
 public protocol SummarizeStageProtocol: AnyObject {
     func run(_ segments: [DiarizedSegment]) async throws -> MeetingSummary
@@ -80,6 +91,7 @@ public protocol ExportStageProtocol: AnyObject {
 public enum PipelineProcessingStage: Equatable, Sendable {
     case transcribing(progress: Double)
     case diarizing(progress: Double)
+    case refining(progress: Double)
     case summarizing(progress: Double)
     case exporting(progress: Double)
 
@@ -88,15 +100,16 @@ public enum PipelineProcessingStage: Equatable, Sendable {
         switch self {
         case .transcribing: return 0
         case .diarizing:    return 1
-        case .summarizing:  return 2
-        case .exporting:    return 3
+        case .refining:     return 2
+        case .summarizing:  return 3
+        case .exporting:    return 4
         }
     }
 
     /// The 0.0–1.0 fraction for this stage.
     public var progress: Double {
         switch self {
-        case .transcribing(let p), .diarizing(let p),
+        case .transcribing(let p), .diarizing(let p), .refining(let p),
              .summarizing(let p), .exporting(let p):
             return p
         }
@@ -140,7 +153,7 @@ public struct PipelineProgress: Equatable, Sendable {
     }
 
     /// Builds progress from a stage's position and its internal progress fraction.
-    static func from(stage: PipelineProcessingStage, stageCount: Int = 4) -> PipelineProgress {
+    static func from(stage: PipelineProcessingStage, stageCount: Int = 5) -> PipelineProgress {
         let weight = 1.0 / Double(stageCount)
         let completed = Double(stage.index) * weight
         let current = stage.progress * weight
