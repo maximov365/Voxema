@@ -79,6 +79,18 @@ public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
         // for preprocessing so the main actor and UI remain fully responsive.
         params.n_threads = 2
 
+        // ── Quality tuning ───────────────────────────────────────────────────
+        // beam_size=5: standard research setting; -1 (auto) maps to same value
+        // but making it explicit prevents future whisper.cpp default changes.
+        params.beam_search.beam_size = 5
+        // suppress_non_speech_tokens: removes filler tokens ([BLANK_AUDIO],
+        // breathing, laughter markers) that pollute meeting transcripts.
+        params.suppress_non_speech_tokens = true
+        // entropy_thold=2.0: tighter quality gate (default 2.4). Segments with
+        // high token-entropy (low-confidence, likely garbled) are retried with
+        // temperature_inc fallback instead of being emitted as-is.
+        params.entropy_thold = 2.0
+
         let langStr  = language ?? "auto"
         // Non-empty prompt is passed as a C string. Nested withCString calls keep
         // both pointers alive for the full duration of whisper_full().
