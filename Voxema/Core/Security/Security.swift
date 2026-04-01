@@ -151,6 +151,12 @@ public enum EncryptionManager {
 
     private static let keychainService = "com.voxema.app.encryption"
 
+    /// In-memory cache so the Keychain is hit at most once per key per app session.
+    /// Eliminates repeated SecItemCopyMatching IPC calls (which can block threads
+    /// and trigger Keychain auth dialogs on every encrypt/decrypt operation).
+    private static var keyCache: [String: SymmetricKey] = [:]
+    private static let keyCacheLock = NSLock()
+
     // MARK: Public API
 
     /// Encrypts `data` using the key identified by `keyIdentifier`.
@@ -189,17 +195,33 @@ public enum EncryptionManager {
     // MARK: Private
 
     private static func loadOrCreateKey(identifier: String) throws -> SymmetricKey {
+        // Fast path: return cached key without touching the Keychain.
+        keyCacheLock.lock()
+        if let cached = keyCache[identifier] {
+            keyCacheLock.unlock()
+            return cached
+        }
+        keyCacheLock.unlock()
+
+        // Slow path: first access — hit the Keychain (may show auth dialog once).
+        let key: SymmetricKey
         if let existingKeyData = try? KeychainManager.retrieve(service: keychainService, account: identifier) {
-            return SymmetricKey(data: existingKeyData)
+            key = SymmetricKey(data: existingKeyData)
+        } else {
+            // Generate and persist a new 256-bit key.
+            let newKey = SymmetricKey(size: .bits256)
+            let keyData = newKey.withUnsafeBytes { Data($0) }
+            do {
+                try KeychainManager.store(data: keyData, service: keychainService, account: identifier)
+            } catch {
+                throw SecurityError.keyGenerationFailed
+            }
+            key = newKey
         }
-        // Generate a new 256-bit key
-        let newKey = SymmetricKey(size: .bits256)
-        let keyData = newKey.withUnsafeBytes { Data($0) }
-        do {
-            try KeychainManager.store(data: keyData, service: keychainService, account: identifier)
-        } catch {
-            throw SecurityError.keyGenerationFailed
-        }
-        return newKey
+
+        keyCacheLock.lock()
+        keyCache[identifier] = key
+        keyCacheLock.unlock()
+        return key
     }
 }

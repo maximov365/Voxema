@@ -203,6 +203,6 @@ public final class SummarizeStage: SummarizeStageProtocol {
                 }
             }
         }
-        throw PipelineError.summarizeMaxRetriesExceeded(retries: config.maxRetries)
+        throw lastError
     }
 }

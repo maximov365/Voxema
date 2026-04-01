@@ -135,13 +135,26 @@ final class SystemAudioCapture: NSObject, AudioCapturer {
 
     func stopCapture() async throws -> TimeInterval {
         let duration = fileWriter?.duration ?? 0
-        teardown()
+        // Bridge to a plain GCD thread so that AVAudioEngine.stop(),
+        // AudioHardwareDestroyAggregateDevice(), and AudioHardwareDestroyProcessTap()
+        // can never run on or dispatch_sync back to the main thread.
+        // withCheckedContinuation suspends the Swift async context while GCD does the work.
+        let cap = self
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                cap.teardown()
+                cont.resume()
+            }
+        }
         log.info("SystemAudioCapture stopped")
         return duration
     }
 
     func cancel() {
-        teardown()
+        // cancel() is synchronous and called from PipelineCoordinator.cancel() (@MainActor).
+        // Dispatch teardown asynchronously so the main thread is never blocked.
+        let cap = self
+        DispatchQueue.global(qos: .userInitiated).async { cap.teardown() }
         log.info("SystemAudioCapture cancelled")
     }
 

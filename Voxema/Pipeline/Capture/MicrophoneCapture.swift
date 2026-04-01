@@ -44,20 +44,33 @@ final class MicrophoneCapture: AudioCapturer {
     }
 
     func stopCapture() async throws -> TimeInterval {
-        engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
         let duration = fileWriter?.duration ?? 0
-        fileWriter?.close()
-        fileWriter = nil
+        // Bridge to a plain GCD thread so AVAudioEngine.stop() (which can
+        // dispatch_sync back to the main thread internally) never blocks the
+        // main actor, regardless of what context called stopCapture().
+        let cap = self
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                cap.engine.inputNode.removeTap(onBus: 0)
+                cap.engine.stop()
+                cap.fileWriter?.close()
+                cap.fileWriter = nil
+                cont.resume()
+            }
+        }
         log.info("MicrophoneCapture stopped")
         return duration
     }
 
     func cancel() {
-        engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
-        fileWriter?.close()
-        fileWriter = nil
+        // cancel() is synchronous — dispatch teardown asynchronously.
+        let cap = self
+        DispatchQueue.global(qos: .userInitiated).async {
+            cap.engine.inputNode.removeTap(onBus: 0)
+            cap.engine.stop()
+            cap.fileWriter?.close()
+            cap.fileWriter = nil
+        }
         log.info("MicrophoneCapture cancelled")
     }
 

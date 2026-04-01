@@ -26,7 +26,7 @@
 		774E4F86BC957ECF30F4EF40 /* RecordingFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA14A23BAA040BBED193165 /* RecordingFeature.swift */; };
 		78282898C2224E8CAC72DC8C /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */; };
 		799D4441A8AF7B351609577D /* MicrophoneCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */; };
-		88FC1D362F924271B46B8081 /* voxema_ecapa_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = 906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */; };
+
 		8B7A4D2A9387714EA94F34FF /* Security.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE244398BB7B0EB11B366116 /* Security.swift */; };
 		8CE04B8D9D693252E04018BF /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22E49F9BB542993C30ED696 /* Logger.swift */; };
 		96D84AF4BE3E6178BD9B08BF /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45042E2906A245B1FA47D8B /* UpdateManager.swift */; };
@@ -36,7 +36,18 @@
 		A9FE4458BE2AD9F3B472BD29 /* CaptureStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D544B3B00BE2B45C33D8B7 /* CaptureStage.swift */; };
 		AC974F178490BC72174F2154 /* VoxemaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 870E41CE835DFCBC4B9BB89B /* VoxemaApp.swift */; };
 		B21C41BE842974668EA10D39 /* ONNXRuntimePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AA4531B96F4FB4B5EB49EF /* ONNXRuntimePlaceholder.swift */; };
-		BBF747489A4ECBF50B35F5D3 /* whisper_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = 11B14214BB197C5F1E65C6C6 /* whisper_stub.c */; };
+		6038C0C108C14AE68A31F741 /* whisper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 734E19C93A014C61B47D438A /* whisper.cpp */; };
+		79197ED380274AAC95D5A052 /* ggml.c in Sources */ = {isa = PBXBuildFile; fileRef = B4C5756EBBD54CCDBD71215B /* ggml.c */; };
+		C93C0CE227264F32A3B815F7 /* ggml-alloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3E9069FC2A134D2AAC85246F /* ggml-alloc.c */; };
+		B1C2D3E4F5A601020304B1C2 /* ggml-metal.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F601020304A1B3 /* ggml-metal.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B1C2D3E4F5A601020304B1C3 /* ggml-metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F601020304A1B4 /* ggml-metal.metal */; };
+		B1C2D3E4F5A601020304B1C4 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F601020304A1B5 /* Metal.framework */; };
+		CDED1122334455667788AACB /* voxema_ecapa_coreml.m in Sources */ = {isa = PBXBuildFile; fileRef = CDED1122334455667788AACC /* voxema_ecapa_coreml.m */; };
+		CDED1122334455667788AAD0 /* ecapa-tdnn.mlpackage in Resources */ = {isa = PBXBuildFile; fileRef = CDED1122334455667788AACF /* ecapa-tdnn.mlpackage */; };
+		CDED1122334455667788AACE /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDED1122334455667788AACD /* CoreML.framework */; };
+		ACCE1122334455667788AABC /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ACCE1122334455667788AABE /* Accelerate.framework */; };
+		D59378D9034D4852AF46C8FD /* ggml-backend.c in Sources */ = {isa = PBXBuildFile; fileRef = 0ADC675165664652B208EC94 /* ggml-backend.c */; };
+		FF14BD84CC0D431EB11C17B3 /* ggml-quants.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C82A84BF52A405F9B7DDEE2 /* ggml-quants.c */; };
 		BE8242588E4BE25E7C924905 /* SystemAudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ECF49B58438DDF0A5B40B27 /* SystemAudioCapture.swift */; };
 		D0674C669E0CF6CA2D978DDB /* MeetingDetailFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C1C49C29FFCFBC4C9F9A1B2 /* MeetingDetailFeature.swift */; };
 		D3DA44EAA4AA7507FC00904C /* DiarizeStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C44BB795AEA58A037EE5A2 /* DiarizeStage.swift */; };
@@ -55,7 +66,11 @@
 		05F446369FAFBB68D1DA4F16 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NetworkManager.swift; path = Voxema/Core/Networking/NetworkManager.swift; sourceTree = SOURCE_ROOT; };
 		0875409299C88494CAC62720 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Models.swift; path = Voxema/Core/Models/Models.swift; sourceTree = SOURCE_ROOT; };
 		0ECF49B58438DDF0A5B40B27 /* SystemAudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SystemAudioCapture.swift; path = Voxema/Pipeline/Capture/SystemAudioCapture.swift; sourceTree = SOURCE_ROOT; };
-		11B14214BB197C5F1E65C6C6 /* whisper_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = whisper_stub.c; path = Voxema/Bridge/CWhisper/whisper_stub.c; sourceTree = SOURCE_ROOT; };
+		734E19C93A014C61B47D438A /* whisper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = whisper.cpp; path = Voxema/Bridge/CWhisper/src/whisper.cpp; sourceTree = SOURCE_ROOT; };
+		B4C5756EBBD54CCDBD71215B /* ggml.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = ggml.c; path = Voxema/Bridge/CWhisper/src/ggml.c; sourceTree = SOURCE_ROOT; };
+		3E9069FC2A134D2AAC85246F /* ggml-alloc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = ggml-alloc.c; path = Voxema/Bridge/CWhisper/src/ggml-alloc.c; sourceTree = SOURCE_ROOT; };
+		0ADC675165664652B208EC94 /* ggml-backend.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = ggml-backend.c; path = Voxema/Bridge/CWhisper/src/ggml-backend.c; sourceTree = SOURCE_ROOT; };
+		1C82A84BF52A405F9B7DDEE2 /* ggml-quants.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = ggml-quants.c; path = Voxema/Bridge/CWhisper/src/ggml-quants.c; sourceTree = SOURCE_ROOT; };
 		16D544B3B00BE2B45C33D8B7 /* CaptureStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CaptureStage.swift; path = Voxema/Pipeline/Capture/CaptureStage.swift; sourceTree = SOURCE_ROOT; };
 		18A046239045A9DF698277F7 /* SummarizeStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SummarizeStage.swift; path = Voxema/Pipeline/Summarize/SummarizeStage.swift; sourceTree = SOURCE_ROOT; };
 		18E9F3DDF4FC4C4D8596C849 /* SummaryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SummaryProvider.swift; path = Voxema/Pipeline/Summarize/SummaryProvider.swift; sourceTree = SOURCE_ROOT; };
@@ -87,6 +102,15 @@
 		CC1E446B894ABD98541008CE /* OnboardingFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingFeature.swift; path = Voxema/Features/Onboarding/OnboardingFeature.swift; sourceTree = SOURCE_ROOT; };
 		D4BF42BE8D185A762C01B2F5 /* Storage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Storage.swift; path = Voxema/Core/Storage/Storage.swift; sourceTree = SOURCE_ROOT; };
 		D7E8A9B0C1D2E3F405060718 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A1B2C3D4E5F601020304A1B2 /* ggml-metal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ggml-metal.h"; path = Voxema/Bridge/CWhisper/src/ggml-metal.h; sourceTree = SOURCE_ROOT; };
+		A1B2C3D4E5F601020304A1B3 /* ggml-metal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "ggml-metal.m"; path = Voxema/Bridge/CWhisper/src/ggml-metal.m; sourceTree = SOURCE_ROOT; };
+		A1B2C3D4E5F601020304A1B4 /* ggml-metal.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = "ggml-metal.metal"; path = Voxema/Bridge/CWhisper/src/ggml-metal.metal; sourceTree = SOURCE_ROOT; };
+		A1B2C3D4E5F601020304A1B5 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		ACCE1122334455667788AABD /* voxema_ecapa_mfcc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = voxema_ecapa_mfcc.c; path = Voxema/Bridge/COnnxRuntime/voxema_ecapa_mfcc.c; sourceTree = SOURCE_ROOT; };
+		ACCE1122334455667788AABE /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		CDED1122334455667788AACC /* voxema_ecapa_coreml.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = voxema_ecapa_coreml.m; path = Voxema/Bridge/COnnxRuntime/voxema_ecapa_coreml.m; sourceTree = SOURCE_ROOT; };
+		CDED1122334455667788AACD /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
+		CDED1122334455667788AACF /* ecapa-tdnn.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "ecapa-tdnn.mlpackage"; path = "Voxema/Resources/Models/ecapa-tdnn.mlpackage"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +119,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				971CC19C76E7467CABD26579 /* GRDB in Frameworks */,
+				CDED1122334455667788AACE /* CoreML.framework in Frameworks */,
+				ACCE1122334455667788AABC /* Accelerate.framework in Frameworks */,
+				B1C2D3E4F5A601020304B1C4 /* Metal.framework in Frameworks */,
 				EB01E5579F7A4BA6AB64A22E /* Sparkle in Frameworks */,
 					);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -125,6 +152,7 @@
 				B45042E2906A245B1FA47D8B /* UpdateManager.swift */,
 				786D40B188704EF95C45E824 /* ContentView.swift */,
 				C949F91ACBCF46AA959F8D6A /* Localizable.xcstrings */,
+				CDED1122334455667788AACF /* ecapa-tdnn.mlpackage */,
 				6AC8C9D953764CD2B350BB0A /* models-manifest.json */,
 				9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */,
 				B59005DF71F247CA9A047490 /* AppState.swift */,
@@ -139,9 +167,14 @@
 				0ECF49B58438DDF0A5B40B27 /* SystemAudioCapture.swift */,
 				BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */,
 				8B9C408EA17B70F29A5D2B42 /* WhisperEngine.swift */,
-				BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */,
-				906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */,
-				11B14214BB197C5F1E65C6C6 /* whisper_stub.c */,
+			BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */,
+			906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */,
+			ACCE1122334455667788AABD /* voxema_ecapa_mfcc.c */,
+				734E19C93A014C61B47D438A /* whisper.cpp */,
+			B4C5756EBBD54CCDBD71215B /* ggml.c */,
+			3E9069FC2A134D2AAC85246F /* ggml-alloc.c */,
+			0ADC675165664652B208EC94 /* ggml-backend.c */,
+			1C82A84BF52A405F9B7DDEE2 /* ggml-quants.c */,
 				824EA6D22F7B9D72009B7E04 /* Recovered References */,
 			);
 			sourceTree = "<group>";
@@ -229,6 +262,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CDED1122334455667788AAD0 /* ecapa-tdnn.mlpackage in Resources */,
 				A27B4219CEE1433381449F00 /* models-manifest.json in Resources */,
 				43B0EC1AFCDC423F8FB924D9 /* Localizable.xcstrings in Resources */,
 				E8F9A0B1C2D3E4F506071829 /* Assets.xcassets in Resources */,
@@ -259,7 +293,13 @@
 				02BD4BA095355D76BF93A537 /* Storage.swift in Sources */,
 				8CE04B8D9D693252E04018BF /* Logger.swift in Sources */,
 				96D84AF4BE3E6178BD9B08BF /* UpdateManager.swift in Sources */,
-				BBF747489A4ECBF50B35F5D3 /* whisper_stub.c in Sources */,
+				6038C0C108C14AE68A31F741 /* whisper.cpp in Sources */,
+			79197ED380274AAC95D5A052 /* ggml.c in Sources */,
+			C93C0CE227264F32A3B815F7 /* ggml-alloc.c in Sources */,
+			D59378D9034D4852AF46C8FD /* ggml-backend.c in Sources */,
+			FF14BD84CC0D431EB11C17B3 /* ggml-quants.c in Sources */,
+			B1C2D3E4F5A601020304B1C2 /* ggml-metal.m in Sources */,
+			B1C2D3E4F5A601020304B1C3 /* ggml-metal.metal in Sources */,
 				9AC94458970E16560A2D4AE6 /* ContentView.swift in Sources */,
 				78282898C2224E8CAC72DC8C /* MenuBarView.swift in Sources */,
 				4898AD0F422A479ABCCFE3B5 /* AppState.swift in Sources */,
@@ -275,7 +315,7 @@
 				799D4441A8AF7B351609577D /* MicrophoneCapture.swift in Sources */,
 				765144BEA197E8C16647A484 /* WhisperEngine.swift in Sources */,
 				72E51A6B34E549B588FD8E4D /* voxema_llm_stub.c in Sources */,
-				88FC1D362F924271B46B8081 /* voxema_ecapa_stub.c in Sources */,
+				CDED1122334455667788AACB /* voxema_ecapa_coreml.m in Sources */,
 							);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,70 +451,73 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = D62B4YK927;
 				ENABLE_APP_SANDBOX = NO;
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = NO;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/Voxema/Bridge/CWhisper/include",
-					"$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include",
-					"$(SRCROOT)/Voxema/Bridge/CLlama/include",
-				);
-				INFOPLIST_FILE = Voxema/Info.plist;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
-				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/Voxema/Pipeline/Capture",
-					"$(SRCROOT)/Voxema/Pipeline/Coordinator",
-					"$(SRCROOT)/Voxema/Pipeline/Summarize",
-					"$(SRCROOT)/Voxema/Pipeline/Export",
-					"$(SRCROOT)/Voxema/Pipeline/Diarize",
-					"$(SRCROOT)/Voxema/Pipeline/Transcribe",
-					"$(SRCROOT)/Voxema/Core/LicenseManager",
-					"$(SRCROOT)/Voxema/Core/Security",
-					"$(SRCROOT)/Voxema/Core/Networking",
-					"$(SRCROOT)/Voxema/Core/ModelManager",
-					"$(SRCROOT)/Voxema/Core/Models",
-					"$(SRCROOT)/Voxema/Core/Storage",
-					"$(SRCROOT)/Voxema/Core/Logging",
-					"$(SRCROOT)/Voxema/Core/UpdateManager",
-					"$(SRCROOT)/Voxema/App",
-					"$(SRCROOT)/Voxema/Features/Settings",
-					"$(SRCROOT)/Voxema/Features/Recording",
-					"$(SRCROOT)/Voxema/Features/MeetingDetail",
-					"$(SRCROOT)/Voxema/Features/MeetingLibrary",
-					"$(SRCROOT)/Voxema/Features/Onboarding",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 1.0;
-				OTHER_SWIFT_FLAGS = "-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include -Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include -Xcc -I$(SRCROOT)/Voxema/Bridge/CLlama/include";
-				PRODUCT_BUNDLE_IDENTIFIER = com.voxema.Voxema;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
-				SDKROOT = auto;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Voxema/Bridge/CWhisper/include $(SRCROOT)/Voxema/Bridge/COnnxRuntime/include $(SRCROOT)/Voxema/Bridge/CLlama/include";
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 26.4;
-			};
-			name = Debug;
+			HEADER_SEARCH_PATHS = (
+				"$(SRCROOT)/Voxema/Bridge/CWhisper/include",
+				"$(SRCROOT)/Voxema/Bridge/CWhisper/src",
+				"$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include",
+				"$(SRCROOT)/Voxema/Bridge/CLlama/include",
+			);
+			INFOPLIST_FILE = Voxema/Info.plist;
+			"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+			"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+			"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+			"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+			"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+			"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+			"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+			"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+			LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+			"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+			LIBRARY_SEARCH_PATHS = (
+				"$(SRCROOT)/Voxema/Pipeline/Capture",
+				"$(SRCROOT)/Voxema/Pipeline/Coordinator",
+				"$(SRCROOT)/Voxema/Pipeline/Summarize",
+				"$(SRCROOT)/Voxema/Pipeline/Export",
+				"$(SRCROOT)/Voxema/Pipeline/Diarize",
+				"$(SRCROOT)/Voxema/Pipeline/Transcribe",
+				"$(SRCROOT)/Voxema/Core/LicenseManager",
+				"$(SRCROOT)/Voxema/Core/Security",
+				"$(SRCROOT)/Voxema/Core/Networking",
+				"$(SRCROOT)/Voxema/Core/ModelManager",
+				"$(SRCROOT)/Voxema/Core/Models",
+				"$(SRCROOT)/Voxema/Core/Storage",
+				"$(SRCROOT)/Voxema/Core/Logging",
+				"$(SRCROOT)/Voxema/Core/UpdateManager",
+				"$(SRCROOT)/Voxema/App",
+				"$(SRCROOT)/Voxema/Features/Settings",
+				"$(SRCROOT)/Voxema/Features/Recording",
+				"$(SRCROOT)/Voxema/Features/MeetingDetail",
+				"$(SRCROOT)/Voxema/Features/MeetingLibrary",
+				"$(SRCROOT)/Voxema/Features/Onboarding",
+			);
+			MACOSX_DEPLOYMENT_TARGET = 14.2;
+			MARKETING_VERSION = 1.0;
+			OTHER_CFLAGS = "$(inherited) -DGGML_USE_METAL";
+			OTHER_CPLUSPLUSFLAGS = "$(inherited) -DGGML_USE_METAL";
+			OTHER_SWIFT_FLAGS = "-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include -Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/src -Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include -Xcc -I$(SRCROOT)/Voxema/Bridge/CLlama/include";
+			PRODUCT_BUNDLE_IDENTIFIER = com.voxema.Voxema;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			REGISTER_APP_GROUPS = YES;
+			SDKROOT = auto;
+			STRING_CATALOG_GENERATE_SYMBOLS = YES;
+			SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+			SWIFT_APPROACHABLE_CONCURRENCY = YES;
+			SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Voxema/Bridge/CWhisper/include $(SRCROOT)/Voxema/Bridge/CWhisper/src $(SRCROOT)/Voxema/Bridge/COnnxRuntime/include $(SRCROOT)/Voxema/Bridge/CLlama/include";
+			SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+			SWIFT_VERSION = 5.0;
+			TARGETED_DEVICE_FAMILY = "1,2,7";
+			XROS_DEPLOYMENT_TARGET = 26.4;
+		};
+		name = Debug;
 		};
 		824EA6CC2F7956E5009B7E04 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -491,66 +534,69 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = NO;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/Voxema/Bridge/CWhisper/include",
-					"$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include",
-					"$(SRCROOT)/Voxema/Bridge/CLlama/include",
-				);
-				INFOPLIST_FILE = Voxema/Info.plist;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
-				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/Voxema/Pipeline/Capture",
-					"$(SRCROOT)/Voxema/Pipeline/Coordinator",
-					"$(SRCROOT)/Voxema/Pipeline/Summarize",
-					"$(SRCROOT)/Voxema/Pipeline/Export",
-					"$(SRCROOT)/Voxema/Pipeline/Diarize",
-					"$(SRCROOT)/Voxema/Pipeline/Transcribe",
-					"$(SRCROOT)/Voxema/Core/LicenseManager",
-					"$(SRCROOT)/Voxema/Core/Security",
-					"$(SRCROOT)/Voxema/Core/Networking",
-					"$(SRCROOT)/Voxema/Core/ModelManager",
-					"$(SRCROOT)/Voxema/Core/Models",
-					"$(SRCROOT)/Voxema/Core/Storage",
-					"$(SRCROOT)/Voxema/Core/Logging",
-					"$(SRCROOT)/Voxema/Core/UpdateManager",
-					"$(SRCROOT)/Voxema/App",
-					"$(SRCROOT)/Voxema/Features/Settings",
-					"$(SRCROOT)/Voxema/Features/Recording",
-					"$(SRCROOT)/Voxema/Features/MeetingDetail",
-					"$(SRCROOT)/Voxema/Features/MeetingLibrary",
-					"$(SRCROOT)/Voxema/Features/Onboarding",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 1.0;
-				OTHER_SWIFT_FLAGS = "-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include -Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include -Xcc -I$(SRCROOT)/Voxema/Bridge/CLlama/include";
-				PRODUCT_BUNDLE_IDENTIFIER = com.voxema.Voxema;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
-				SDKROOT = auto;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Voxema/Bridge/CWhisper/include $(SRCROOT)/Voxema/Bridge/COnnxRuntime/include $(SRCROOT)/Voxema/Bridge/CLlama/include";
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 26.4;
-			};
-			name = Release;
+			HEADER_SEARCH_PATHS = (
+				"$(SRCROOT)/Voxema/Bridge/CWhisper/include",
+				"$(SRCROOT)/Voxema/Bridge/CWhisper/src",
+				"$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include",
+				"$(SRCROOT)/Voxema/Bridge/CLlama/include",
+			);
+			INFOPLIST_FILE = Voxema/Info.plist;
+			"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+			"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+			"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+			"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+			"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+			"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+			"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+			"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+			LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+			"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+			LIBRARY_SEARCH_PATHS = (
+				"$(SRCROOT)/Voxema/Pipeline/Capture",
+				"$(SRCROOT)/Voxema/Pipeline/Coordinator",
+				"$(SRCROOT)/Voxema/Pipeline/Summarize",
+				"$(SRCROOT)/Voxema/Pipeline/Export",
+				"$(SRCROOT)/Voxema/Pipeline/Diarize",
+				"$(SRCROOT)/Voxema/Pipeline/Transcribe",
+				"$(SRCROOT)/Voxema/Core/LicenseManager",
+				"$(SRCROOT)/Voxema/Core/Security",
+				"$(SRCROOT)/Voxema/Core/Networking",
+				"$(SRCROOT)/Voxema/Core/ModelManager",
+				"$(SRCROOT)/Voxema/Core/Models",
+				"$(SRCROOT)/Voxema/Core/Storage",
+				"$(SRCROOT)/Voxema/Core/Logging",
+				"$(SRCROOT)/Voxema/Core/UpdateManager",
+				"$(SRCROOT)/Voxema/App",
+				"$(SRCROOT)/Voxema/Features/Settings",
+				"$(SRCROOT)/Voxema/Features/Recording",
+				"$(SRCROOT)/Voxema/Features/MeetingDetail",
+				"$(SRCROOT)/Voxema/Features/MeetingLibrary",
+				"$(SRCROOT)/Voxema/Features/Onboarding",
+			);
+			MACOSX_DEPLOYMENT_TARGET = 14.2;
+			MARKETING_VERSION = 1.0;
+			OTHER_CFLAGS = "$(inherited) -DGGML_USE_METAL";
+			OTHER_CPLUSPLUSFLAGS = "$(inherited) -DGGML_USE_METAL";
+			OTHER_SWIFT_FLAGS = "-Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/include -Xcc -I$(SRCROOT)/Voxema/Bridge/CWhisper/src -Xcc -I$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include -Xcc -I$(SRCROOT)/Voxema/Bridge/CLlama/include";
+			PRODUCT_BUNDLE_IDENTIFIER = com.voxema.Voxema;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			REGISTER_APP_GROUPS = YES;
+			SDKROOT = auto;
+			STRING_CATALOG_GENERATE_SYMBOLS = YES;
+			SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+			SWIFT_APPROACHABLE_CONCURRENCY = YES;
+			SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Voxema/Bridge/CWhisper/include $(SRCROOT)/Voxema/Bridge/CWhisper/src $(SRCROOT)/Voxema/Bridge/COnnxRuntime/include $(SRCROOT)/Voxema/Bridge/CLlama/include";
+			SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+			SWIFT_VERSION = 5.0;
+			TARGETED_DEVICE_FAMILY = "1,2,7";
+			XROS_DEPLOYMENT_TARGET = 26.4;
+		};
+		name = Release;
 		};
 /* End XCBuildConfiguration section */
 

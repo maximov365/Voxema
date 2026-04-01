@@ -1,3 +1,6 @@
+# MCP config (contains API keys)
+.cursor/mcp.json
+
 # Python
 .venv/
 __pycache__/
@@ -39,11 +42,6 @@ build/
 # Sparkle EdDSA keys — never commit private keys
 *.pem
 EdDSA*
-sparkle_private_key
-
-# Release artifacts
-dist/
-.build_dmg/
 
 # Instruments
 *.trace
@@ -86,3 +84,6 @@ Voxema/Resources/Models/*
 /.agent-system-version
 /.templates/
 # <<< agent-system framework <<<
+
+# CoreML model — generated locally via scripts/convert_ecapa_coreml.py (~80 MB)
+Voxema/Resources/Models/ecapa-tdnn.mlpackage

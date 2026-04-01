@@ -138,9 +138,21 @@ public final class CaptureStage: CaptureStageProtocol {
         async let micDuration: TimeInterval = microphone.stopCapture()
         let (remoteSecs, localSecs) = try await (sysDuration, micDuration)
 
-        // Encrypt & delete plaintext files — privacy contract
-        let encSysURL = try encryptAndDeletePlaintext(at: sysURL)
-        let encMicURL = try encryptAndDeletePlaintext(at: micURL)
+        // Encrypt & delete plaintext files on a plain GCD thread — same reason as
+        // transcription: DispatchQueue.global() is entirely outside Swift's actor
+        // system, so no @MainActor inference can hop the work back to the main thread.
+        let keyId = config.encryptionKeyId
+        let (encSysURL, encMicURL): (URL, URL) = try await withCheckedThrowingContinuation { cont in
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let encSys = try CaptureStage.encryptAndDeletePlaintext(at: sysURL, keyId: keyId)
+                    let encMic = try CaptureStage.encryptAndDeletePlaintext(at: micURL, keyId: keyId)
+                    cont.resume(returning: (encSys, encMic))
+                } catch {
+                    cont.resume(throwing: error)
+                }
+            }
+        }
 
         log.info("CaptureStage stopped")
 
@@ -191,12 +203,13 @@ public final class CaptureStage: CaptureStageProtocol {
     }
 
     /// Encrypts the plaintext file at `url`, writes `.enc` beside it, then deletes the original.
-    private func encryptAndDeletePlaintext(at url: URL) throws -> URL {
+    /// Static so it can be captured by Task.detached without capturing self.
+    private static func encryptAndDeletePlaintext(at url: URL, keyId: String) throws -> URL {
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw PipelineError.captureDiskSpaceInsufficient
         }
         let plaintext = try Data(contentsOf: url, options: .mappedIfSafe)
-        let encrypted = try EncryptionManager.encrypt(plaintext, keyIdentifier: config.encryptionKeyId)
+        let encrypted = try EncryptionManager.encrypt(plaintext, keyIdentifier: keyId)
         let encURL = url.deletingPathExtension().appendingPathExtension("enc")
         try encrypted.write(to: encURL, options: .atomic)
         try FileManager.default.removeItem(at: url)

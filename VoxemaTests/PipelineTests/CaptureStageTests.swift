@@ -62,6 +62,9 @@ final class MockAudioCapturer: AudioCapturer {
 final class CaptureStageTests: XCTestCase {
 
     private var tempDir: URL!
+    // Fixed key ID so tearDown can clean it up; UUID suffix prevents collisions
+    // with production keys but stays stable within the test process lifetime.
+    private let testEncryptionKeyId = "com.voxema.app.encryption.test-capture"
 
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -72,6 +75,8 @@ final class CaptureStageTests: XCTestCase {
 
     override func tearDownWithError() throws {
         try? FileManager.default.removeItem(at: tempDir)
+        // Remove test keychain item to avoid stale ACL prompts on subsequent runs.
+        try? KeychainManager.delete(service: "com.voxema.app.encryption", account: testEncryptionKeyId)
         try super.tearDownWithError()
     }
 
@@ -83,7 +88,7 @@ final class CaptureStageTests: XCTestCase {
     ) -> CaptureStage {
         let config = CaptureConfiguration(
             tempDirectory: tempDir,
-            encryptionKeyId: "test-capture-key-\(UUID().uuidString)"
+            encryptionKeyId: testEncryptionKeyId
         )
         return CaptureStage(systemAudio: systemAudio, microphone: microphone, config: config)
     }
