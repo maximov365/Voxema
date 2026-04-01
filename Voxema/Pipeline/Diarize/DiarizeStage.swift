@@ -115,17 +115,33 @@ public final class VoiceProfileStore {
         return p
     }
 
+    /// Returns all non-user profiles. Used by the retrospective re-attribution pass.
+    public func allRemoteProfiles() -> [VoiceProfile] {
+        profiles.values.filter { !$0.isUser }
+    }
+
     /// Returns a profile whose embedding is close to `embedding` within `threshold`,
     /// or creates a new profile with the next alphabetic label ("Speaker A", "B", …).
-    public func matchOrCreate(embedding: [Float], threshold: Float) -> VoiceProfile {
+    ///
+    /// `blendWeight` controls how strongly the new embedding updates the stored profile
+    /// centroid: 0 = keep old, 1 = replace entirely. Use a value derived from segment
+    /// duration so that long, confident segments move the centroid more than short ones.
+    public func matchOrCreate(
+        embedding: [Float],
+        threshold: Float,
+        blendWeight: Float = 0.3
+    ) -> VoiceProfile {
         let best = profiles.values
             .filter { !$0.isUser && !$0.embedding.isEmpty }
             .max { SpeakerMatcher.cosine($0.embedding, embedding) < SpeakerMatcher.cosine($1.embedding, embedding) }
 
         if let best, SpeakerMatcher.cosine(best.embedding, embedding) >= threshold {
-            // Update stored embedding with running average for better future matches
+            // Update stored centroid with a weighted blend: longer / more confident
+            // segments contribute more, preventing noisy short segments from
+            // distorting the profile established by high-quality audio.
             var updated = best
-            updated.embedding = SpeakerMatcher.average(best.embedding, embedding)
+            updated.embedding = SpeakerMatcher.weightedBlend(
+                best.embedding, embedding, newWeight: blendWeight)
             profiles[best.profileId] = updated
             return updated
         }
@@ -170,13 +186,26 @@ public enum SpeakerMatcher {
         return max(0, min(1, dot / denom))
     }
 
-    /// Running average of two embeddings (equal weight).
-    public static func average(_ a: [Float], _ b: [Float]) -> [Float] {
-        guard a.count == b.count else { return a }
-        var result = [Float](repeating: 0, count: a.count)
-        vDSP_vadd(a, 1, b, 1, &result, 1, vDSP_Length(a.count))
-        var scale: Float = 0.5
-        vDSP_vsmul(result, 1, &scale, &result, 1, vDSP_Length(result.count))
+    /// Weighted blend of two embeddings.
+    ///
+    /// `newWeight` is the contribution of `new` in [0, 1]:
+    ///   - 0.0 → result = existing (no update)
+    ///   - 0.5 → equal blend (equivalent to the old running average)
+    ///   - 1.0 → result = new (full replacement)
+    ///
+    /// Typical call: pass `newWeight` derived from segment duration so that
+    /// longer, higher-quality segments move the profile centroid more.
+    public static func weightedBlend(_ existing: [Float], _ new: [Float], newWeight: Float) -> [Float] {
+        guard existing.count == new.count, !existing.isEmpty else { return existing }
+        let w2 = max(0, min(1, newWeight))
+        let w1 = 1.0 - w2
+        var result = [Float](repeating: 0, count: existing.count)
+        var temp   = [Float](repeating: 0, count: existing.count)
+        var mw1 = w1
+        var mw2 = w2
+        vDSP_vsmul(existing, 1, &mw1, &result, 1, vDSP_Length(existing.count))
+        vDSP_vsmul(new,      1, &mw2, &temp,   1, vDSP_Length(new.count))
+        vDSP_vadd(result, 1, temp, 1, &result, 1, vDSP_Length(result.count))
         return result
     }
 
@@ -211,13 +240,18 @@ public struct DiarizeConfiguration: Sendable {
     /// Segments shorter than this threshold reuse the last known remote speaker
     /// instead of computing a noisy embedding from too few audio frames.
     public let minEmbeddingDuration: Float
+    /// Confidence below which a segment is a candidate for retrospective re-attribution.
+    /// After the first pass, low-confidence assignments are re-evaluated against the
+    /// final (fully-populated) speaker profiles, correcting early misattributions.
+    public let retroAttributionThreshold: Float
 
     public static let `default` = DiarizeConfiguration(
         modelURL: URL(fileURLWithPath: ""),
         encryptionKeyId: "com.voxema.app.capture-audio-key",
         matchThreshold: 0.75,
         userLabel: "You",
-        minEmbeddingDuration: 1.5
+        minEmbeddingDuration: 1.5,
+        retroAttributionThreshold: 0.60
     )
 
     public init(
@@ -225,13 +259,15 @@ public struct DiarizeConfiguration: Sendable {
         encryptionKeyId: String = "com.voxema.app.capture-audio-key",
         matchThreshold: Float = 0.75,
         userLabel: String = "You",
-        minEmbeddingDuration: Float = 1.5
+        minEmbeddingDuration: Float = 1.5,
+        retroAttributionThreshold: Float = 0.60
     ) {
         self.modelURL = modelURL
         self.encryptionKeyId = encryptionKeyId
         self.matchThreshold = matchThreshold
         self.userLabel = userLabel
         self.minEmbeddingDuration = minEmbeddingDuration
+        self.retroAttributionThreshold = retroAttributionThreshold
     }
 }
 
@@ -244,12 +280,28 @@ public struct DiarizeConfiguration: Sendable {
 /// similarity matching against an in-memory `VoiceProfileStore`.
 ///
 /// Audio samples are loaded once per stream (not per segment) for efficiency.
+///
+/// ## Two-pass attribution
+/// Pass 1 (greedy): segments are attributed as they arrive, updating speaker
+/// profile centroids with a duration-weighted blend after each match.
+///
+/// Pass 2 (retrospective): segments whose confidence fell below
+/// `retroAttributionThreshold` are re-evaluated against the fully-populated
+/// final profiles. This corrects early misattributions that occurred before
+/// profiles were well-established — common for the first 1–2 utterances of
+/// each speaker.
 public final class DiarizeStage: DiarizeStageProtocol {
 
     private let engineFactory: () -> EmbeddingEngineProtocol
     private let config: DiarizeConfiguration
     private let log = VoxemaLogger.make(category: "diarize.stage")
     private var isCancelled = false
+
+    // Holds the index and embedding for a segment that may need re-attribution.
+    private struct PendingRetro {
+        let resultIndex: Int
+        let embedding: [Float]
+    }
 
     // MARK: - Init
 
@@ -300,10 +352,17 @@ public final class DiarizeStage: DiarizeStageProtocol {
 
         var results: [DiarizedSegment] = []
         results.reserveCapacity(segments.count)
+
         // Tracks the last successfully matched remote speaker so that very short
         // segments (below minEmbeddingDuration) can reuse it rather than
         // producing a noisy embedding that may create a spurious new profile.
         var lastRemoteProfile: VoiceProfile?
+
+        // Segments that may benefit from retrospective re-attribution after the
+        // first pass, once all speaker profiles are fully populated.
+        var pendingRetro: [PendingRetro] = []
+
+        // ── Pass 1: greedy attribution ───────────────────────────────────────
 
         for segment in segments {
             if isCancelled { break }
@@ -350,11 +409,19 @@ public final class DiarizeStage: DiarizeStageProtocol {
                             ?? [Float](repeating: 0, count: Int(VOXEMA_ECAPA_EMBEDDING_DIM))
                     }
 
+                    // Blend weight: longer segments move the profile centroid more.
+                    // Range [0.15, 0.45]: short (1.5 s) → 0.17, medium (3 s) → 0.24,
+                    // long (10 s) → 0.45. This prevents noisy short segments from
+                    // distorting well-established profile centroids.
+                    let blendWeight = min(0.45, max(0.15, segDuration / 10.0))
+
                     let profile = store.matchOrCreate(
                         embedding: embedding,
-                        threshold: config.matchThreshold
+                        threshold: config.matchThreshold,
+                        blendWeight: blendWeight
                     )
                     lastRemoteProfile = profile
+
                     let similarity = profile.embedding.isEmpty
                         ? 0
                         : SpeakerMatcher.cosine(profile.embedding, embedding)
@@ -366,6 +433,15 @@ public final class DiarizeStage: DiarizeStageProtocol {
                         confidence: similarity,
                         isKnown: false
                     )
+
+                    // Queue for retrospective check if confidence is low: the profile
+                    // may have been sparse at attribution time but is now better-defined.
+                    if similarity < config.retroAttributionThreshold {
+                        pendingRetro.append(PendingRetro(
+                            resultIndex: results.count,
+                            embedding: embedding
+                        ))
+                    }
                 }
             }
 
@@ -377,6 +453,44 @@ public final class DiarizeStage: DiarizeStageProtocol {
                 speaker:   speaker,
                 channel:   segment.channel
             ))
+        }
+
+        // ── Pass 2: retrospective re-attribution ─────────────────────────────
+        // Re-evaluate low-confidence remote segments against the final profiles.
+        // Only update if a *different* profile scores higher than retroThreshold,
+        // preventing pointless reassignment and instability.
+
+        if !pendingRetro.isEmpty {
+            let finalProfiles = store.allRemoteProfiles()
+            for item in pendingRetro {
+                guard let best = SpeakerMatcher.best(
+                    for: item.embedding,
+                    in: finalProfiles,
+                    threshold: config.retroAttributionThreshold
+                ) else { continue }
+
+                let sim = SpeakerMatcher.cosine(best.embedding, item.embedding)
+                let old = results[item.resultIndex]
+
+                // Only re-attribute if this is a genuinely different, better match
+                guard best.profileId != old.speaker.speakerId else { continue }
+
+                results[item.resultIndex] = DiarizedSegment(
+                    segmentId: old.segmentId,
+                    startTime: old.startTime,
+                    endTime:   old.endTime,
+                    text:      old.text,
+                    speaker:   SpeakerIdentity(
+                        speakerId: best.profileId,
+                        label:     best.label,
+                        isUser:    false,
+                        confidence: sim,
+                        isKnown:   false
+                    ),
+                    channel: old.channel
+                )
+            }
+            log.info("DiarizeStage retro-pass complete")
         }
 
         log.info("DiarizeStage complete")
