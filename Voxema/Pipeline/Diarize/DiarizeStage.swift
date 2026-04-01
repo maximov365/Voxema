@@ -30,10 +30,6 @@ public final class EmbeddingEngine: EmbeddingEngineProtocol {
 
     public func loadModel(at url: URL) throws {
         unloadModel()
-        // withUnsafeFileSystemRepresentation provides the POSIX UTF-8 path needed
-        // by both the MFCC fallback (ignores it) and CoreML model loading.
-        // Empty path is valid — voxema_ecapa_coreml.m skips CoreML init and
-        // falls back to MFCC embeddings automatically.
         var loaded: OpaquePointer?
         url.withUnsafeFileSystemRepresentation { cPath in
             loaded = voxema_ecapa_init(cPath)
@@ -89,12 +85,23 @@ public struct VoiceProfile: Equatable, Sendable {
     public let isUser: Bool
     /// Accumulated embedding (updated as more segments are observed).
     public var embedding: [Float]
+    /// Number of times this profile has been successfully matched.
+    /// Used to compute an adaptive matching threshold: new profiles require
+    /// stricter similarity before merging with an incoming embedding.
+    public var matchCount: Int
 
-    public init(profileId: UUID = UUID(), label: String, isUser: Bool, embedding: [Float] = []) {
+    public init(
+        profileId: UUID = UUID(),
+        label: String,
+        isUser: Bool,
+        embedding: [Float] = [],
+        matchCount: Int = 0
+    ) {
         self.profileId = profileId
         self.label = label
         self.isUser = isUser
         self.embedding = embedding
+        self.matchCount = matchCount
     }
 }
 
@@ -123,23 +130,33 @@ public final class VoiceProfileStore {
     /// Returns a profile whose embedding is close to `embedding` within `threshold`,
     /// or creates a new profile with the next alphabetic label ("Speaker A", "B", …).
     ///
-    /// `blendWeight` controls how strongly the new embedding updates the stored profile
-    /// centroid: 0 = keep old, 1 = replace entirely. Use a value derived from segment
-    /// duration so that long, confident segments move the centroid more than short ones.
+    /// **Adaptive threshold:** new profiles (matchCount < 3) require a stricter
+    /// cosine similarity to be matched. This prevents an early, noisy embedding
+    /// from incorrectly merging two distinct speakers before either profile is
+    /// well-established. The boost converges to zero at matchCount = 3.
+    ///
+    /// `blendWeight` controls how strongly the new embedding shifts the stored
+    /// profile centroid (0 = no shift, 1 = full replacement).
     public func matchOrCreate(
         embedding: [Float],
         threshold: Float,
         blendWeight: Float = 0.3
     ) -> VoiceProfile {
-        let best = profiles.values
+        // Evaluate each candidate against its own adaptive threshold
+        let matched = profiles.values
             .filter { !$0.isUser && !$0.embedding.isEmpty }
-            .max { SpeakerMatcher.cosine($0.embedding, embedding) < SpeakerMatcher.cosine($1.embedding, embedding) }
+            .compactMap { profile -> (VoiceProfile, Float)? in
+                let sim = SpeakerMatcher.cosine(profile.embedding, embedding)
+                // Young profiles (matchCount < 3) require up to +0.05 extra similarity.
+                // Converges to base threshold once the profile is well-established.
+                let boost = 0.05 * max(0, 1.0 - Float(min(profile.matchCount, 3)) / 3.0)
+                return sim >= threshold + boost ? (profile, sim) : nil
+            }
+            .max { $0.1 < $1.1 }
 
-        if let best, SpeakerMatcher.cosine(best.embedding, embedding) >= threshold {
-            // Update stored centroid with a weighted blend: longer / more confident
-            // segments contribute more, preventing noisy short segments from
-            // distorting the profile established by high-quality audio.
+        if let (best, _) = matched {
             var updated = best
+            updated.matchCount += 1
             updated.embedding = SpeakerMatcher.weightedBlend(
                 best.embedding, embedding, newWeight: blendWeight)
             profiles[best.profileId] = updated
@@ -155,7 +172,6 @@ public final class VoiceProfileStore {
 
     private func nextSpeakerLabel() -> String {
         remoteCount += 1
-        // A=1, B=2, … Z=26, AA=27, …
         var n = remoteCount
         var label = ""
         repeat {
@@ -188,13 +204,8 @@ public enum SpeakerMatcher {
 
     /// Weighted blend of two embeddings.
     ///
-    /// `newWeight` is the contribution of `new` in [0, 1]:
-    ///   - 0.0 → result = existing (no update)
-    ///   - 0.5 → equal blend (equivalent to the old running average)
-    ///   - 1.0 → result = new (full replacement)
-    ///
-    /// Typical call: pass `newWeight` derived from segment duration so that
-    /// longer, higher-quality segments move the profile centroid more.
+    /// `newWeight` ∈ [0, 1] is the contribution of `new`:
+    ///   0.0 → keep existing entirely, 1.0 → replace with new entirely.
     public static func weightedBlend(_ existing: [Float], _ new: [Float], newWeight: Float) -> [Float] {
         guard existing.count == new.count, !existing.isEmpty else { return existing }
         let w2 = max(0, min(1, newWeight))
@@ -232,17 +243,17 @@ public struct DiarizeConfiguration: Sendable {
     public let modelURL: URL
     /// Keychain identifier to decrypt audio files from Capture stage.
     public let encryptionKeyId: String
-    /// Cosine similarity threshold for speaker matching (0–1, architecture spec: 0.75).
+    /// Base cosine similarity threshold for speaker matching (0–1).
+    /// Young profiles receive an additional adaptive boost of up to +0.05.
     public let matchThreshold: Float
     /// Label used for the local-channel speaker (device user).
     public let userLabel: String
-    /// Minimum segment duration (seconds) required to extract a speaker embedding.
-    /// Segments shorter than this threshold reuse the last known remote speaker
-    /// instead of computing a noisy embedding from too few audio frames.
+    /// Minimum audio duration (seconds) for a reliable speaker embedding.
+    /// Segments shorter than this use a context-padded window that borrows
+    /// audio before the segment to reach this duration.
     public let minEmbeddingDuration: Float
-    /// Confidence below which a segment is a candidate for retrospective re-attribution.
-    /// After the first pass, low-confidence assignments are re-evaluated against the
-    /// final (fully-populated) speaker profiles, correcting early misattributions.
+    /// Confidence below which a segment is queued for retrospective re-attribution
+    /// after pass 1, once all speaker profiles are fully populated.
     public let retroAttributionThreshold: Float
 
     public static let `default` = DiarizeConfiguration(
@@ -279,17 +290,21 @@ public struct DiarizeConfiguration: Sendable {
 /// Remote-channel segments use ECAPA-TDNN voice embeddings and cosine
 /// similarity matching against an in-memory `VoiceProfileStore`.
 ///
-/// Audio samples are loaded once per stream (not per segment) for efficiency.
+/// ## Short-segment handling (improvement #3)
+/// Segments shorter than `minEmbeddingDuration` now use a context-padded audio
+/// window: audio is borrowed from before the segment to reach the minimum
+/// duration, giving Whisper enough signal for a reliable embedding. Reuse of
+/// the previous speaker is kept only as a last resort when no audio is available.
 ///
-/// ## Two-pass attribution
-/// Pass 1 (greedy): segments are attributed as they arrive, updating speaker
-/// profile centroids with a duration-weighted blend after each match.
+/// ## Adaptive threshold (improvement #4)
+/// `VoiceProfileStore.matchOrCreate` applies a per-profile threshold boost of
+/// up to +0.05 for profiles with fewer than 3 confirmed matches. This prevents
+/// two distinct speakers from being merged before either profile is established.
 ///
-/// Pass 2 (retrospective): segments whose confidence fell below
-/// `retroAttributionThreshold` are re-evaluated against the fully-populated
-/// final profiles. This corrects early misattributions that occurred before
-/// profiles were well-established — common for the first 1–2 utterances of
-/// each speaker.
+/// ## Two-pass attribution (improvement #2)
+/// Pass 1 (greedy): segments attributed as they arrive with weighted centroid
+/// updates (improvement #1). Pass 2 (retrospective): low-confidence assignments
+/// re-evaluated against the fully-populated final profiles.
 public final class DiarizeStage: DiarizeStageProtocol {
 
     private let engineFactory: () -> EmbeddingEngineProtocol
@@ -297,7 +312,6 @@ public final class DiarizeStage: DiarizeStageProtocol {
     private let log = VoxemaLogger.make(category: "diarize.stage")
     private var isCancelled = false
 
-    // Holds the index and embedding for a segment that may need re-attribution.
     private struct PendingRetro {
         let resultIndex: Int
         let embedding: [Float]
@@ -327,7 +341,6 @@ public final class DiarizeStage: DiarizeStageProtocol {
         let store = VoiceProfileStore()
         let userProfile = store.userProfile(label: config.userLabel)
 
-        // Pre-decode audio streams indexed by channel for efficient slice access
         var streamSamples: [AudioChannel: [Float]] = [:]
         for stream in audioStreams {
             if isCancelled { break }
@@ -339,27 +352,18 @@ public final class DiarizeStage: DiarizeStageProtocol {
             streamSamples[stream.channel] = samples
         }
 
-        // Load embedding model once for the entire run
         let engine = engineFactory()
         defer { engine.unloadModel() }
 
         if !audioStreams.isEmpty {
             do { try engine.loadModel(at: config.modelURL) } catch {
-                // Model unavailable — all remote speakers get new temp labels (no match)
                 log.error("EmbeddingEngine.loadModel failed — assigning temp labels")
             }
         }
 
         var results: [DiarizedSegment] = []
         results.reserveCapacity(segments.count)
-
-        // Tracks the last successfully matched remote speaker so that very short
-        // segments (below minEmbeddingDuration) can reuse it rather than
-        // producing a noisy embedding that may create a spurious new profile.
         var lastRemoteProfile: VoiceProfile?
-
-        // Segments that may benefit from retrospective re-attribution after the
-        // first pass, once all speaker profiles are fully populated.
         var pendingRetro: [PendingRetro] = []
 
         // ── Pass 1: greedy attribution ───────────────────────────────────────
@@ -371,7 +375,6 @@ public final class DiarizeStage: DiarizeStageProtocol {
 
             switch segment.channel {
             case .local:
-                // Local channel always attributed to the device user
                 speaker = SpeakerIdentity(
                     speakerId: userProfile.profileId,
                     label: userProfile.label,
@@ -382,10 +385,31 @@ public final class DiarizeStage: DiarizeStageProtocol {
 
             case .remote:
                 let segDuration = segment.endTime - segment.startTime
+                let samples = streamSamples[.remote] ?? []
 
-                if segDuration < config.minEmbeddingDuration, let prev = lastRemoteProfile {
-                    // Segment too short for a reliable embedding — reuse the
-                    // previous speaker rather than risking a mis-classification.
+                // Context-padded window: for segments shorter than minEmbeddingDuration,
+                // borrow audio from before the segment start so the embedding model
+                // receives a full-length input. This replaces the simple "reuse last
+                // speaker" heuristic and yields a real embedding even for brief replies.
+                let windowEnd = segment.endTime
+                let windowStart: Float
+                if segDuration < config.minEmbeddingDuration {
+                    let pad = config.minEmbeddingDuration - segDuration
+                    windowStart = max(0, segment.startTime - pad)
+                } else {
+                    windowStart = segment.startTime
+                }
+
+                let slicedSamples = sliceSamples(
+                    samples,
+                    startTime: windowStart,
+                    endTime: windowEnd
+                )
+
+                if slicedSamples.isEmpty, let prev = lastRemoteProfile {
+                    // No audio available at all — fall back to last known speaker.
+                    // Only reaches here when the audio stream is absent (e.g. tests,
+                    // or a failed decrypt). In production this path is rarely taken.
                     speaker = SpeakerIdentity(
                         speakerId: prev.profileId,
                         label: prev.label,
@@ -394,13 +418,6 @@ public final class DiarizeStage: DiarizeStageProtocol {
                         isKnown: false
                     )
                 } else {
-                    let samples = streamSamples[.remote] ?? []
-                    let slicedSamples = sliceSamples(
-                        samples,
-                        startTime: segment.startTime,
-                        endTime: segment.endTime
-                    )
-
                     let embedding: [Float]
                     if slicedSamples.isEmpty {
                         embedding = [Float](repeating: 0, count: Int(VOXEMA_ECAPA_EMBEDDING_DIM))
@@ -409,10 +426,7 @@ public final class DiarizeStage: DiarizeStageProtocol {
                             ?? [Float](repeating: 0, count: Int(VOXEMA_ECAPA_EMBEDDING_DIM))
                     }
 
-                    // Blend weight: longer segments move the profile centroid more.
-                    // Range [0.15, 0.45]: short (1.5 s) → 0.17, medium (3 s) → 0.24,
-                    // long (10 s) → 0.45. This prevents noisy short segments from
-                    // distorting well-established profile centroids.
+                    // Duration-weighted blend: longer segments shift the centroid more.
                     let blendWeight = min(0.45, max(0.15, segDuration / 10.0))
 
                     let profile = store.matchOrCreate(
@@ -434,8 +448,6 @@ public final class DiarizeStage: DiarizeStageProtocol {
                         isKnown: false
                     )
 
-                    // Queue for retrospective check if confidence is low: the profile
-                    // may have been sparse at attribution time but is now better-defined.
                     if similarity < config.retroAttributionThreshold {
                         pendingRetro.append(PendingRetro(
                             resultIndex: results.count,
@@ -456,9 +468,6 @@ public final class DiarizeStage: DiarizeStageProtocol {
         }
 
         // ── Pass 2: retrospective re-attribution ─────────────────────────────
-        // Re-evaluate low-confidence remote segments against the final profiles.
-        // Only update if a *different* profile scores higher than retroThreshold,
-        // preventing pointless reassignment and instability.
 
         if !pendingRetro.isEmpty {
             let finalProfiles = store.allRemoteProfiles()
@@ -471,8 +480,6 @@ public final class DiarizeStage: DiarizeStageProtocol {
 
                 let sim = SpeakerMatcher.cosine(best.embedding, item.embedding)
                 let old = results[item.resultIndex]
-
-                // Only re-attribute if this is a genuinely different, better match
                 guard best.profileId != old.speaker.speakerId else { continue }
 
                 results[item.resultIndex] = DiarizedSegment(
@@ -504,7 +511,6 @@ public final class DiarizeStage: DiarizeStageProtocol {
 
     // MARK: - Private helpers
 
-    /// Extracts audio samples from `allSamples` for the time window [startTime, endTime] (seconds).
     private func sliceSamples(
         _ allSamples: [Float],
         startTime: Float,

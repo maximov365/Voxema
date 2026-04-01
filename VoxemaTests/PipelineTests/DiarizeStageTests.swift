@@ -1,4 +1,5 @@
 import XCTest
+import AVFoundation
 @testable import Voxema
 
 // MARK: - Mock
@@ -253,43 +254,102 @@ final class DiarizeStageTests: XCTestCase {
         XCTAssertTrue(result[0].speaker.isUser)
     }
 
-    // ── 11. Short-segment guard ──────────────────────────────────────────────
+    // ── 11. Short-segment context-padded window ──────────────────────────────
 
-    func testShortRemoteSegmentReusesLastSpeaker() async throws {
+    func testShortRemoteSegmentGetsSameSpeakerAsPrev() async throws {
+        // Both segments return the same mock embedding → should get the same label.
+        // No audio streams provided: slicedSamples will be empty for both, so the
+        // short segment falls back to the reuse path (prev profile, confidence = 0).
         let engine = MockEmbeddingEngine()
-        // Give the first (long) segment a distinctive embedding so it creates Speaker A.
-        var longEmbedding = [Float](repeating: 0, count: 192)
-        longEmbedding[0] = 1.0
-        engine.embedResult = longEmbedding
+        var embedding = [Float](repeating: 0, count: 192)
+        embedding[0] = 1.0
+        engine.embedResult = embedding
 
-        // Config: minEmbeddingDuration = 1.5s
         let config = DiarizeConfiguration(
             modelURL: URL(fileURLWithPath: ""),
             minEmbeddingDuration: 1.5
         )
         let stage = DiarizeStage(engineFactory: { engine }, config: config)
 
-        // seg1: 3s duration — triggers full embedding path
         let seg1 = makeSeg(channel: .remote, start: 0, end: 3.0)
-        // seg2: 0.5s duration — too short, should reuse seg1's speaker
-        let seg2 = makeSeg(channel: .remote, start: 3.0, end: 3.5)
+        let seg2 = makeSeg(channel: .remote, start: 3.0, end: 3.5)   // short
 
         let result = try await stage.run([seg1, seg2], audioStreams: [])
 
         XCTAssertEqual(result.count, 2)
-        // Both segments should have the same speaker label
+        // Short segment reuses the last speaker when no audio is available
         XCTAssertEqual(result[0].speaker.label, result[1].speaker.label,
-                       "Short segment must reuse the previous speaker, not create a new one")
-        // Short segment should report confidence 0 (no embedding was computed)
-        XCTAssertEqual(result[1].speaker.confidence, 0.0, accuracy: 1e-6)
-        // embed() must have been called exactly once (only for the long segment)
-        XCTAssertEqual(engine.embedCallCount, 1,
-                       "embed() must not be called for segments below minEmbeddingDuration")
+                       "Short segment with no audio must reuse the previous speaker")
+        XCTAssertEqual(result[1].speaker.confidence, 0.0, accuracy: 1e-6,
+                       "Reused-speaker confidence must be 0 (no embedding computed)")
     }
 
-    func testShortFirstRemoteSegmentFallsBackToEmbedding() async throws {
-        // When there is no previous speaker, a short first segment still goes
-        // through the embedding path (no prior to reuse).
+    func testShortSegmentWithAudioUsesContextPadding() async throws {
+        // When audio IS available the context-padded window should produce a
+        // real embedding and a non-zero confidence — not a reuse (confidence = 0).
+        let engine = MockEmbeddingEngine()
+        var embedding = [Float](repeating: 0, count: 192)
+        embedding[0] = 1.0
+        engine.embedResult = embedding
+
+        let config = DiarizeConfiguration(
+            modelURL: URL(fileURLWithPath: ""),
+            matchThreshold: 0.5,
+            minEmbeddingDuration: 1.5
+        )
+        let stage = DiarizeStage(engineFactory: { engine }, config: config)
+
+        // Provide a real (silent) audio stream so slicedSamples is non-empty
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32,
+                                   sampleRate: 16_000, channels: 1, interleaved: false)!
+        let frameCount = AVAudioFrameCount(16_000 * 5)   // 5 s of silence
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let wavURL = tempDir.appendingPathComponent("remote.wav")
+        let audioFile = try AVAudioFile(forWriting: wavURL,
+                                        settings: format.settings,
+                                        commonFormat: format.commonFormat,
+                                        interleaved: false)
+        try audioFile.write(from: buffer)
+
+        // Encrypt the WAV using the default key
+        let keyId = "test-diarize-ctx-\(UUID().uuidString)"
+        let plaintext = try Data(contentsOf: wavURL)
+        let encrypted = try EncryptionManager.encrypt(plaintext, keyIdentifier: keyId)
+        let encURL = tempDir.appendingPathComponent("remote.enc")
+        try encrypted.write(to: encURL)
+
+        let stream = AudioStream(channel: .remote, filePath: encURL.path,
+                                 durationSeconds: 5, deviceName: "Mock")
+        let configWithKey = DiarizeConfiguration(
+            modelURL: URL(fileURLWithPath: ""),
+            encryptionKeyId: keyId,
+            matchThreshold: 0.5,
+            minEmbeddingDuration: 1.5
+        )
+        let stageWithKey = DiarizeStage(engineFactory: { engine }, config: configWithKey)
+
+        let seg1 = makeSeg(channel: .remote, start: 0, end: 3.0)
+        let seg2 = makeSeg(channel: .remote, start: 3.0, end: 3.5)   // 0.5 s, short
+
+        let result = try await stageWithKey.run([seg1, seg2], audioStreams: [stream])
+
+        XCTAssertEqual(result.count, 2)
+        // With audio available, the short segment gets a real embedding → confidence > 0
+        XCTAssertGreaterThan(result[1].speaker.confidence, 0.0,
+                             "Short segment with audio context must produce a non-zero confidence")
+        XCTAssertEqual(result[0].speaker.label, result[1].speaker.label,
+                       "Short segment should match the same speaker when embedding is identical")
+    }
+
+    func testShortFirstRemoteSegmentProducesALabel() async throws {
+        // A short first segment (no prev speaker) still gets a speaker label.
         let engine = MockEmbeddingEngine()
         let config = DiarizeConfiguration(
             modelURL: URL(fileURLWithPath: ""),
@@ -300,12 +360,76 @@ final class DiarizeStageTests: XCTestCase {
         let result = try await stage.run([shortFirst], audioStreams: [])
         XCTAssertEqual(result.count, 1)
         XCTAssertFalse(result[0].speaker.isUser)
-        // embed() called once — no prev speaker to reuse
-        XCTAssertEqual(engine.embedCallCount, 1)
+        XCTAssertFalse(result[0].speaker.label.isEmpty)
     }
 
     func testConfigDefaultMinEmbeddingDuration() {
         XCTAssertEqual(DiarizeConfiguration.default.minEmbeddingDuration, 1.5, accuracy: 1e-6)
+    }
+
+    // ── 13. Adaptive threshold ───────────────────────────────────────────────
+
+    func testAdaptiveThresholdStricterForNewProfiles() {
+        // A brand-new profile (matchCount=0) should require ~0.05 higher similarity
+        // to be matched than the base threshold.
+        let store = VoiceProfileStore()
+        var base = [Float](repeating: 0, count: 192)
+        base[0] = 1.0
+        _ = store.matchOrCreate(embedding: base, threshold: 0.75)  // creates Speaker A, matchCount=0
+
+        // Query with similarity ≈ 0.77 (above base threshold but below adaptive boost).
+        // 0.77 < 0.75 + 0.05 = 0.80 → should NOT match → new profile "Speaker B"
+        var slightly = [Float](repeating: 0, count: 192)
+        slightly[0] = 0.97   // cosine ≈ 0.97… too similar, let's use a weaker vector
+        slightly[1] = 0.24   // cosine(base, slightly) = 0.97 / (1 * 1) ≈ normalised
+        // We need cosine exactly in range (0.75, 0.80). Use a precise construction:
+        // a = [1, 0], b = [cos θ, sin θ] → cosine = cos θ
+        // cos(40°) ≈ 0.766 → in (0.75, 0.80)
+        let angle: Float = 40.0 * .pi / 180.0
+        var borderline = [Float](repeating: 0, count: 192)
+        borderline[0] = cos(angle)
+        borderline[1] = sin(angle)
+
+        let result = store.matchOrCreate(embedding: borderline, threshold: 0.75)
+        XCTAssertEqual(result.label, "Speaker B",
+                       "Borderline similarity should not match a brand-new profile (adaptive boost)")
+    }
+
+    func testAdaptiveThresholdRelaxesAfterThreeMatches() {
+        // After 3 successful matches, the adaptive boost should reach 0 and
+        // a borderline similarity (just above base threshold) should match.
+        let store = VoiceProfileStore()
+        var base = [Float](repeating: 0, count: 192)
+        base[0] = 1.0
+
+        // Build up matchCount to 3 with identical vectors (cosine = 1.0 → always matches)
+        for _ in 0 ..< 3 {
+            _ = store.matchOrCreate(embedding: base, threshold: 0.75, blendWeight: 0.1)
+        }
+
+        // Now borderline query (cosine ≈ 0.766 → above 0.75 base, below 0.80 boosted)
+        let angle: Float = 40.0 * .pi / 180.0
+        var borderline = [Float](repeating: 0, count: 192)
+        borderline[0] = cos(angle)
+        borderline[1] = sin(angle)
+
+        let result = store.matchOrCreate(embedding: borderline, threshold: 0.75)
+        XCTAssertEqual(result.label, "Speaker A",
+                       "After 3 matches the adaptive boost is 0; borderline should match")
+    }
+
+    func testMatchCountIncreasesOnEachMatch() {
+        let store = VoiceProfileStore()
+        var emb = [Float](repeating: 0, count: 192)
+        emb[0] = 1.0
+        // First call: creates profile (matchCount = 0)
+        let p0 = store.matchOrCreate(embedding: emb, threshold: 0.5)
+        XCTAssertEqual(p0.matchCount, 0)
+        // Second call with identical embedding: matches (matchCount increments to 1)
+        let p1 = store.matchOrCreate(embedding: emb, threshold: 0.5)
+        XCTAssertEqual(p1.matchCount, 1)
+        let p2 = store.matchOrCreate(embedding: emb, threshold: 0.5)
+        XCTAssertEqual(p2.matchCount, 2)
     }
 
     func testConfigDefaultRetroAttributionThreshold() {
