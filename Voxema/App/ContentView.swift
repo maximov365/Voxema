@@ -2,34 +2,19 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var appState: AppState
-    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
             LibrarySidebarView()
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
-            detailContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            openSettings()
-                        } label: {
-                            Image(systemName: "gearshape")
-                                .font(.system(size: 13))
-                        }
-                        .help("Settings")
-                        .keyboardShortcut(",", modifiers: .command)
-                    }
-                }
+            VStack(spacing: 0) {
+                DetailToolbar()
+                detailContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
         .navigationSplitViewStyle(.balanced)
-        .searchable(
-            text: $appState.searchQuery,
-            placement: .toolbar,
-            prompt: "Search meetings…"
-        )
         .alert(
             "Recording Error",
             isPresented: Binding(
@@ -163,4 +148,101 @@ struct ContentView: View {
         .padding(.top, 16)
     }
     #endif
+}
+
+// MARK: - DetailToolbar
+
+/// Fixed 44-pt content-area header that sits above the detail pane.
+///
+/// Mirrors the mockup's `.main-toolbar` layout exactly:
+/// - Recording state: animated `● LIVE` badge on the left
+/// - All other states: search field (max 220 pt) on the left
+/// - Settings gear button always on the right
+private struct DetailToolbar: View {
+    @EnvironmentObject private var appState: AppState
+    @Environment(\.openSettings) private var openSettings
+    @State private var liveDotOpacity: Double = 1.0
+
+    var body: some View {
+        HStack(spacing: 8) {
+            leadingContent
+            Spacer()
+            settingsButton
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 44)
+        .overlay(alignment: .bottom) { Divider() }
+    }
+
+    // MARK: - Leading
+
+    @ViewBuilder
+    private var leadingContent: some View {
+        if case .recording = appState.pipelineState {
+            liveBadge
+        } else {
+            searchField
+        }
+    }
+
+    private var liveBadge: some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(Color.red)
+                .frame(width: 6, height: 6)
+                .opacity(liveDotOpacity)
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
+                        liveDotOpacity = 0.2
+                    }
+                }
+            Text("LIVE")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.red)
+                .kerning(0.04)
+        }
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+            TextField("Search meetings…", text: $appState.searchQuery)
+                .textFieldStyle(.plain)
+                .font(.system(size: 12))
+            if !appState.searchQuery.isEmpty {
+                Button {
+                    appState.searchQuery = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .frame(maxWidth: 220)
+    }
+
+    // MARK: - Trailing
+
+    private var settingsButton: some View {
+        Button {
+            openSettings()
+        } label: {
+            Image(systemName: "gearshape")
+                .font(.system(size: 13))
+                .frame(width: 28, height: 28)
+                .background(Color(nsColor: .controlBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
+        .buttonStyle(.plain)
+        .help("Settings")
+        .keyboardShortcut(",", modifiers: .command)
+    }
 }
