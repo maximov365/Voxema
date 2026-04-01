@@ -168,6 +168,12 @@ struct MeetingDetailView: View {
                 Text("Delete")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.red)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.red.opacity(0.4), lineWidth: 1)
+                    )
             }
             .buttonStyle(.plain)
         }

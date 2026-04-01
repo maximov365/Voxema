@@ -163,13 +163,14 @@ struct ProcessingView: View {
 // MARK: - PipelineStepRow
 
 private enum PipelineStep: Int, CaseIterable, Identifiable {
-    case transcribing, diarizing, summarizing, exporting
+    case transcribing, diarizing, refining, summarizing, exporting
     var id: Int { rawValue }
 
     var label: String {
         switch self {
         case .transcribing: return "Transcription"
         case .diarizing:    return "Speaker identification"
+        case .refining:     return "Transcript cleanup"
         case .summarizing:  return "Summary"
         case .exporting:    return "Saving"
         }
@@ -179,6 +180,7 @@ private enum PipelineStep: Int, CaseIterable, Identifiable {
         switch self {
         case .transcribing: return .transcribing(progress: 0)
         case .diarizing:    return .diarizing(progress: 0)
+        case .refining:     return .refining(progress: 0)
         case .summarizing:  return .summarizing(progress: 0)
         case .exporting:    return .exporting(progress: 0)
         }
@@ -186,8 +188,9 @@ private enum PipelineStep: Int, CaseIterable, Identifiable {
 
     func status(current: PipelineProcessingStage?) -> StepStatus {
         guard let current else { return .waiting }
-        if current.index > self.rawValue { return .done }
-        if current.index == self.rawValue { return .active }
+        let stageIndex = self.processingStage.index
+        if current.index > stageIndex { return .done }
+        if current.index == stageIndex { return .active }
         return .waiting
     }
 }

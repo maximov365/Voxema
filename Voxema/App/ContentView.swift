@@ -69,35 +69,51 @@ struct ContentView: View {
 
     private var emptyDetail: some View {
         VStack(spacing: 12) {
-            Image(systemName: "mic.circle")
-                .font(.system(size: 52))
-                .foregroundStyle(.quaternary)
-            Text("No meeting selected")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.secondary)
-            Text("Start a new recording or select a meeting from the list.")
-                .font(.system(size: 13))
-                .foregroundStyle(.tertiary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 260)
-            Button {
-                Task { await appState.startRecording() }
-            } label: {
-                Label("Start Recording", systemImage: "mic.fill")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 8)
-                    .background(Color.red)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-            .buttonStyle(.plain)
-            .padding(.top, 4)
-            .disabled(appState.pipelineState != .idle)
+            if appState.meetings.isEmpty {
+                Image(systemName: "mic")
+                    .font(.system(size: 44))
+                    .foregroundStyle(.quaternary)
+                Text("No meetings yet")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .opacity(0.7)
+                Text("Start a recording to capture and transcribe your next meeting.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 240)
+                Button {
+                    Task { await appState.startRecording() }
+                } label: {
+                    Label("Start Recording", systemImage: "mic.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 8)
+                        .background(Color.red)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 4)
+                .disabled(appState.pipelineState != .idle)
 
-            #if DEBUG
-            SCKDiagnosticsView()
-            #endif
+                #if DEBUG
+                SCKDiagnosticsView()
+                #endif
+            } else {
+                Image(systemName: "doc.on.clipboard")
+                    .font(.system(size: 44))
+                    .foregroundStyle(.quaternary)
+                Text("Select a meeting")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .opacity(0.7)
+                Text("Choose from the list to view transcript and summary.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 260)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
