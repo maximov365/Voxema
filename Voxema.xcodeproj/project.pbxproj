@@ -21,7 +21,7 @@
 		59804FB2B452B5A4BFE53412 /* SummarizeStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A046239045A9DF698277F7 /* SummarizeStage.swift */; };
 		59D94B45A5755F1E746510BE /* ExportStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001F42E79B4AF6153DFE7562 /* ExportStage.swift */; };
 		6F074E94A96846B02A0A7F91 /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366C41A391399F212715812E /* SettingsFeature.swift */; };
-		72E51A6B34E549B588FD8E4D /* voxema_llm_stub.c in Sources */ = {isa = PBXBuildFile; fileRef = BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */; };
+
 		765144BEA197E8C16647A484 /* WhisperEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9C408EA17B70F29A5D2B42 /* WhisperEngine.swift */; };
 		774E4F86BC957ECF30F4EF40 /* RecordingFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA14A23BAA040BBED193165 /* RecordingFeature.swift */; };
 		78282898C2224E8CAC72DC8C /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EFBD6805E8A457CBD1A5621 /* MenuBarView.swift */; };
@@ -57,6 +57,9 @@
 		E8F9A0B1C2D3E4F506071829 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D7E8A9B0C1D2E3F405060718 /* Assets.xcassets */; };
 		EB01E5579F7A4BA6AB64A22E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6E66AA4FE9344087A9996939 /* Sparkle */; };
 		FEA64BF9A609ED462F592AF3 /* PipelineCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB348A3B7CAD8F19BA24F27 /* PipelineCoordinator.swift */; };
+		CCDE001122334455667788BB /* llama.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CCDE001122334455667788AA /* llama.xcframework */; };
+		CCDE001122334455667788CC /* llama.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CCDE001122334455667788AA /* llama.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CCDE001122334455667788EE /* voxema_llm_gguf.mm in Sources */ = {isa = PBXBuildFile; fileRef = CCDE001122334455667788DD /* voxema_llm_gguf.mm */; };
 		/* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -97,7 +100,7 @@
 		B59005DF71F247CA9A047490 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = Voxema/App/AppState.swift; sourceTree = SOURCE_ROOT; };
 		BE244398BB7B0EB11B366116 /* Security.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Security.swift; path = Voxema/Core/Security/Security.swift; sourceTree = SOURCE_ROOT; };
 		BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MicrophoneCapture.swift; path = Voxema/Pipeline/Capture/MicrophoneCapture.swift; sourceTree = SOURCE_ROOT; };
-		BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = voxema_llm_stub.c; path = Voxema/Bridge/CLlama/voxema_llm_stub.c; sourceTree = SOURCE_ROOT; };
+
 		C949F91ACBCF46AA959F8D6A /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = Localizable.xcstrings; path = Voxema/Resources/Localizable.xcstrings; sourceTree = SOURCE_ROOT; };
 		CC1E446B894ABD98541008CE /* OnboardingFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingFeature.swift; path = Voxema/Features/Onboarding/OnboardingFeature.swift; sourceTree = SOURCE_ROOT; };
 		D4BF42BE8D185A762C01B2F5 /* Storage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Storage.swift; path = Voxema/Core/Storage/Storage.swift; sourceTree = SOURCE_ROOT; };
@@ -111,6 +114,8 @@
 		CDED1122334455667788AACC /* voxema_ecapa_coreml.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = voxema_ecapa_coreml.m; path = Voxema/Bridge/COnnxRuntime/voxema_ecapa_coreml.m; sourceTree = SOURCE_ROOT; };
 		CDED1122334455667788AACD /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
 		CDED1122334455667788AACF /* ecapa-tdnn.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = "ecapa-tdnn.mlpackage"; path = "Voxema/Resources/Models/ecapa-tdnn.mlpackage"; sourceTree = SOURCE_ROOT; };
+		CCDE001122334455667788AA /* llama.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = llama.xcframework; path = Voxema/Bridge/CLlama/Frameworks/llama.xcframework; sourceTree = SOURCE_ROOT; };
+		CCDE001122334455667788DD /* voxema_llm_gguf.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = voxema_llm_gguf.mm; path = Voxema/Bridge/CLlama/voxema_llm_gguf.mm; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,10 +128,25 @@
 				ACCE1122334455667788AABC /* Accelerate.framework in Frameworks */,
 				B1C2D3E4F5A601020304B1C4 /* Metal.framework in Frameworks */,
 				EB01E5579F7A4BA6AB64A22E /* Sparkle in Frameworks */,
+				CCDE001122334455667788BB /* llama.xcframework in Frameworks */,
 					);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CCDE001122334455667788FF /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CCDE001122334455667788CC /* llama.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXGroup section */
 		824EA6B62F7956E4009B7E04 = {
@@ -167,7 +187,8 @@
 				0ECF49B58438DDF0A5B40B27 /* SystemAudioCapture.swift */,
 				BE804516AA9BF4F43DA93637 /* MicrophoneCapture.swift */,
 				8B9C408EA17B70F29A5D2B42 /* WhisperEngine.swift */,
-			BFE3F92E811D424387B6E5D1 /* voxema_llm_stub.c */,
+			CCDE001122334455667788DD /* voxema_llm_gguf.mm */,
+			CCDE001122334455667788AA /* llama.xcframework */,
 			906F3DB6CBF94A31BB130892 /* voxema_ecapa_stub.c */,
 			ACCE1122334455667788AABD /* voxema_ecapa_mfcc.c */,
 				734E19C93A014C61B47D438A /* whisper.cpp */,
@@ -205,6 +226,7 @@
 				824EA6BB2F7956E4009B7E04 /* Sources */,
 				824EA6BC2F7956E4009B7E04 /* Frameworks */,
 				824EA6BD2F7956E4009B7E04 /* Resources */,
+				CCDE001122334455667788FF /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -314,7 +336,7 @@
 				BE8242588E4BE25E7C924905 /* SystemAudioCapture.swift in Sources */,
 				799D4441A8AF7B351609577D /* MicrophoneCapture.swift in Sources */,
 				765144BEA197E8C16647A484 /* WhisperEngine.swift in Sources */,
-				72E51A6B34E549B588FD8E4D /* voxema_llm_stub.c in Sources */,
+				CCDE001122334455667788EE /* voxema_llm_gguf.mm in Sources */,
 				CDED1122334455667788AACB /* voxema_ecapa_coreml.m in Sources */,
 							);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -460,6 +482,7 @@
 				"$(SRCROOT)/Voxema/Bridge/CWhisper/src",
 				"$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include",
 				"$(SRCROOT)/Voxema/Bridge/CLlama/include",
+				"$(SRCROOT)/Voxema/Bridge/CLlama/Frameworks/llama.xcframework/macos-arm64/Headers",
 			);
 			INFOPLIST_FILE = Voxema/Info.plist;
 			"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -539,6 +562,7 @@
 				"$(SRCROOT)/Voxema/Bridge/CWhisper/src",
 				"$(SRCROOT)/Voxema/Bridge/COnnxRuntime/include",
 				"$(SRCROOT)/Voxema/Bridge/CLlama/include",
+				"$(SRCROOT)/Voxema/Bridge/CLlama/Frameworks/llama.xcframework/macos-arm64/Headers",
 			);
 			INFOPLIST_FILE = Voxema/Info.plist;
 			"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
