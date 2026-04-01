@@ -102,6 +102,7 @@ private struct ModelsSettingsTab: View {
     @EnvironmentObject private var appState: AppState
     @ObservedObject private var mm = ModelManager.shared
     @State private var selectedWhisperID: String = AppPreferences.shared.whisperModelId
+    @State private var downloadError: String?
 
     private var whisperModels: [ModelInfo] {
         mm.manifest.models.filter { $0.family == .whisper }
@@ -116,8 +117,12 @@ private struct ModelsSettingsTab: View {
             } header: {
                 Text(String(localized: "Transcription Model"))
             } footer: {
-                Text(String(localized: "Select and download a model. Changes apply immediately after download."))
-                    .foregroundStyle(.secondary)
+                if let err = downloadError {
+                    Text(err).foregroundStyle(.red).font(.system(size: 11))
+                } else {
+                    Text(String(localized: "Select and download a model. Changes apply immediately after download."))
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .formStyle(.grouped)
@@ -176,17 +181,21 @@ private struct ModelsSettingsTab: View {
             // Download button for non-bundled missing models
             if status == .missing || status == .corrupt {
                 Button(String(localized: "Download")) {
+                    downloadError = nil
                     Task {
-                        try? await mm.download(model)
-                        // Auto-select and activate this model once downloaded
-                        if mm.statuses[model.id] == .available {
-                            selectedWhisperID = model.id
-                            AppPreferences.shared.whisperModelId = model.id
-                            appState.refreshPipeline()
+                        do {
+                            try await mm.download(model)
+                            if mm.statuses[model.id] == .available {
+                                selectedWhisperID = model.id
+                                AppPreferences.shared.whisperModelId = model.id
+                                appState.refreshPipeline()
+                            }
+                        } catch {
+                            downloadError = error.localizedDescription
                         }
                     }
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.borderedProminent)
                 .controlSize(.small)
             }
 
@@ -243,6 +252,7 @@ private struct SummarizationSettingsTab: View {
     @State private var selectedLLMID: String    = AppPreferences.shared.llmModelId
     @State private var apiKey: String           = CloudProvider.loadAPIKey() ?? ""
     @State private var showKey = false
+    @State private var downloadError: String?
 
     private var llmModels: [ModelInfo] {
         mm.manifest.models.filter { $0.family == .llm }
@@ -261,7 +271,7 @@ private struct SummarizationSettingsTab: View {
             }
 
             if selectedProvider == "local" {
-                Section(String(localized: "Local LLM")) {
+                Section {
                     ForEach(llmModels) { model in
                         llmRow(model)
                     }
@@ -269,6 +279,12 @@ private struct SummarizationSettingsTab: View {
                         Text(String(localized: "No LLM models in manifest."))
                             .foregroundStyle(.secondary)
                             .font(.system(size: 12))
+                    }
+                } header: {
+                    Text(String(localized: "Local LLM"))
+                } footer: {
+                    if let err = downloadError {
+                        Text(err).foregroundStyle(.red).font(.system(size: 11))
                     }
                 }
             }
@@ -367,9 +383,13 @@ private struct SummarizationSettingsTab: View {
 
             if status == .missing || status == .corrupt {
                 Button(String(localized: "Download")) {
-                    Task { try? await mm.download(model) }
+                    downloadError = nil
+                    Task {
+                        do { try await mm.download(model) }
+                        catch { downloadError = error.localizedDescription }
+                    }
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.borderedProminent)
                 .controlSize(.small)
             }
 
