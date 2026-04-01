@@ -861,6 +861,20 @@ The `.xcstrings` file is processed by Xcode and placed in `Contents/Resources/`.
 
 ---
 
+## 2026-04-01 — Git worktree workflow
+
+**Workflow outcome:** avoidable rework due to branch divergence
+
+### Worktree branch hygiene
+
+- **Never let a worktree branch accumulate commits that duplicate work already going into `main` via a separate path.** In this session the `claude/inspiring-chaum` branch was left idle while TASK-30 and the diarize improvements were committed directly to `main`. When TASK-10 was later committed on top of the stale worktree branch, merging required resolving conflicts in 7 files even though the new work itself was clean.
+- **The correct workflow for worktree branches:** commit only the specific task the branch was created for; push/merge to `main` immediately after each task completes. Don't let unrelated commits accumulate on both `main` and a worktree branch in parallel.
+- **When a branch has diverged and contains commits already present in `main`:** use `git cherry-pick <new-only-commit>` onto `main` instead of merging or rebasing the whole branch. This isolates only the genuinely new work and yields minimal, targeted conflicts.
+- **Resolving cherry-pick conflicts between two feature sets:** keep the best of both sides — don't discard improvements (adaptive threshold, weighted blend) to satisfy a persistence patch, and don't discard persistence to preserve existing logic. Both can and should coexist.
+- **Always end a successful task with `git push origin main`.** The worktree commit alone is not enough; the work is not "done" until it is on the remote.
+
+---
+
 ## 2026-03-29 — TASK-29: CoreML ECAPA-TDNN diarization (Phase 2)
 
 **Workflow outcome:** completed
