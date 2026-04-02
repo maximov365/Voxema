@@ -105,7 +105,8 @@ struct LibrarySidebarView: View {
 
     @ViewBuilder
     private var meetingList: some View {
-        let isProcessing = { if case .processing = appState.pipelineState { return true }; return false }()
+        let isProcessingForeground = { if case .processing = appState.pipelineState { return true }; return false }()
+        let isProcessing = isProcessingForeground || appState.backgroundProcessingCount > 0
         let doneMeetings = appState.meetings
 
         if !isProcessing && doneMeetings.isEmpty {

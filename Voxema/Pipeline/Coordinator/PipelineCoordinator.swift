@@ -26,6 +26,9 @@ public final class PipelineCoordinator: ObservableObject {
 
     @Published public private(set) var state: PipelineState = .idle
     @Published public private(set) var progress: PipelineProgress = .initial
+    /// Number of processing jobs running in background. > 0 means the sidebar
+    /// should show a "Processing…" row even when state is back to .idle.
+    @Published public private(set) var backgroundProcessingCount: Int = 0
 
     // MARK: - Dependencies
 
@@ -81,8 +84,9 @@ public final class PipelineCoordinator: ObservableObject {
         }
     }
 
-    /// Stops capture and runs Transcribe → Diarize → Summarize → Export.
-    /// Calling when not `.recording` is a no-op.
+    /// Stops capture and runs Transcribe → Diarize → Summarize → Export
+    /// as a background Task, returning state to `.idle` immediately so the
+    /// user can start a new recording while the previous one is being processed.
     public func stopRecording() async throws {
         guard state == .recording else {
             log.warning("stopRecording called in non-recording state")
@@ -98,7 +102,21 @@ public final class PipelineCoordinator: ObservableObject {
             state = .failed(err)
             throw err
         }
-        try await runProcessingPipeline(streams: streams)
+
+        // Return to idle immediately — processing runs in the background so
+        // the user can start a new recording without waiting.
+        state = .idle
+        backgroundProcessingCount += 1
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await self.runProcessingPipeline(streams: streams)
+            } catch {
+                // runProcessingPipeline already sets state to .failed; just log here.
+                self.log.error("background processing failed")
+            }
+            self.backgroundProcessingCount -= 1
+        }
     }
 
     // MARK: - Cancellation

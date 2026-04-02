@@ -187,11 +187,18 @@ public final class SummarizeStage: SummarizeStageProtocol {
 
     // MARK: - SummarizeStageProtocol
 
+    /// Minimum total word count across all segments required to invoke the LLM.
+    /// Below this threshold the transcript is too short for meaningful summarization
+    /// and small models hallucinate plausible-but-unrelated content instead.
+    private static let minWordsForSummary = 25
+
     public func run(_ segments: [DiarizedSegment]) async throws -> MeetingSummary {
         isCancelled = false
 
-        guard !segments.isEmpty else {
-            log.info("SummarizeStage: empty input — returning blank summary")
+        let totalWords = segments.reduce(0) { $0 + $1.text.split(separator: " ").count }
+
+        guard !segments.isEmpty, totalWords >= Self.minWordsForSummary else {
+            log.info("SummarizeStage: transcript too short — skipping LLM")
             return MeetingSummary(
                 meetingId:    UUID(),
                 summaryText:  "",

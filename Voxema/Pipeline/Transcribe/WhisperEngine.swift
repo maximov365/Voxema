@@ -75,9 +75,10 @@ public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
         params.print_realtime  = false
         params.print_special   = false
         params.print_timestamps = false
-        // With Metal GPU, matrix math runs on-device; keep only 2 CPU threads
-        // for preprocessing so the main actor and UI remain fully responsive.
-        params.n_threads = 2
+        // 4 CPU threads for preprocessing/postprocessing alongside Metal GPU.
+        // 2 was too conservative — on M-series, 4 threads + Metal gives best
+        // throughput without saturating the efficiency cores used by UI.
+        params.n_threads = 4
 
         // ── Quality tuning ───────────────────────────────────────────────────
         // beam_size=5: standard research setting; -1 (auto) maps to same value
@@ -86,18 +87,14 @@ public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
         // suppress_non_speech_tokens: removes filler tokens ([BLANK_AUDIO],
         // breathing, laughter markers) that pollute meeting transcripts.
         params.suppress_non_speech_tokens = true
-        // entropy_thold=2.0: tighter quality gate (default 2.4). Segments with
-        // high token-entropy (low-confidence, likely garbled) are retried with
-        // temperature_inc fallback instead of being emitted as-is.
-        params.entropy_thold = 2.0
+        // entropy_thold: keep at default (2.4) to avoid triggering temperature
+        // fallback retries. Each retry reruns the full beam search, so a tighter
+        // threshold can multiply inference time by 3-6×. Hallucination suppression
+        // is handled by the RMS gate and noSpeechProb post-filter instead.
+        // params.entropy_thold = 2.4  ← this is the default, no need to set
 
-        // ── Hallucination suppression ─────────────────────────────────────────
-        // logprob_thold: discard segments whose average token log-probability is
-        // below -0.5 (default -1.0). Hallucinated text (subtitle credits, random
-        // phrases) tends to have low logprob; real speech stays above -0.5.
-        params.logprob_thold = -0.5
-        // no_speech_thold: Whisper's internal gate — skip segment if
-        // no_speech_prob exceeds this value (default 0.6 → tighten to 0.45).
+        // no_speech_thold: Whisper's internal no-speech gate (default 0.6).
+        // Slight tighten to 0.45 is cheap — it only skips output, no retry cost.
         params.no_speech_thold = 0.45
 
         let langStr  = language ?? "auto"

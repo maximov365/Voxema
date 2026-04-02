@@ -41,6 +41,9 @@ public final class AppState: ObservableObject {
     /// Counts up from 0 while `pipelineState` is `.processing(...)` so the UI
     /// can show a live "processing for Xs…" indicator instead of a static subtitle.
     @Published public private(set) var processingElapsed: Int = 0
+    /// Number of background processing jobs in flight. Sidebar uses this to show
+    /// a "Processing…" row even when pipelineState is back to .idle.
+    @Published public private(set) var backgroundProcessingCount: Int = 0
     /// Last pipeline error surfaced to the UI.
     @Published public var pipelineError: PipelineError?
     /// `true` while notifications permission is being requested.
@@ -350,6 +353,13 @@ public final class AppState: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] progress in
                 self?.pipelineProgress = progress
+            }
+            .store(in: &coordinatorSubscriptions)
+
+        coordinator.$backgroundProcessingCount
+            .receive(on: RunLoop.main)
+            .sink { [weak self] count in
+                self?.backgroundProcessingCount = count
             }
             .store(in: &coordinatorSubscriptions)
     }
