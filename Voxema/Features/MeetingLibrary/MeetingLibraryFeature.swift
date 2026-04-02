@@ -8,10 +8,10 @@ struct LibrarySidebarView: View {
     var body: some View {
         VStack(spacing: 0) {
             recordButton
+            searchBar
             meetingList
         }
         .navigationTitle("Voxema")
-        .searchable(text: $appState.searchQuery, placement: .sidebar, prompt: "Search meetings…")
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
@@ -77,6 +77,30 @@ struct LibrarySidebarView: View {
         case .idle, .complete, .failed, .cancelled: return false
         default: return true
         }
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 12))
+                .foregroundStyle(.tertiary)
+            TextField("Search…", text: $appState.searchQuery)
+                .textFieldStyle(.plain)
+                .font(.system(size: 13))
+            if !appState.searchQuery.isEmpty {
+                Button { appState.searchQuery = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+        .padding(.horizontal, 12)
+        .padding(.bottom, 6)
     }
 
     @ViewBuilder
