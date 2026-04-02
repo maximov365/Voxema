@@ -11,6 +11,7 @@ struct LibrarySidebarView: View {
             meetingList
         }
         .navigationTitle("Voxema")
+        .searchable(text: $appState.searchQuery, placement: .sidebar, prompt: "Search meetings…")
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
