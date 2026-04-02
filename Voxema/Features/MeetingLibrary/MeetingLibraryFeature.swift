@@ -37,23 +37,23 @@ struct LibrarySidebarView: View {
         Button {
             Task { await appState.startRecording() }
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 BlinkingRecordDot(active: isRecordingActive)
                 Text(recordButtonLabel)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(recordButtonColor)
             )
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 10)
-        .padding(.top, 10)
-        .padding(.bottom, 6)
+        .padding(.horizontal, 12)
+        .padding(.top, 12)
+        .padding(.bottom, 14)
         .disabled(isRecordButtonDisabled)
         .opacity(isRecordButtonDisabled && appState.pipelineState != .recording ? 0.45 : 1)
         .animation(.easeInOut(duration: 0.2), value: appState.pipelineState)
@@ -149,19 +149,19 @@ struct MeetingRowView: View {
     let meeting: Meeting
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(meeting.title)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .lineLimit(1)
             HStack(spacing: 4) {
                 Text(relativeDate)
                 Text("·")
                 Text(durationText)
             }
-            .font(.system(size: 11))
+            .font(.system(size: 12))
             .foregroundStyle(.secondary)
         }
-        .padding(.vertical, 3)
+        .padding(.vertical, 5)
     }
 
     private var relativeDate: String {
