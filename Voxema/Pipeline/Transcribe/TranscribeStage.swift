@@ -161,7 +161,7 @@ public final class TranscribeStage: TranscribeStageProtocol {
 
     // MARK: - TranscribeStageProtocol
 
-    public func run(_ streams: [AudioStream]) async throws -> [TranscribedSegment] {
+    public func run(_ streams: [AudioStream], onProgress: ((Int) -> Void)? = nil) async throws -> [TranscribedSegment] {
         isCancelled = false
         guard !streams.isEmpty else { return [] }
 
@@ -174,10 +174,15 @@ public final class TranscribeStage: TranscribeStageProtocol {
         // Capped at 448 chars (~224 tokens) to stay within Whisper's prompt window.
         var rollingPrompt: String = config.initialPrompt ?? ""
 
+        let streamCount = streams.count
         var allSegments: [TranscribedSegment] = []
-        for stream in streams {
+        for (index, stream) in streams.enumerated() {
             if isCancelled { throw PipelineError.transcribeAudioFileEmpty }
-            let segments = try await transcribeStream(stream, prompt: rollingPrompt.isEmpty ? nil : rollingPrompt)
+            // Scale each stream's 0-100 progress into its share of the total.
+            let streamProgress: ((Int) -> Void)? = onProgress.map { cb in
+                { pct in cb((index * 100 + pct) / streamCount) }
+            }
+            let segments = try await transcribeStream(stream, prompt: rollingPrompt.isEmpty ? nil : rollingPrompt, onProgress: streamProgress)
             allSegments.append(contentsOf: segments)
 
             // Update rolling context with the tail of this channel's transcript
@@ -202,7 +207,7 @@ public final class TranscribeStage: TranscribeStageProtocol {
 
     // MARK: - Private
 
-    private func transcribeStream(_ stream: AudioStream, prompt: String?) async throws -> [TranscribedSegment] {
+    private func transcribeStream(_ stream: AudioStream, prompt: String?, onProgress: ((Int) -> Void)? = nil) async throws -> [TranscribedSegment] {
         let encURL        = URL(fileURLWithPath: stream.filePath)
         let channel       = stream.channel
         let modelURL      = config.modelURL
@@ -212,6 +217,7 @@ public final class TranscribeStage: TranscribeStageProtocol {
         let minRMS        = config.minAudioRMS
         let initialPrompt = prompt
         let engine        = engineFactory()
+        let progressHandler = onProgress
 
         // Use withCheckedThrowingContinuation + DispatchQueue.global() instead of
         // Task.detached. This puts the work on a plain GCD thread that has zero
@@ -276,7 +282,12 @@ public final class TranscribeStage: TranscribeStageProtocol {
 
                     try engine.loadModel(at: modelURL)
                     defer { engine.unloadModel() }
-                    let segs = try engine.transcribe(samples: vadSamples, language: language, initialPrompt: initialPrompt)
+                    let segs = try engine.transcribe(
+                        samples: vadSamples,
+                        language: language,
+                        initialPrompt: initialPrompt,
+                        onProgress: progressHandler
+                    )
                     continuation.resume(returning: segs)
                 } catch {
                     continuation.resume(throwing: error)

@@ -163,7 +163,10 @@ public final class PipelineCoordinator: ObservableObject {
         updateProgress(.transcribing(progress: 0))
         let rawSegments: [TranscribedSegment]
         do {
-            rawSegments = try await transcribeStage.run(streams)
+            rawSegments = try await transcribeStage.run(streams) { [weak self] pct in
+                // Called from a GCD thread — dispatch to main actor for @Published update.
+                DispatchQueue.main.async { self?.updateProgress(.transcribing(progress: Double(pct) / 100.0)) }
+            }
         } catch {
             let err = asPipelineError(error, fallback: .transcribeAudioFileCorrupt)
             state = .failed(err); throw err

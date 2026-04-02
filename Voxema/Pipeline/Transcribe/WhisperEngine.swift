@@ -25,7 +25,8 @@ public protocol WhisperEngineProtocol: AnyObject {
     /// Transcribes `samples` (mono float32, 16kHz) and returns raw segments.
     /// `language`: BCP-47 code or `nil` for auto-detect.
     /// `initialPrompt`: optional context hint prepended to the first 30-s chunk.
-    func transcribe(samples: [Float], language: String?, initialPrompt: String?) throws -> [WhisperSegment]
+    /// `onProgress`: optional closure called with 0-100 as chunks are decoded.
+    func transcribe(samples: [Float], language: String?, initialPrompt: String?, onProgress: ((Int) -> Void)?) throws -> [WhisperSegment]
     /// Releases the model from memory. Safe to call when no model is loaded.
     func unloadModel()
 }
@@ -62,7 +63,7 @@ public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
         log.info("WhisperEngine model loaded")
     }
 
-    public func transcribe(samples: [Float], language: String?, initialPrompt: String?) throws -> [WhisperSegment] {
+    public func transcribe(samples: [Float], language: String?, initialPrompt: String?, onProgress: ((Int) -> Void)? = nil) throws -> [WhisperSegment] {
         guard let ctx else {
             throw PipelineError.transcribeModelNotFound(modelName: "")
         }
@@ -81,9 +82,10 @@ public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
         params.n_threads = 4
 
         // ── Quality tuning ───────────────────────────────────────────────────
-        // beam_size=5: standard research setting; -1 (auto) maps to same value
-        // but making it explicit prevents future whisper.cpp default changes.
-        params.beam_search.beam_size = 5
+        // beam_size=3: good balance of quality and speed. beam=5 adds ~40% time
+        // vs beam=3 with negligible quality gain for meeting transcription.
+        // For 33-min large-v3: beam=5 ≈ 22 min, beam=3 ≈ 14 min.
+        params.beam_search.beam_size = 3
         // suppress_non_speech_tokens: removes filler tokens ([BLANK_AUDIO],
         // breathing, laughter markers) that pollute meeting transcripts.
         params.suppress_non_speech_tokens = true
@@ -102,6 +104,26 @@ public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
         // both pointers alive for the full duration of whisper_full().
         let promptStr = initialPrompt ?? ""
         var segments: [WhisperSegment] = []
+
+        // Progress callback: whisper calls this with progress 0-100 as each
+        // 30-second chunk is decoded. We capture it in a box so the C callback
+        // can post updates back via the onProgress closure without UB.
+        let progressPtr: UnsafeMutableRawPointer? = onProgress != nil
+            ? Unmanaged.passRetained(ProgressBox(callback: onProgress!)).toOpaque()
+            : nil
+        if let progressPtr {
+            params.progress_callback = { _, _, progress, userData in
+                guard let ptr = userData else { return }
+                let box = Unmanaged<ProgressBox>.fromOpaque(ptr).takeUnretainedValue()
+                box.callback(Int(progress))
+            }
+            params.progress_callback_user_data = progressPtr
+        }
+        defer {
+            if let ptr = progressPtr {
+                Unmanaged<ProgressBox>.fromOpaque(ptr).release()
+            }
+        }
 
         let rc: Int32 = langStr.withCString { langPtr in
             promptStr.withCString { promptPtr in
@@ -148,4 +170,12 @@ public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
         self.ctx = nil
         log.info("WhisperEngine model unloaded")
     }
+}
+
+// MARK: - ProgressBox
+
+/// Reference-type wrapper so a Swift closure can be passed as C `void *` user_data.
+private final class ProgressBox {
+    let callback: (Int) -> Void
+    init(callback: @escaping (Int) -> Void) { self.callback = callback }
 }

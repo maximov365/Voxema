@@ -20,7 +20,7 @@ public protocol CaptureStageProtocol: AnyObject {
 
 /// Contract for the Transcribe stage.
 public protocol TranscribeStageProtocol: AnyObject {
-    func run(_ streams: [AudioStream]) async throws -> [TranscribedSegment]
+    func run(_ streams: [AudioStream], onProgress: ((Int) -> Void)?) async throws -> [TranscribedSegment]
     func cancel()
 }
 
