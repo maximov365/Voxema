@@ -91,6 +91,15 @@ public final class WhisperEngine: WhisperEngineProtocol, @unchecked Sendable {
         // temperature_inc fallback instead of being emitted as-is.
         params.entropy_thold = 2.0
 
+        // ── Hallucination suppression ─────────────────────────────────────────
+        // logprob_thold: discard segments whose average token log-probability is
+        // below -0.5 (default -1.0). Hallucinated text (subtitle credits, random
+        // phrases) tends to have low logprob; real speech stays above -0.5.
+        params.logprob_thold = -0.5
+        // no_speech_thold: Whisper's internal gate — skip segment if
+        // no_speech_prob exceeds this value (default 0.6 → tighten to 0.45).
+        params.no_speech_thold = 0.45
+
         let langStr  = language ?? "auto"
         // Non-empty prompt is passed as a C string. Nested withCString calls keep
         // both pointers alive for the full duration of whisper_full().

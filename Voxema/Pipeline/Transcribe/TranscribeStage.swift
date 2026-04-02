@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 import Accelerate
+import CVad
 
 // MARK: - TranscribeConfiguration
 
@@ -27,8 +28,8 @@ public struct TranscribeConfiguration: Sendable {
     public static let `default` = TranscribeConfiguration(
         modelURL: URL(fileURLWithPath: ""),  // replaced at runtime by PipelineCoordinator
         language: nil,
-        noSpeechThreshold: 0.5,
-        minAudioRMS: 0.004,
+        noSpeechThreshold: 0.4,
+        minAudioRMS: 0.008,
         encryptionKeyId: "com.voxema.app.capture-audio-key",
         initialPrompt: "Meeting transcript:"
     )
@@ -36,8 +37,8 @@ public struct TranscribeConfiguration: Sendable {
     public init(
         modelURL: URL,
         language: String? = nil,
-        noSpeechThreshold: Float = 0.5,
-        minAudioRMS: Float = 0.004,
+        noSpeechThreshold: Float = 0.4,
+        minAudioRMS: Float = 0.008,
         encryptionKeyId: String = "com.voxema.app.capture-audio-key",
         initialPrompt: String? = "Meeting transcript:"
     ) {
@@ -251,9 +252,31 @@ public final class TranscribeStage: TranscribeStageProtocol {
                     } else {
                         transcribeSamples = samples
                     }
+                    // VAD: remove silent frames before feeding Whisper.
+                    // Cuts pauses/filler noise within the file, preventing
+                    // hallucinations on gaps between words.
+                    let vadSamples: [Float]
+                    var vadOut = [Float](repeating: 0, count: transcribeSamples.count)
+                    var vadCount: Int32 = 0
+                    let vadRC = transcribeSamples.withUnsafeBufferPointer { inBuf in
+                        vadOut.withUnsafeMutableBufferPointer { outBuf in
+                            voxema_vad_filter(
+                                inBuf.baseAddress, Int32(transcribeSamples.count),
+                                outBuf.baseAddress, &vadCount,
+                                2e-5,  // energy threshold
+                                0.15   // ZCR threshold
+                            )
+                        }
+                    }
+                    if vadRC == 0 && vadCount > 0 {
+                        vadSamples = Array(vadOut.prefix(Int(vadCount)))
+                    } else {
+                        vadSamples = transcribeSamples
+                    }
+
                     try engine.loadModel(at: modelURL)
                     defer { engine.unloadModel() }
-                    let segs = try engine.transcribe(samples: transcribeSamples, language: language, initialPrompt: initialPrompt)
+                    let segs = try engine.transcribe(samples: vadSamples, language: language, initialPrompt: initialPrompt)
                     continuation.resume(returning: segs)
                 } catch {
                     continuation.resume(throwing: error)
@@ -264,19 +287,29 @@ public final class TranscribeStage: TranscribeStageProtocol {
         guard !rawSegments.isEmpty else { return [] }
 
         let detectedLanguage = language ?? "und"
-        return rawSegments
-            .filter { $0.noSpeechProb < noSpeechGate }
-            .compactMap { seg -> TranscribedSegment? in
-                guard !seg.text.isEmpty else { return nil }
-                return TranscribedSegment(
-                    segmentId: UUID(),
-                    channel:   channel,
-                    startTime: Float(seg.startMs) / 1000.0,
-                    endTime:   Float(seg.endMs)   / 1000.0,
-                    text:      seg.text,
-                    language:  detectedLanguage,
-                    confidence: max(0, 1.0 - seg.noSpeechProb)
-                )
+
+        // Pass 1: noSpeechProb gate + empty text removal.
+        let filtered = rawSegments.filter { $0.noSpeechProb < noSpeechGate && !$0.text.isEmpty }
+
+        // Pass 2: deduplicate adjacent identical segments — a signature of
+        // Whisper hallucinations on silence where the same phrase repeats.
+        var deduped: [WhisperSegment] = []
+        for seg in filtered {
+            if deduped.last?.text != seg.text {
+                deduped.append(seg)
             }
+        }
+
+        return deduped.compactMap { seg -> TranscribedSegment? in
+            return TranscribedSegment(
+                segmentId: UUID(),
+                channel:   channel,
+                startTime: Float(seg.startMs) / 1000.0,
+                endTime:   Float(seg.endMs)   / 1000.0,
+                text:      seg.text,
+                language:  detectedLanguage,
+                confidence: max(0, 1.0 - seg.noSpeechProb)
+            )
+        }
     }
 }
