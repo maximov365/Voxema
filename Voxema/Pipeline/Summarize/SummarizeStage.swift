@@ -9,12 +9,36 @@ public enum PromptBuilder {
     static let transcriptPlaceholder = "{{transcript}}"
     static let languagePlaceholder   = "{{language}}"
 
+    /// Rough token count estimate: 1 token ≈ 3.5 characters (conservative for Russian/English mix).
+    static func estimateTokens(_ text: String) -> Int { max(1, text.count / 3) }
+
     /// Substitutes `{{transcript}}` and `{{language}}` in `template` with the
     /// formatted transcript and the dominant meeting language respectively.
-    public static func build(segments: [DiarizedSegment], template: String) -> String {
+    /// Truncates the transcript if the resulting prompt would exceed `maxPromptTokens`.
+    public static func build(
+        segments: [DiarizedSegment],
+        template: String,
+        maxPromptTokens: Int = 7200   // 8192 ctx − 512 output − ~480 system prompt
+    ) -> String {
         let lang       = dominantLanguage(segments: segments)
         let langName   = languageName(for: lang)
-        let transcript = formatTranscript(segments: segments)
+        var transcript = formatTranscript(segments: segments)
+
+        // Check if the full prompt fits; if not, truncate the transcript keeping
+        // the first 40% and last 40% of segments (drop the middle).
+        let fullPrompt = template
+            .replacingOccurrences(of: languagePlaceholder,   with: langName)
+            .replacingOccurrences(of: transcriptPlaceholder, with: transcript)
+
+        if estimateTokens(fullPrompt) > maxPromptTokens, segments.count > 4 {
+            let keep = max(2, segments.count * 2 / 5)  // 40% from each end
+            let head = Array(segments.prefix(keep))
+            let tail = Array(segments.suffix(keep))
+            let truncated = head + tail
+            transcript = formatTranscript(segments: truncated)
+                + "\n[...middle portion omitted — meeting too long for context window...]"
+        }
+
         return template
             .replacingOccurrences(of: languagePlaceholder,   with: langName)
             .replacingOccurrences(of: transcriptPlaceholder, with: transcript)
@@ -118,7 +142,7 @@ public struct SummarizeConfiguration: Sendable {
         provider: .local,
         modelName: "Qwen2.5-3B-Instruct-Q4_K_M.gguf",
         promptTemplate: PromptBuilder.defaultTemplate(),
-        maxNewTokens: 2048,
+        maxNewTokens: 512,
         maxRetries: 3,
         consentGranted: false,
         localModelURL: URL(fileURLWithPath: "")
@@ -128,7 +152,7 @@ public struct SummarizeConfiguration: Sendable {
         provider: ProviderType,
         modelName: String,
         promptTemplate: String,
-        maxNewTokens: Int = 2048,
+        maxNewTokens: Int = 512,
         maxRetries: Int = 3,
         consentGranted: Bool = false,
         localModelURL: URL = URL(fileURLWithPath: "")

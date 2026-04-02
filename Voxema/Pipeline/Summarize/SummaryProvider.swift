@@ -117,7 +117,7 @@ public final class LocalProvider: SummaryProviderProtocol {
     private var ctx: OpaquePointer?
     private let log = VoxemaLogger.make(category: "summarize.local")
 
-    public init(modelURL: URL, contextSize: Int = 4096, maxNewTokens: Int = 2048) {
+    public init(modelURL: URL, contextSize: Int = 8192, maxNewTokens: Int = 512) {
         self.modelURL = modelURL
         self.contextSize = contextSize
         self.maxNewTokens = maxNewTokens
