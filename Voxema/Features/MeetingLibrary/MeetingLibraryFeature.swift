@@ -3,11 +3,25 @@ import SwiftUI
 /// Sidebar view showing the meeting list with search.
 struct LibrarySidebarView: View {
     @EnvironmentObject private var appState: AppState
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(spacing: 0) {
             recordButton
             meetingList
+        }
+        .navigationTitle("Voxema")
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    openSettings()
+                } label: {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 13))
+                }
+                .help("Settings")
+                .keyboardShortcut(",", modifiers: .command)
+            }
         }
     }
 

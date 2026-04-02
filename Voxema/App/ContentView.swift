@@ -154,20 +154,16 @@ struct ContentView: View {
 
 /// Fixed 44-pt content-area header that sits above the detail pane.
 ///
-/// Mirrors the mockup's `.main-toolbar` layout exactly:
 /// - Recording state: animated `● LIVE` badge on the left
 /// - All other states: search field (max 220 pt) on the left
-/// - Settings gear button always on the right
 private struct DetailToolbar: View {
     @EnvironmentObject private var appState: AppState
-    @Environment(\.openSettings) private var openSettings
     @State private var liveDotOpacity: Double = 1.0
 
     var body: some View {
         HStack(spacing: 8) {
             leadingContent
             Spacer()
-            settingsButton
         }
         .padding(.horizontal, 10)
         .frame(height: 44)
@@ -229,20 +225,4 @@ private struct DetailToolbar: View {
         .frame(maxWidth: 220)
     }
 
-    // MARK: - Trailing
-
-    private var settingsButton: some View {
-        Button {
-            openSettings()
-        } label: {
-            Image(systemName: "gearshape")
-                .font(.system(size: 13))
-                .frame(width: 28, height: 28)
-                .background(Color(nsColor: .controlBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-        }
-        .buttonStyle(.plain)
-        .help("Settings")
-        .keyboardShortcut(",", modifiers: .command)
-    }
 }
