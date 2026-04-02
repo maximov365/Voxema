@@ -308,7 +308,7 @@ public struct MeetingMetadata: Codable, Equatable, Hashable, Sendable {
 
 /// Top-level entity representing a single recorded and processed meeting.
 /// Corresponds to `Meeting` in PIPELINE_CONTRACTS.md.
-public struct Meeting: Codable, Equatable, Hashable, Sendable, Identifiable {
+public struct Meeting: Equatable, Hashable, Sendable, Identifiable {
     public var id: UUID { meetingId }
     public let meetingId: UUID
     public let title: String
@@ -318,8 +318,11 @@ public struct Meeting: Codable, Equatable, Hashable, Sendable, Identifiable {
     /// `nil` before summarization runs or when summarization has failed.
     public let summary: MeetingSummary?
     public let speakers: [SpeakerIdentity]
-    /// True after temporary audio files have been deleted.
+    /// True after audio files have been explicitly deleted by the user.
     public let audioDeleted: Bool
+    /// Paths to the encrypted `.enc` audio files retained for reprocessing.
+    /// Empty when `audioDeleted` is true or on legacy records.
+    public let audioFilePaths: [String]
     public let metadata: MeetingMetadata
 
     public init(
@@ -331,29 +334,48 @@ public struct Meeting: Codable, Equatable, Hashable, Sendable, Identifiable {
         summary: MeetingSummary? = nil,
         speakers: [SpeakerIdentity] = [],
         audioDeleted: Bool = false,
+        audioFilePaths: [String] = [],
         metadata: MeetingMetadata
     ) {
-        self.meetingId = meetingId
-        self.title = title
-        self.recordedAt = recordedAt
+        self.meetingId       = meetingId
+        self.title           = title
+        self.recordedAt      = recordedAt
         self.durationSeconds = durationSeconds
-        self.transcript = transcript
-        self.summary = summary
-        self.speakers = speakers
-        self.audioDeleted = audioDeleted
-        self.metadata = metadata
+        self.transcript      = transcript
+        self.summary         = summary
+        self.speakers        = speakers
+        self.audioDeleted    = audioDeleted
+        self.audioFilePaths  = audioFilePaths
+        self.metadata        = metadata
     }
+}
 
+extension Meeting: Codable {
     enum CodingKeys: String, CodingKey {
-        case meetingId = "meeting_id"
+        case meetingId       = "meeting_id"
         case title
-        case recordedAt = "recorded_at"
+        case recordedAt      = "recorded_at"
         case durationSeconds = "duration_seconds"
         case transcript
         case summary
         case speakers
-        case audioDeleted = "audio_deleted"
+        case audioDeleted    = "audio_deleted"
+        case audioFilePaths  = "audio_file_paths"
         case metadata
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        meetingId       = try c.decode(UUID.self,              forKey: .meetingId)
+        title           = try c.decode(String.self,            forKey: .title)
+        recordedAt      = try c.decode(Date.self,              forKey: .recordedAt)
+        durationSeconds = try c.decode(Float.self,             forKey: .durationSeconds)
+        transcript      = try c.decode([DiarizedSegment].self, forKey: .transcript)
+        summary         = try c.decodeIfPresent(MeetingSummary.self, forKey: .summary)
+        speakers        = try c.decode([SpeakerIdentity].self, forKey: .speakers)
+        audioDeleted    = try c.decodeIfPresent(Bool.self,     forKey: .audioDeleted)    ?? false
+        audioFilePaths  = try c.decodeIfPresent([String].self, forKey: .audioFilePaths) ?? []
+        metadata        = try c.decode(MeetingMetadata.self,   forKey: .metadata)
     }
 }
 

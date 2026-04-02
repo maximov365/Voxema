@@ -281,6 +281,7 @@ public final class AppState: ObservableObject {
             summary:         existing.summary,
             speakers:        existing.speakers,
             audioDeleted:    existing.audioDeleted,
+            audioFilePaths:  existing.audioFilePaths,
             metadata:        existing.metadata
         )
         try? store.save(renamed)
@@ -288,10 +289,104 @@ public final class AppState: ObservableObject {
     }
 
     /// Deletes the meeting with the given `id` (hard delete — irreversible).
+    /// Also deletes any retained audio files for that meeting.
     public func deleteMeeting(id: UUID) {
+        if let meeting = meetings.first(where: { $0.meetingId == id }) {
+            deleteAudioFiles(for: meeting)
+        }
         try? store.delete(id: id)
         if selectedMeetingId == id { selectedMeetingId = nil }
         loadMeetings()
+    }
+
+    /// Deletes only the audio files for a meeting without removing the meeting record.
+    public func deleteAudio(for meetingId: UUID) {
+        guard let meeting = meetings.first(where: { $0.meetingId == meetingId }) else { return }
+        deleteAudioFiles(for: meeting)
+        let updated = Meeting(
+            meetingId:       meeting.meetingId,
+            title:           meeting.title,
+            recordedAt:      meeting.recordedAt,
+            durationSeconds: meeting.durationSeconds,
+            transcript:      meeting.transcript,
+            summary:         meeting.summary,
+            speakers:        meeting.speakers,
+            audioDeleted:    true,
+            audioFilePaths:  [],
+            metadata:        meeting.metadata
+        )
+        try? store.save(updated)
+        loadMeetings()
+    }
+
+    /// Reruns the full processing pipeline on a meeting's retained audio files.
+    /// No-op if audio has been deleted or the pipeline is currently active.
+    public func reprocessMeeting(id: UUID) async {
+        guard case .idle = pipelineState else {
+            log.warning("reprocessMeeting: pipeline not idle")
+            return
+        }
+        guard let meeting = meetings.first(where: { $0.meetingId == id }),
+              !meeting.audioFilePaths.isEmpty,
+              !meeting.audioDeleted else {
+            log.warning("reprocessMeeting: no audio available for meeting", "\(id)")
+            return
+        }
+
+        // Verify files exist on disk
+        let existingPaths = meeting.audioFilePaths.filter {
+            FileManager.default.fileExists(atPath: $0)
+        }
+        guard !existingPaths.isEmpty else {
+            log.warning("reprocessMeeting: audio files missing from disk")
+            // Mark as deleted so UI stops offering reprocess
+            deleteAudio(for: id)
+            return
+        }
+
+        // Reconstruct AudioStream objects from saved paths
+        let streams: [AudioStream] = existingPaths.compactMap { path in
+            let isRemote = path.contains("-remote")
+            return AudioStream(
+                streamId: UUID(),
+                channel: isRemote ? .remote : .local,
+                format: "PCM 16kHz mono",
+                filePath: path,
+                durationSeconds: meeting.durationSeconds,
+                deviceName: isRemote ? "System Audio" : "Microphone",
+                recordedAt: meeting.recordedAt
+            )
+        }
+
+        log.info("reprocessMeeting: starting pipeline for meeting", "\(id)")
+        coordinator.reset()
+        pipelineError = nil
+
+        // Delete old meeting record so export creates a fresh one
+        try? store.delete(id: id)
+        if selectedMeetingId == id { selectedMeetingId = nil }
+        loadMeetings()
+
+        // Run pipeline as background task (same as normal processing)
+        coordinator.backgroundProcessingCount += 1
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await self.coordinator.runProcessingPipelinePublic(streams: streams)
+            } catch {
+                self.log.error("reprocessMeeting: pipeline failed")
+            }
+            self.coordinator.backgroundProcessingCount -= 1
+        }
+    }
+
+    private func deleteAudioFiles(for meeting: Meeting) {
+        for path in meeting.audioFilePaths {
+            try? FileManager.default.removeItem(atPath: path)
+        }
+        if !meeting.audioFilePaths.isEmpty {
+            log.info("deleted audio files for meeting", "\(meeting.meetingId)")
+        }
     }
 
     /// Returns the currently selected `Meeting`, if any.

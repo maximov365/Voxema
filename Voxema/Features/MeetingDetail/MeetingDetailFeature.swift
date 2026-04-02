@@ -88,6 +88,17 @@ struct MeetingDetailView: View {
             }
             .font(.system(size: 11))
             .foregroundStyle(.secondary)
+            if !meeting.audioDeleted && !meeting.audioFilePaths.isEmpty {
+                Button {
+                    Task { await appState.reprocessMeeting(id: meeting.meetingId) }
+                } label: {
+                    Label("Reprocess", systemImage: "arrow.clockwise")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Re-run transcription and summarization using the saved audio")
+            }
         }
         .padding(.horizontal, 18)
         .padding(.top, 14)

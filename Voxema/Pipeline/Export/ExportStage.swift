@@ -157,22 +157,16 @@ public final class ExportStage: ExportStageProtocol {
         isCancelled = false
         let meeting = buildMeeting(from: input)
 
-        // 1. Persist — must succeed before any destructive operation
+        // Persist — audio files are kept on disk (not deleted) so the user can
+        // reprocess if summarization crashes. Files are deleted only when the
+        // user explicitly deletes the meeting or its audio via the UI.
         do {
             try store.save(meeting)
         } catch {
             log.error("ExportStage: database write failed")
             throw PipelineError.exportDatabaseWriteFailure
         }
-        log.info("ExportStage: meeting saved")
-
-        // 2. Delete temporary encrypted audio files (best-effort after successful DB write)
-        for path in input.audioFilePaths {
-            try? FileManager.default.removeItem(atPath: path)
-        }
-        if !input.audioFilePaths.isEmpty {
-            log.info("ExportStage: audio files removed")
-        }
+        log.info("ExportStage: meeting saved, audio retained", "paths=\(input.audioFilePaths.count)")
 
         return meeting
     }
@@ -196,13 +190,14 @@ public final class ExportStage: ExportStageProtocol {
         let title = "Meeting — \(dateFormatter.string(from: Date()))"
 
         return Meeting(
-            title:          title,
+            title:           title,
             durationSeconds: duration,
-            transcript:     input.segments,
-            summary:        input.summary,
-            speakers:       uniqueSpeakers,
-            audioDeleted:   !input.audioFilePaths.isEmpty,
-            metadata:       input.metadata
+            transcript:      input.segments,
+            summary:         input.summary,
+            speakers:        uniqueSpeakers,
+            audioDeleted:    false,
+            audioFilePaths:  input.audioFilePaths,
+            metadata:        input.metadata
         )
     }
 }

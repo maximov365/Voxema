@@ -218,6 +218,7 @@ private struct MeetingRow: FetchableRecord, PersistableRecord {
             summary:         m.summary,
             speakers:        m.speakers,
             audioDeleted:    audioDeleted,
+            audioFilePaths:  m.audioFilePaths,
             metadata:        m.metadata
         )
     }

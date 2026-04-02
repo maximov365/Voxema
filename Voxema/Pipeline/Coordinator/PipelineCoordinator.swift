@@ -28,7 +28,7 @@ public final class PipelineCoordinator: ObservableObject {
     @Published public private(set) var progress: PipelineProgress = .initial
     /// Number of processing jobs running in background. > 0 means the sidebar
     /// should show a "Processing…" row even when state is back to .idle.
-    @Published public private(set) var backgroundProcessingCount: Int = 0
+    @Published public internal(set) var backgroundProcessingCount: Int = 0
 
     // MARK: - Dependencies
 
@@ -155,6 +155,11 @@ public final class PipelineCoordinator: ObservableObject {
     }
 
     // MARK: - Processing Pipeline
+
+    /// Public entry point for reprocessing from AppState.
+    public func runProcessingPipelinePublic(streams: [AudioStream]) async throws {
+        try await runProcessingPipeline(streams: streams)
+    }
 
     private func runProcessingPipeline(streams: [AudioStream]) async throws {
 

@@ -26,9 +26,10 @@ public struct CaptureConfiguration: Sendable {
 
     /// Default configuration using the system temp directory.
     public static let `default` = CaptureConfiguration(
-        tempDirectory: FileManager.default
-            .temporaryDirectory
-            .appendingPathComponent("com.voxema.app.capture", isDirectory: true),
+        tempDirectory: (FileManager.default
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first ?? FileManager.default.temporaryDirectory)
+            .appendingPathComponent("Voxema/Audio", isDirectory: true),
         encryptionKeyId: "com.voxema.app.capture-audio-key",
         microphoneDeviceUID: nil
     )
