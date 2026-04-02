@@ -17,6 +17,7 @@ public final class AppPreferences {
         static let whisperLanguage        = "voxema.whisperLanguage"
         static let llmModelId             = "voxema.llmModelId"
         static let summarizationProvider  = "voxema.summarizationProvider"
+        static let audioRetentionDays     = "voxema.audioRetentionDays"
     }
 
     // MARK: - Preferences
@@ -57,5 +58,20 @@ public final class AppPreferences {
         set { UserDefaults.standard.set(newValue, forKey: Keys.summarizationProvider) }
     }
 
+    /// Number of days to retain audio files after recording.
+    /// -1 = keep forever, 0 = delete after processing, 30/90/180 = N days.
+    /// Default: -1 (keep forever).
+    public var audioRetentionDays: Int {
+        get {
+            let v = UserDefaults.standard.integer(forKey: Keys.audioRetentionDays)
+            return v == 0 && !UserDefaults.standard.contains(Keys.audioRetentionDays) ? -1 : v
+        }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.audioRetentionDays) }
+    }
+
     private init() {}
+}
+
+private extension UserDefaults {
+    func contains(_ key: String) -> Bool { object(forKey: key) != nil }
 }

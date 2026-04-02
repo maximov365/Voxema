@@ -149,6 +149,7 @@ public final class AppState: ObservableObject {
         self.store = store
         observeCoordinator()
         loadMeetings()
+        cleanupExpiredAudio()
     }
 
     // MARK: - Recording
@@ -377,6 +378,47 @@ public final class AppState: ObservableObject {
                 self.log.error("reprocessMeeting: pipeline failed")
             }
             self.coordinator.backgroundProcessingCount -= 1
+        }
+    }
+
+    /// Total bytes used by all retained audio files across all meetings.
+    public var audioStorageUsedBytes: Int64 {
+        let audioDir = (FileManager.default
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first ?? FileManager.default.temporaryDirectory)
+            .appendingPathComponent("Voxema/Audio")
+        guard let enumerator = FileManager.default.enumerator(
+            at: audioDir,
+            includingPropertiesForKeys: [.fileSizeKey],
+            options: .skipsHiddenFiles
+        ) else { return 0 }
+        var total: Int64 = 0
+        for case let url as URL in enumerator {
+            if let size = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+                total += Int64(size)
+            }
+        }
+        return total
+    }
+
+    /// Deletes audio files for meetings older than `audioRetentionDays` days.
+    /// No-op when retention is -1 (keep forever) or 0 (managed by export stage).
+    public func cleanupExpiredAudio() {
+        let days = AppPreferences.shared.audioRetentionDays
+        guard days > 0 else { return }
+        let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+        for meeting in meetings where !meeting.audioDeleted && !meeting.audioFilePaths.isEmpty {
+            if meeting.recordedAt < cutoff {
+                log.info("cleanupExpiredAudio: expiring audio for meeting older than retention threshold", "\(days) days")
+                deleteAudio(for: meeting.meetingId)
+            }
+        }
+    }
+
+    /// Deletes all retained audio across all meetings immediately.
+    public func deleteAllAudio() {
+        for meeting in meetings where !meeting.audioDeleted && !meeting.audioFilePaths.isEmpty {
+            deleteAudio(for: meeting.meetingId)
         }
     }
 

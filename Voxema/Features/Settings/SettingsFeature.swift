@@ -13,6 +13,8 @@ struct SettingsView: View {
                 .tabItem { Label(String(localized: "Models"), systemImage: "cpu") }
             SummarizationSettingsTab()
                 .tabItem { Label(String(localized: "Summarization"), systemImage: "text.bubble") }
+            StorageSettingsTab()
+                .tabItem { Label(String(localized: "Storage"), systemImage: "internaldrive") }
         }
         .frame(width: 500)
         .fixedSize()
@@ -412,5 +414,99 @@ private struct SummarizationSettingsTab: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(color.opacity(0.12), in: Capsule())
+    }
+}
+
+// MARK: - Storage Settings Tab
+
+private struct StorageSettingsTab: View {
+    @EnvironmentObject private var appState: AppState
+    @State private var retentionDays: Int = AppPreferences.shared.audioRetentionDays
+    @State private var showDeleteAllConfirmation = false
+
+    private let retentionOptions: [(label: String, days: Int)] = [
+        ("Delete after processing", 0),
+        ("30 days",  30),
+        ("3 months", 90),
+        ("6 months", 180),
+        ("Keep forever", -1),
+    ]
+
+    var body: some View {
+        Form {
+            Section {
+                Picker("Keep audio for", selection: $retentionDays) {
+                    ForEach(retentionOptions, id: \.days) { option in
+                        Text(option.label).tag(option.days)
+                    }
+                }
+                .onChange(of: retentionDays) { newValue in
+                    AppPreferences.shared.audioRetentionDays = newValue
+                    if newValue >= 0 {
+                        appState.cleanupExpiredAudio()
+                    }
+                }
+
+                Text(retentionExplanation)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+
+            } header: {
+                Text("Audio Retention")
+            }
+
+            Section {
+                HStack {
+                    Text("Audio storage used")
+                    Spacer()
+                    Text(formattedStorageUsed)
+                        .foregroundStyle(.secondary)
+                }
+
+                Button(role: .destructive) {
+                    showDeleteAllConfirmation = true
+                } label: {
+                    Label("Delete All Audio Now", systemImage: "trash")
+                }
+                .disabled(appState.audioStorageUsedBytes == 0)
+                .confirmationDialog(
+                    "Delete All Audio Recordings?",
+                    isPresented: $showDeleteAllConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button("Delete All Audio", role: .destructive) {
+                        appState.deleteAllAudio()
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Transcripts and summaries will be kept. This cannot be undone.")
+                }
+            } header: {
+                Text("Usage")
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
+    }
+
+    private var formattedStorageUsed: String {
+        let bytes = appState.audioStorageUsedBytes
+        if bytes == 0 { return "0 KB" }
+        let mb = Double(bytes) / 1_048_576
+        if mb < 1 { return String(format: "%.0f KB", Double(bytes) / 1024) }
+        if mb < 1024 { return String(format: "%.1f MB", mb) }
+        return String(format: "%.2f GB", mb / 1024)
+    }
+
+    private var retentionExplanation: String {
+        switch retentionDays {
+        case 0:  return "Audio is deleted immediately after processing completes. Reprocessing will not be available."
+        case -1: return "Audio is kept indefinitely until you delete it manually."
+        default: return "Audio older than \(retentionLabel(retentionDays)) is deleted automatically on app launch."
+        }
+    }
+
+    private func retentionLabel(_ days: Int) -> String {
+        retentionOptions.first { $0.days == days }?.label.lowercased() ?? "\(days) days"
     }
 }

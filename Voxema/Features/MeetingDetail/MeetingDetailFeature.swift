@@ -11,6 +11,7 @@ struct MeetingDetailView: View {
     @State private var editingTitle: String = ""
     @State private var isEditingTitle = false
     @State private var showDeleteConfirmation = false
+    @State private var showDeleteAudioConfirmation = false
     @State private var exportError: String? = nil
 
     enum DetailTab: String, CaseIterable {
@@ -37,7 +38,11 @@ struct MeetingDetailView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This action is permanent and cannot be undone.")
+            if !meeting.audioFilePaths.isEmpty && !meeting.audioDeleted {
+                Text("The meeting, transcript, summary, and audio recording will be permanently deleted.")
+            } else {
+                Text("This action is permanent and cannot be undone.")
+            }
         }
         .alert(
             String(localized: "Export Failed"),
@@ -88,17 +93,7 @@ struct MeetingDetailView: View {
             }
             .font(.system(size: 11))
             .foregroundStyle(.secondary)
-            if !meeting.audioDeleted && !meeting.audioFilePaths.isEmpty {
-                Button {
-                    Task { await appState.reprocessMeeting(id: meeting.meetingId) }
-                } label: {
-                    Label("Reprocess", systemImage: "arrow.clockwise")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .help("Re-run transcription and summarization using the saved audio")
-            }
+            audioStatusRow
         }
         .padding(.horizontal, 18)
         .padding(.top, 14)
@@ -107,6 +102,67 @@ struct MeetingDetailView: View {
         .overlay(alignment: .bottom) {
             Divider()
         }
+    }
+
+    // MARK: - Audio Status Row
+
+    @ViewBuilder
+    private var audioStatusRow: some View {
+        if !meeting.audioFilePaths.isEmpty && !meeting.audioDeleted {
+            // Audio is available
+            HStack(spacing: 10) {
+                Image(systemName: "waveform")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                Text("Audio available")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button {
+                    Task { await appState.reprocessMeeting(id: meeting.meetingId) }
+                } label: {
+                    Label("Reprocess", systemImage: "arrow.clockwise")
+                        .font(.system(size: 11))
+                }
+                .buttonStyle(.borderless)
+                .help("Re-run transcription and summarization using the saved audio")
+
+                Button {
+                    showDeleteAudioConfirmation = true
+                } label: {
+                    Label("Delete Audio", systemImage: "trash")
+                        .font(.system(size: 11))
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.red.opacity(0.8))
+                .help("Delete audio recording to free up disk space")
+                .confirmationDialog(
+                    "Delete Audio Recording?",
+                    isPresented: $showDeleteAudioConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button("Delete Audio", role: .destructive) {
+                        appState.deleteAudio(for: meeting.meetingId)
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("The transcript and summary will be kept. This cannot be undone.")
+                }
+            }
+            .padding(.top, 4)
+        } else if meeting.audioDeleted {
+            // Audio was explicitly deleted
+            HStack(spacing: 6) {
+                Image(systemName: "waveform.slash")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.quaternary)
+                Text("Audio deleted")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.quaternary)
+            }
+            .padding(.top, 2)
+        }
+        // audioFilePaths.isEmpty + audioDeleted == false → legacy record, show nothing
     }
 
     // MARK: - Tab Bar
