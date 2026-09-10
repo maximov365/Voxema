@@ -32,5 +32,17 @@
     "Configured commands are source-verified, not an assertion that their dependencies or checks passed.",
     "Budget values are proposed acceptance targets; results must include measured evidence."
   ],
-  "architecture_review": "Preserved project-specific stages: names alone do not establish that a pipeline is obsolete."
+  "architecture_review": "Preserved project-specific stages: names alone do not establish that a pipeline is obsolete.",
+  "navigation": {
+    "source": [
+      "Voxema"
+    ],
+    "tests": [
+      "VoxemaTests"
+    ],
+    "references": [
+      "Package.swift",
+      "Voxema.xcodeproj/project.pbxproj"
+    ]
+  }
 }
