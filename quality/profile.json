@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "kinds": [
+    "desktop"
+  ],
+  "targets": [
+    "macOS arm64; supported minimum OS from Package.swift"
+  ],
+  "checks": [
+    {
+      "id": "unit",
+      "status": "configured",
+      "command": [
+        "swift",
+        "test"
+      ],
+      "cwd": ".",
+      "defined_by": [
+        "Package.swift"
+      ],
+      "timeout_seconds": 300
+    },
+    {
+      "id": "native-ui",
+      "status": "unavailable",
+      "reason": "Requires built macOS app and a capture/audio permission test session."
+    }
+  ],
+  "budgets": [],
+  "reviewed_on": "2026-09-10",
+  "notes": [
+    "Configured commands are source-verified, not an assertion that their dependencies or checks passed.",
+    "Budget values are proposed acceptance targets; results must include measured evidence."
+  ],
+  "architecture_review": "Preserved project-specific stages: names alone do not establish that a pipeline is obsolete."
+}

@@ -68,21 +68,11 @@ Voxema/Resources/Models/*
 
 
 # >>> agent-system framework (managed by sync.py) >>>
-/agents/
-/AGENTS.md
-/CLAUDE.md
-/.cursor/rules.md
-/docs/AGENT_HANDOFF_CONTRACT.md
-/docs/AGENT_EXECUTION_MODEL.md
-/docs/TASK_BACKLOG_AUTOMATION.md
-/docs/ARCHITECTURE_GUARDRAILS.md
-/docs/ARCHITECTURE_CHECKLIST.md
-/docs/TASK_TEMPLATE.md
-/docs/ONBOARDING.md
-/setup.py
-/requirements-framework.txt
-/.agent-system-version
 /.templates/
+/.agent/
+/.agent-system/**/node_modules/
+/.agent-system/**/__pycache__/
+/.agent-system/**/.venv/
 # <<< agent-system framework <<<
 
 # CoreML model — generated locally via scripts/convert_ecapa_coreml.py (~80 MB)
